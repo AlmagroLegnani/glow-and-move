@@ -1,0 +1,76 @@
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
+
+const PLANS = [
+  {
+    slug: 'economico',
+    name: 'Plan Económico',
+    priceUsd: 3.99,
+    billingPeriod: 'mensual',
+    hasAds: true,
+    routineOptions: 1,
+    sortOrder: 1,
+    features: ['Rutina genérica (1 opción a elegir)', 'Asistente IA para dudas'],
+  },
+  {
+    slug: 'basico',
+    name: 'Plan Básico',
+    priceUsd: 6.99,
+    billingPeriod: 'mensual',
+    hasAds: true,
+    routineOptions: 2,
+    sortOrder: 2,
+    features: [
+      'Rutina genérica (2 opciones a elegir)',
+      'Buzón de comentarios de la app',
+      'Asistente IA para dudas',
+    ],
+  },
+  {
+    slug: 'premium',
+    name: 'Plan Premium',
+    priceUsd: 8.99,
+    billingPeriod: 'semestral',
+    hasAds: false,
+    routineOptions: 3,
+    sortOrder: 3,
+    features: [
+      'Rutina genérica (3 opciones a elegir)',
+      'Videos disponibles de los ejercicios',
+      'Buzón de comentarios + Asistente IA',
+    ],
+  },
+  {
+    slug: 'full',
+    name: 'Plan Full',
+    priceUsd: 12.99,
+    billingPeriod: 'anual',
+    hasAds: false,
+    routineOptions: 1,
+    sortOrder: 4,
+    features: [
+      'Rutina de entrenamiento personalizada',
+      'Videos de ejercicios y seguimiento de progreso',
+      '10% de descuento en convenios y G&M Shop',
+      'Dudas por WhatsApp cuando la IA no responde',
+    ],
+  },
+];
+
+async function main() {
+  for (const plan of PLANS) {
+    await prisma.plan.upsert({
+      where: { slug: plan.slug },
+      update: plan,
+      create: plan,
+    });
+  }
+  console.log(`Seed ok: ${PLANS.length} planes.`);
+}
+
+main()
+  .catch((err) => {
+    console.error(err);
+    process.exit(1);
+  })
+  .finally(() => prisma.$disconnect());

@@ -19,8 +19,12 @@ export default function Contact() {
     e.preventDefault();
     setStatus('sending');
     try {
-      // Reemplazar por un endpoint real (ej. POST /api/contact) cuando esté disponible.
-      await new Promise((resolve) => setTimeout(resolve, 700));
+      const res = await fetch(`${API_URL}/api/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: form.name, email: form.email, comments: form.message }),
+      });
+      if (!res.ok) throw new Error('request failed');
       setStatus('sent');
       setForm({ name: '', email: '', message: '' });
     } catch {

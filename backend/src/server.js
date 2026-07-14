@@ -4,15 +4,29 @@ const cors = require('cors');
 
 const healthRoutes = require('./routes/health');
 const workoutRoutes = require('./routes/workouts');
+const authRoutes = require('./routes/auth');
+const plansRoutes = require('./routes/plans');
+const trialRoutes = require('./routes/trial');
+const subscriptionsRoutes = require('./routes/subscriptions');
+const webhooksRoutes = require('./routes/webhooks');
+const contactRoutes = require('./routes/contact');
+const healthProfileRoutes = require('./routes/healthProfile');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-app.use(cors());
+app.use(cors({ origin: process.env.FRONTEND_URL || '*' }));
 app.use(express.json());
 
 app.use('/api/health', healthRoutes);
 app.use('/api/workouts', workoutRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/plans', plansRoutes);
+app.use('/api/trial', trialRoutes);
+app.use('/api/subscriptions', subscriptionsRoutes);
+app.use('/api/webhooks', webhooksRoutes);
+app.use('/api/contact', contactRoutes);
+app.use('/api/health-profile', healthProfileRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Web Fitness API funcionando' });

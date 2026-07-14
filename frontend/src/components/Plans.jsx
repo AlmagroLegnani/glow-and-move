@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { useReveal } from '../hooks/useReveal';
+import { useAuth } from '../context/AuthContext.jsx';
+import { api } from '../lib/api.js';
+import AuthModal from './AuthModal.jsx';
 import photoEconomico from '../assets/photos/about-1.jpg';
 import photoBasico from '../assets/photos/about-2.jpg';
 import photoPremium from '../assets/photos/story.jpg';
@@ -63,11 +66,47 @@ const FULL_PLAN = {
 export default function Plans() {
   const revealIntro = useReveal();
   const revealCards = useReveal();
+  const { user, token } = useAuth();
   const [toast, setToast] = useState('');
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [pendingPlan, setPendingPlan] = useState(null);
+  const [loadingPlan, setLoadingPlan] = useState(null);
+
+  function showToast(message) {
+    setToast(message);
+    setTimeout(() => setToast(''), 3200);
+  }
+
+  async function goToCheckout(plan, authToken) {
+    setLoadingPlan(plan.id);
+    try {
+      const { initPoint } = await api.checkout({ planSlug: plan.id }, authToken);
+      window.location.href = initPoint;
+    } catch (err) {
+      showToast(err.message);
+    } finally {
+      setLoadingPlan(null);
+    }
+  }
 
   function handleBuy(plan) {
-    setToast(`Compra de ${plan.name}: disponible próximamente`);
-    setTimeout(() => setToast(''), 2400);
+    if (!user) {
+      setPendingPlan(plan);
+      setAuthModalOpen(true);
+      return;
+    }
+    goToCheckout(plan, token);
+  }
+
+  function handleAuthSuccess() {
+    if (pendingPlan) {
+      const plan = pendingPlan;
+      setPendingPlan(null);
+      // el token recién emitido todavía no está en contexto en este mismo tick,
+      // así que lo volvemos a pedir del storage.
+      const freshToken = localStorage.getItem('glowmove_token');
+      goToCheckout(plan, freshToken);
+    }
   }
 
   return (
@@ -94,8 +133,13 @@ export default function Plans() {
                   <li key={feature}>{feature}</li>
                 ))}
               </ul>
-              <button type="button" className="btn btn-primary plans__buy" onClick={() => handleBuy(plan)}>
-                Comprar plan
+              <button
+                type="button"
+                className="btn btn-primary plans__buy"
+                onClick={() => handleBuy(plan)}
+                disabled={loadingPlan === plan.id}
+              >
+                {loadingPlan === plan.id ? 'Redirigiendo...' : 'Comprar plan'}
               </button>
             </div>
           </article>
@@ -117,14 +161,22 @@ export default function Plans() {
                 <li key={feature}>{feature}</li>
               ))}
             </ul>
-            <button type="button" className="btn btn-primary plans__buy" onClick={() => handleBuy(FULL_PLAN)}>
-              Comprar plan
+            <button
+              type="button"
+              className="btn btn-primary plans__buy"
+              onClick={() => handleBuy(FULL_PLAN)}
+              disabled={loadingPlan === FULL_PLAN.id}
+            >
+              {loadingPlan === FULL_PLAN.id ? 'Redirigiendo...' : 'Comprar plan'}
             </button>
           </div>
         </article>
       </div>
 
       {toast && <div className="plans__toast">{toast}</div>}
+      {authModalOpen && (
+        <AuthModal onClose={() => setAuthModalOpen(false)} onSuccess={handleAuthSuccess} />
+      )}
     </section>
   );
 }
