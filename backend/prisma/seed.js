@@ -32,6 +32,7 @@ const PLANS = [
     priceUsd: 8.99,
     billingPeriod: 'semestral',
     hasAds: false,
+    hasVideoAccess: true,
     routineOptions: 3,
     sortOrder: 3,
     features: [
@@ -46,6 +47,7 @@ const PLANS = [
     priceUsd: 12.99,
     billingPeriod: 'anual',
     hasAds: false,
+    hasVideoAccess: true,
     routineOptions: 1,
     sortOrder: 4,
     features: [
@@ -57,6 +59,37 @@ const PLANS = [
   },
 ];
 
+const VIDEOS = [
+  {
+    title: 'Sentadillas — técnica base (video de ejemplo)',
+    muscleGroup: 'tren_inferior',
+    videoUrl: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ',
+    description: 'Reemplazar por el video real de la rutina de tren inferior.',
+    sortOrder: 1,
+  },
+  {
+    title: 'Zancadas — técnica base (video de ejemplo)',
+    muscleGroup: 'tren_inferior',
+    videoUrl: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ',
+    description: 'Reemplazar por el video real de la rutina de tren inferior.',
+    sortOrder: 2,
+  },
+  {
+    title: 'Flexiones — técnica base (video de ejemplo)',
+    muscleGroup: 'tren_superior',
+    videoUrl: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ',
+    description: 'Reemplazar por el video real de la rutina de tren superior.',
+    sortOrder: 3,
+  },
+  {
+    title: 'Remo con mancuerna — técnica base (video de ejemplo)',
+    muscleGroup: 'tren_superior',
+    videoUrl: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ',
+    description: 'Reemplazar por el video real de la rutina de tren superior.',
+    sortOrder: 4,
+  },
+];
+
 async function main() {
   for (const plan of PLANS) {
     await prisma.plan.upsert({
@@ -65,7 +98,13 @@ async function main() {
       create: plan,
     });
   }
-  console.log(`Seed ok: ${PLANS.length} planes.`);
+
+  const existingVideos = await prisma.video.count();
+  if (existingVideos === 0) {
+    await prisma.video.createMany({ data: VIDEOS });
+  }
+
+  console.log(`Seed ok: ${PLANS.length} planes, ${VIDEOS.length} videos.`);
 }
 
 main()

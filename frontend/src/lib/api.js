@@ -28,6 +28,7 @@ export const api = {
   changePlan: (body, token) => request('/api/subscriptions/change-plan', { method: 'POST', body, token }),
   contact: (body) => request('/api/contact', { method: 'POST', body }),
   submitHealthProfile: (body, token) => request('/api/health-profile', { method: 'POST', body, token }),
+  myVideos: (token) => request('/api/videos', { token }),
 };
 
 export { API_URL };

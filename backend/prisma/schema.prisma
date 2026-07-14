@@ -47,11 +47,22 @@ model Plan {
   priceUsd     Decimal  @db.Decimal(10, 2)
   billingPeriod String  // mensual | semestral | anual
   hasAds       Boolean  @default(true)
+  hasVideoAccess Boolean @default(false)
   routineOptions Int    @default(1)
   features     String[]
   sortOrder    Int      @default(0)
 
   subscriptions Subscription[]
+}
+
+model Video {
+  id          Int      @id @default(autoincrement())
+  title       String
+  muscleGroup RoutineChoice?
+  videoUrl    String
+  description String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
 }
 
 model Subscription {

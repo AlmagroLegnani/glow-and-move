@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Modal from './Modal.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { api } from '../lib/api.js';
@@ -14,6 +14,15 @@ const STATUS_LABEL = {
 export default function ProfileModal({ onClose }) {
   const { user, token, logout, refreshMe } = useAuth();
   const subscription = user?.subscriptions?.[0];
+
+  const [videosState, setVideosState] = useState({ loading: true, locked: true, videos: [], error: '' });
+
+  useEffect(() => {
+    api
+      .myVideos(token)
+      .then((data) => setVideosState({ loading: false, locked: data.locked, videos: data.videos || [], error: '' }))
+      .catch((err) => setVideosState({ loading: false, locked: true, videos: [], error: err.message }));
+  }, [token]);
 
   const [form, setForm] = useState({
     firstName: user?.firstName || '',
@@ -70,6 +79,36 @@ export default function ProfileModal({ onClose }) {
         <a href="#planes" className="modal__switch" style={{ display: 'inline-block', marginTop: '0.4rem' }} onClick={onClose}>
           <button type="button">Cambiar de plan</button>
         </a>
+      </div>
+
+      <div className="profile__videos">
+        <h3 className="profile__videos-title">Mis videos</h3>
+        {videosState.loading && <p className="profile__videos-hint">Cargando...</p>}
+        {!videosState.loading && videosState.error && <p className="modal__error">{videosState.error}</p>}
+        {!videosState.loading && !videosState.error && videosState.locked && (
+          <p className="profile__videos-hint">
+            Los videos de ejercicios están disponibles a partir del plan Premium.{' '}
+            <a href="#planes" onClick={onClose}>
+              Ver planes
+            </a>
+            .
+          </p>
+        )}
+        {!videosState.loading && !videosState.error && !videosState.locked && videosState.videos.length === 0 && (
+          <p className="profile__videos-hint">Todavía no hay videos cargados para tu rutina.</p>
+        )}
+        {!videosState.loading && !videosState.error && !videosState.locked && videosState.videos.length > 0 && (
+          <ul className="profile__videos-list">
+            {videosState.videos.map((video) => (
+              <li key={video.id}>
+                <span>{video.title}</span>
+                <a href={video.videoUrl} target="_blank" rel="noreferrer">
+                  Ver video
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
