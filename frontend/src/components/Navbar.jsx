@@ -6,7 +6,7 @@ import TrialModal from './TrialModal.jsx';
 import ProfileModal from './ProfileModal.jsx';
 
 const TICKER_MESSAGES = [
-  'Prueba gratis 7 días, plan Full/Premium sin anuncios',
+  'Prueba gratis 7 días, plan Full sin anuncios',
   'Rutinas nuevas cada semana',
   'Entrená donde estés, a tu ritmo',
 ];

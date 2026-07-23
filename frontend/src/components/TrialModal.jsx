@@ -54,6 +54,7 @@ export default function TrialModal({ onClose, onSuccess }) {
 
   return (
     <Modal title="Prueba gratis 7 días" onClose={onClose}>
+      <p className="modal__subtitle">Plan Full — sin anuncios</p>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <div className="modal__row">
           <div className="field">

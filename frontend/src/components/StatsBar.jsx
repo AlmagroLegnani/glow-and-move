@@ -4,7 +4,7 @@ import './StatsBar.css';
 const STATS = [
   { value: '2.400+', label: 'personas entrenando' },
   { value: '50+', label: 'rutinas guiadas' },
-  { value: '20+', label: 'años de experiencia combinada' },
+  { value: '13+', label: 'años de experiencia combinada' },
   { value: '10+', label: 'disciplinas para todo nivel' },
 ];
 

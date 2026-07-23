@@ -22,7 +22,7 @@ export default function Hero() {
 
         <div className="hero__trial">
           <p className="hero__trial-text">
-            Prueba gratis plan Full/Premium, libre de anuncios
+            Prueba gratis plan Full, libre de anuncios
           </p>
           <p className="hero__trial-note">
             Te mostramos los beneficios y la experiencia Full eligiendo una de dos rutinas: tren superior o tren inferior.
