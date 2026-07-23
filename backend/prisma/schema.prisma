@@ -56,13 +56,14 @@ model Plan {
 }
 
 model Video {
-  id          Int      @id @default(autoincrement())
-  title       String
-  muscleGroup RoutineChoice?
-  videoUrl    String
-  description String?
-  sortOrder   Int      @default(0)
-  createdAt   DateTime @default(now())
+  id             Int      @id @default(autoincrement())
+  title          String   @unique
+  muscleGroup    RoutineChoice?
+  videoUrl       String
+  description    String?
+  muscleImageUrl String?
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
 }
 
 model Subscription {

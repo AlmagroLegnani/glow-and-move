@@ -69,12 +69,16 @@ const PLANS = [
   },
 ];
 
+// SVGs originales de wger.de (CC-BY-SA 4.0, https://wger.de/api/v2/muscle/),
+// auto-hospedados en frontend/public/muscles/ con viewBox agregado (los
+// archivos de wger no lo traen, así que no escalan bien como <img> chico).
 const VIDEOS = [
   {
     title: 'Sentadillas — técnica base (video de ejemplo)',
     muscleGroup: 'tren_inferior',
     videoUrl: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ',
     description: 'Reemplazar por el video real de la rutina de tren inferior.',
+    muscleImageUrl: '/muscles/quadriceps.svg',
     sortOrder: 1,
   },
   {
@@ -82,6 +86,7 @@ const VIDEOS = [
     muscleGroup: 'tren_inferior',
     videoUrl: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ',
     description: 'Reemplazar por el video real de la rutina de tren inferior.',
+    muscleImageUrl: '/muscles/gluteus-maximus.svg',
     sortOrder: 2,
   },
   {
@@ -89,6 +94,7 @@ const VIDEOS = [
     muscleGroup: 'tren_superior',
     videoUrl: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ',
     description: 'Reemplazar por el video real de la rutina de tren superior.',
+    muscleImageUrl: '/muscles/pectoralis-major.svg',
     sortOrder: 3,
   },
   {
@@ -96,6 +102,7 @@ const VIDEOS = [
     muscleGroup: 'tren_superior',
     videoUrl: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ',
     description: 'Reemplazar por el video real de la rutina de tren superior.',
+    muscleImageUrl: '/muscles/latissimus-dorsi.svg',
     sortOrder: 4,
   },
 ];
@@ -109,9 +116,12 @@ async function main() {
     });
   }
 
-  const existingVideos = await prisma.video.count();
-  if (existingVideos === 0) {
-    await prisma.video.createMany({ data: VIDEOS });
+  for (const video of VIDEOS) {
+    await prisma.video.upsert({
+      where: { title: video.title },
+      update: video,
+      create: video,
+    });
   }
 
   console.log(`Seed ok: ${PLANS.length} planes, ${VIDEOS.length} videos.`);

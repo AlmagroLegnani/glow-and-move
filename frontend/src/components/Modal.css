@@ -173,6 +173,20 @@
   font-size: 0.88rem;
 }
 
+.profile__videos-muscle {
+  flex-shrink: 0;
+  width: 34px;
+  height: 62px;
+  object-fit: contain;
+  padding: 2px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--sage) 18%, transparent);
+}
+
+.profile__videos-title-text {
+  flex: 1;
+}
+
 .profile__videos-list a {
   flex-shrink: 0;
   color: var(--sage-dark);
