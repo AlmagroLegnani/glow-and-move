@@ -206,6 +206,12 @@
   margin-top: auto;
 }
 
+.plans__buy--owned {
+  background: color-mix(in srgb, var(--sage) 45%, transparent);
+  color: var(--mocha-deep);
+  cursor: default;
+}
+
 .plans__toast {
   position: fixed;
   bottom: 1.6rem;

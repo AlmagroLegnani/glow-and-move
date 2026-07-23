@@ -82,6 +82,10 @@ export default function Plans() {
   const [pendingPlan, setPendingPlan] = useState(null);
   const [loadingPlan, setLoadingPlan] = useState(null);
 
+  const currentSubscription = user?.subscriptions?.[0];
+  const currentPlanSlug =
+    currentSubscription && currentSubscription.status !== 'canceled' ? currentSubscription.plan?.slug : null;
+
   function showToast(message) {
     setToast(message);
     setTimeout(() => setToast(''), 3200);
@@ -143,14 +147,20 @@ export default function Plans() {
                   <li key={feature}>{feature}</li>
                 ))}
               </ul>
-              <button
-                type="button"
-                className="btn btn-primary plans__buy"
-                onClick={() => handleBuy(plan)}
-                disabled={loadingPlan === plan.id}
-              >
-                {loadingPlan === plan.id ? 'Redirigiendo...' : 'Comprar plan'}
-              </button>
+              {plan.id === currentPlanSlug ? (
+                <button type="button" className="btn plans__buy plans__buy--owned" disabled>
+                  Plan actual
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="btn btn-primary plans__buy"
+                  onClick={() => handleBuy(plan)}
+                  disabled={loadingPlan === plan.id}
+                >
+                  {loadingPlan === plan.id ? 'Redirigiendo...' : 'Comprar plan'}
+                </button>
+              )}
             </div>
           </article>
         ))}
@@ -171,14 +181,20 @@ export default function Plans() {
                 <li key={feature}>{feature}</li>
               ))}
             </ul>
-            <button
-              type="button"
-              className="btn btn-primary plans__buy"
-              onClick={() => handleBuy(FULL_PLAN)}
-              disabled={loadingPlan === FULL_PLAN.id}
-            >
-              {loadingPlan === FULL_PLAN.id ? 'Redirigiendo...' : 'Comprar plan'}
-            </button>
+            {FULL_PLAN.id === currentPlanSlug ? (
+              <button type="button" className="btn plans__buy plans__buy--owned" disabled>
+                Plan actual
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="btn btn-primary plans__buy"
+                onClick={() => handleBuy(FULL_PLAN)}
+                disabled={loadingPlan === FULL_PLAN.id}
+              >
+                {loadingPlan === FULL_PLAN.id ? 'Redirigiendo...' : 'Comprar plan'}
+              </button>
+            )}
           </div>
         </article>
       </div>

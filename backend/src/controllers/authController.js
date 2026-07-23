@@ -33,7 +33,17 @@ async function login(req, res) {
     return res.status(400).json({ error: 'Email y contraseña son requeridos' });
   }
 
-  const user = await prisma.user.findUnique({ where: { email } });
+  const user = await prisma.user.findUnique({
+    where: { email },
+    include: {
+      subscriptions: {
+        orderBy: { createdAt: 'desc' },
+        take: 1,
+        include: { plan: true },
+      },
+      healthProfile: true,
+    },
+  });
   if (!user) {
     return res.status(401).json({ error: 'Email o contraseña incorrectos' });
   }
