@@ -1,0 +1,39 @@
+.checkout-status {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cream);
+  padding: 1.5rem;
+}
+
+.checkout-status__card {
+  max-width: 480px;
+  text-align: center;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  padding: clamp(2rem, 5vw, 3rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.checkout-status__card h1 {
+  font-family: var(--font-sans);
+  font-size: 1.4rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+}
+
+.checkout-status__card p {
+  color: var(--ink-soft);
+  font-size: 0.95rem;
+}
+
+.checkout-status__card .btn {
+  margin-top: 0.5rem;
+}
