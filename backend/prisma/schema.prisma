@@ -32,6 +32,8 @@ model User {
   phone         String?
   city          String?
   age           Int?
+  resetToken          String?   @unique
+  resetTokenExpiresAt DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -61,7 +63,6 @@ model Video {
   muscleGroup    RoutineChoice?
   videoUrl       String
   description    String?
-  muscleImageUrl String?
   sortOrder      Int      @default(0)
   createdAt      DateTime @default(now())
 }

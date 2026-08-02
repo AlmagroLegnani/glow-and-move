@@ -1,13 +1,83 @@
 import { useState } from 'react';
 import Modal from './Modal.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
+import { api } from '../lib/api.js';
+
+function ForgotPasswordForm({ onBackToLogin, onClose }) {
+  const [email, setEmail] = useState('');
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      await api.forgotPassword({ email });
+      setSent(true);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  if (sent) {
+    return (
+      <Modal title="Recuperar contraseña" onClose={onClose}>
+        <p className="modal__success">
+          Si <strong>{email}</strong> está registrado, te enviamos un email con un link para elegir una
+          contraseña nueva.
+        </p>
+        <button type="button" className="btn btn-primary" onClick={onBackToLogin}>
+          Volver a iniciar sesión
+        </button>
+      </Modal>
+    );
+  }
+
+  return (
+    <Modal title="Recuperar contraseña" onClose={onClose}>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <p style={{ fontSize: '0.88rem', color: 'var(--ink-soft)' }}>
+          Ingresá el email de tu cuenta y te mandamos un link para restablecer la contraseña.
+        </p>
+        <div className="field">
+          <label htmlFor="forgotEmail">Email</label>
+          <input
+            id="forgotEmail"
+            name="email"
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+        </div>
+
+        {error && <p className="modal__error">{error}</p>}
+
+        <button type="submit" className="btn btn-primary" disabled={loading}>
+          {loading ? 'Enviando...' : 'Enviar link de recuperación'}
+        </button>
+
+        <p className="modal__switch">
+          <button type="button" onClick={onBackToLogin}>
+            Volver a iniciar sesión
+          </button>
+        </p>
+      </form>
+    </Modal>
+  );
+}
 
 export default function AuthModal({ onClose, onSuccess }) {
   const { login, register } = useAuth();
-  const [mode, setMode] = useState('login'); // login | register
+  const [mode, setMode] = useState('login'); // login | register | forgot
   const [form, setForm] = useState({
     email: '',
     password: '',
+    confirmPassword: '',
     firstName: '',
     lastName: '',
     nationality: '',
@@ -24,6 +94,12 @@ export default function AuthModal({ onClose, onSuccess }) {
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
+
+    if (mode === 'register' && form.password !== form.confirmPassword) {
+      setError('Las contraseñas no coinciden');
+      return;
+    }
+
     setLoading(true);
     try {
       if (mode === 'login') {
@@ -38,6 +114,10 @@ export default function AuthModal({ onClose, onSuccess }) {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (mode === 'forgot') {
+    return <ForgotPasswordForm onBackToLogin={() => setMode('login')} onClose={onClose} />;
   }
 
   return (
@@ -73,6 +153,29 @@ export default function AuthModal({ onClose, onSuccess }) {
             onChange={handleChange}
           />
         </div>
+
+        {mode === 'register' && (
+          <div className="field">
+            <label htmlFor="confirmPassword">Confirmar contraseña</label>
+            <input
+              id="confirmPassword"
+              name="confirmPassword"
+              type="password"
+              required
+              minLength={6}
+              value={form.confirmPassword}
+              onChange={handleChange}
+            />
+          </div>
+        )}
+
+        {mode === 'login' && (
+          <p className="modal__switch" style={{ textAlign: 'right', marginTop: '-0.6rem' }}>
+            <button type="button" onClick={() => setMode('forgot')}>
+              ¿Olvidaste tu contraseña?
+            </button>
+          </p>
+        )}
 
         {mode === 'register' && (
           <div className="modal__row">

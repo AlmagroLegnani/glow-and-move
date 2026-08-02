@@ -101,14 +101,7 @@ export default function ProfileModal({ onClose }) {
           <ul className="profile__videos-list">
             {videosState.videos.map((video) => (
               <li key={video.id}>
-                {video.muscleImageUrl && (
-                  <img
-                    src={video.muscleImageUrl}
-                    alt="Zona muscular trabajada"
-                    className="profile__videos-muscle"
-                  />
-                )}
-                <span className="profile__videos-title-text">{video.title}</span>
+                <span>{video.title}</span>
                 <a href={video.videoUrl} target="_blank" rel="noreferrer">
                   Ver video
                 </a>

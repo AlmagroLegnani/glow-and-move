@@ -7,6 +7,7 @@ import Contact from './components/Contact.jsx';
 import Footer from './components/Footer.jsx';
 import AIAssistant from './components/AIAssistant.jsx';
 import CheckoutStatus from './components/CheckoutStatus.jsx';
+import ResetPassword from './components/ResetPassword.jsx';
 
 const CHECKOUT_PATHS = {
   '/checkout/exito': 'exito',
@@ -18,6 +19,10 @@ function App() {
   const checkoutStatus = CHECKOUT_PATHS[window.location.pathname];
   if (checkoutStatus) {
     return <CheckoutStatus status={checkoutStatus} />;
+  }
+
+  if (window.location.pathname === '/reset-password') {
+    return <ResetPassword />;
   }
 
   return (
