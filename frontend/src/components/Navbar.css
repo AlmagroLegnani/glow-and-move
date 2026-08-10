@@ -161,7 +161,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
-  padding: clamp(5.5rem, 12vh, 7rem) 1.6rem 2rem;
+  padding: clamp(4.25rem, 9vh, 5.25rem) 1.6rem 2rem;
   transform: translateX(100%);
   transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
   box-shadow: -20px 0 40px -20px rgba(0, 0, 0, 0.25);
@@ -183,11 +183,17 @@
   font-weight: 600;
   padding: 0.85rem 0.75rem;
   border-radius: var(--radius-sm);
-  transition: background 0.18s ease;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 8%, transparent);
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.navbar__menu a:last-child {
+  border-bottom-color: transparent;
 }
 
 .navbar__menu a:hover {
   background: color-mix(in srgb, var(--ink) 6%, transparent);
+  border-bottom-color: transparent;
 }
 
 .navbar__menu-letter {
