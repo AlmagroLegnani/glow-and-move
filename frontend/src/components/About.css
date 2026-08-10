@@ -38,8 +38,8 @@
   background: var(--mocha);
   border-radius: var(--radius-md);
   overflow: hidden;
-  box-shadow: var(--shadow-card);
-  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.4s ease;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .about__card:nth-child(2) {
@@ -51,14 +51,19 @@
 }
 
 .about__card:hover {
-  transform: translateY(-8px);
-  box-shadow: var(--shadow-soft);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-card);
 }
 
 .about__card-photo {
   width: 100%;
   aspect-ratio: 4 / 3;
   object-fit: cover;
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.about__card:hover .about__card-photo {
+  transform: scale(1.06);
 }
 
 .about__card-body {

@@ -1,4 +1,5 @@
 import { useReveal } from '../hooks/useReveal';
+import StatItem from './StatItem.jsx';
 import './StatsBar.css';
 
 const STATS = [
@@ -15,10 +16,7 @@ export default function StatsBar() {
     <section className="stats reveal" ref={revealRef}>
       <div className="container stats__grid">
         {STATS.map((stat) => (
-          <div key={stat.label} className="stats__item">
-            <strong>{stat.value}</strong>
-            <span>{stat.label}</span>
-          </div>
+          <StatItem key={stat.label} value={stat.value} label={stat.label} />
         ))}
       </div>
     </section>
