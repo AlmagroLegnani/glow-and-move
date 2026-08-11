@@ -11,6 +11,15 @@ const STATUS_LABEL = {
   canceled: 'Cancelado',
 };
 
+function youtubeThumbnail(videoUrl) {
+  try {
+    const id = new URL(videoUrl).searchParams.get('v');
+    return id ? `https://img.youtube.com/vi/${id}/mqdefault.jpg` : null;
+  } catch {
+    return null;
+  }
+}
+
 export default function ProfileModal({ onClose }) {
   const { user, token, logout, refreshMe } = useAuth();
   const subscription = user?.subscriptions?.[0];
@@ -99,14 +108,27 @@ export default function ProfileModal({ onClose }) {
         )}
         {!videosState.loading && !videosState.error && !videosState.locked && videosState.videos.length > 0 && (
           <ul className="profile__videos-list">
-            {videosState.videos.map((video) => (
-              <li key={video.id}>
-                <span>{video.title}</span>
-                <a href={video.videoUrl} target="_blank" rel="noreferrer">
-                  Ver video
-                </a>
-              </li>
-            ))}
+            {videosState.videos.map((video) => {
+              const thumb = youtubeThumbnail(video.videoUrl);
+              return (
+                <li key={video.id}>
+                  <a href={video.videoUrl} target="_blank" rel="noreferrer" className="profile__video-card">
+                    <span className="profile__video-thumb">
+                      {thumb && <img src={thumb} alt="" loading="lazy" />}
+                      <span className="profile__video-play" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                      </span>
+                    </span>
+                    <span className="profile__video-info">
+                      <span className="profile__video-title">{video.title}</span>
+                      {video.description && <span className="profile__video-desc">{video.description}</span>}
+                    </span>
+                  </a>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>
