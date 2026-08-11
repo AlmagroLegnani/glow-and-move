@@ -71,31 +71,31 @@ const PLANS = [
 
 const VIDEOS = [
   {
-    title: 'Sentadillas — técnica base (video de ejemplo)',
+    title: 'Sentadillas — técnica base',
     muscleGroup: 'tren_inferior',
-    videoUrl: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ',
-    description: 'Reemplazar por el video real de la rutina de tren inferior.',
+    videoUrl: 'https://www.youtube.com/watch?v=qsAkuNORgmk',
+    description: 'Cómo hacer sentadillas correctamente en 4 pasos — Jeremy Ethier en Español.',
     sortOrder: 1,
   },
   {
-    title: 'Zancadas — técnica base (video de ejemplo)',
+    title: 'Zancadas — técnica base',
     muscleGroup: 'tren_inferior',
-    videoUrl: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ',
-    description: 'Reemplazar por el video real de la rutina de tren inferior.',
+    videoUrl: 'https://www.youtube.com/watch?v=2IyAyazvmyE',
+    description: 'Técnica correcta, errores comunes y variantes — IvanFit.',
     sortOrder: 2,
   },
   {
-    title: 'Flexiones — técnica base (video de ejemplo)',
+    title: 'Flexiones — técnica base',
     muscleGroup: 'tren_superior',
-    videoUrl: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ',
-    description: 'Reemplazar por el video real de la rutina de tren superior.',
+    videoUrl: 'https://www.youtube.com/watch?v=44JzAk3rvRM',
+    description: 'La técnica perfecta para hacer push up — Sport Life España.',
     sortOrder: 3,
   },
   {
-    title: 'Remo con mancuerna — técnica base (video de ejemplo)',
+    title: 'Remo con mancuerna — técnica base',
     muscleGroup: 'tren_superior',
-    videoUrl: 'https://www.youtube.com/watch?v=aqz-KE-bpKQ',
-    description: 'Reemplazar por el video real de la rutina de tren superior.',
+    videoUrl: 'https://www.youtube.com/watch?v=ryhxLQUn-cQ',
+    description: 'Remo con mancuerna a una mano, técnica paso a paso — BuhoSalud.',
     sortOrder: 4,
   },
 ];
