@@ -1,9 +1,14 @@
 import Modal from './Modal.jsx';
 import { youtubeThumbnail } from '../lib/youtube.js';
 
+const MUSCLE_GROUP_LABEL = {
+  tren_superior: 'Tren superior',
+  tren_inferior: 'Tren inferior',
+};
+
 export default function VideosModal({ videosState, onClose, onBack }) {
   return (
-    <Modal title="Mis videos" onClose={onClose}>
+    <Modal title="Mis videos" onClose={onClose} size="lg">
       <button type="button" className="modal__back" onClick={onBack}>
         ← Volver a mi perfil
       </button>
@@ -23,23 +28,25 @@ export default function VideosModal({ videosState, onClose, onBack }) {
         <p className="profile__videos-hint">Todavía no hay videos cargados para tu rutina.</p>
       )}
       {!videosState.loading && !videosState.error && !videosState.locked && videosState.videos.length > 0 && (
-        <ul className="profile__videos-list">
+        <ul className="video-grid">
           {videosState.videos.map((video) => {
             const thumb = youtubeThumbnail(video.videoUrl);
+            const muscleLabel = MUSCLE_GROUP_LABEL[video.muscleGroup];
             return (
               <li key={video.id}>
-                <a href={video.videoUrl} target="_blank" rel="noreferrer" className="profile__video-card">
-                  <span className="profile__video-thumb">
+                <a href={video.videoUrl} target="_blank" rel="noreferrer" className="video-card">
+                  <span className="video-card__thumb">
                     {thumb && <img src={thumb} alt="" loading="lazy" />}
-                    <span className="profile__video-play" aria-hidden="true">
+                    <span className="video-card__play" aria-hidden="true">
                       <svg viewBox="0 0 24 24" fill="currentColor">
                         <path d="M8 5v14l11-7z" />
                       </svg>
                     </span>
+                    {muscleLabel && <span className="video-card__badge">{muscleLabel}</span>}
                   </span>
-                  <span className="profile__video-info">
-                    <span className="profile__video-title">{video.title}</span>
-                    {video.description && <span className="profile__video-desc">{video.description}</span>}
+                  <span className="video-card__info">
+                    <span className="video-card__title">{video.title}</span>
+                    {video.description && <span className="video-card__desc">{video.description}</span>}
                   </span>
                 </a>
               </li>
