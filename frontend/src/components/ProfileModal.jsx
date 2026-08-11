@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Modal from './Modal.jsx';
+import VideosModal from './VideosModal.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { api } from '../lib/api.js';
 
@@ -11,13 +12,12 @@ const STATUS_LABEL = {
   canceled: 'Cancelado',
 };
 
-function youtubeThumbnail(videoUrl) {
-  try {
-    const id = new URL(videoUrl).searchParams.get('v');
-    return id ? `https://img.youtube.com/vi/${id}/mqdefault.jpg` : null;
-  } catch {
-    return null;
-  }
+function videosSummary(videosState) {
+  if (videosState.loading) return 'Cargando...';
+  if (videosState.error) return 'No se pudieron cargar';
+  if (videosState.locked) return 'Disponibles desde el plan Premium';
+  if (videosState.videos.length === 0) return 'Todavía no hay videos cargados';
+  return `${videosState.videos.length} video${videosState.videos.length === 1 ? '' : 's'} disponible${videosState.videos.length === 1 ? '' : 's'}`;
 }
 
 export default function ProfileModal({ onClose }) {
@@ -25,6 +25,7 @@ export default function ProfileModal({ onClose }) {
   const subscription = user?.subscriptions?.[0];
 
   const [videosState, setVideosState] = useState({ loading: true, locked: true, videos: [], error: '' });
+  const [showVideos, setShowVideos] = useState(false);
 
   useEffect(() => {
     api
@@ -71,6 +72,10 @@ export default function ProfileModal({ onClose }) {
     onClose();
   }
 
+  if (showVideos) {
+    return <VideosModal videosState={videosState} onClose={onClose} onBack={() => setShowVideos(false)} />;
+  }
+
   return (
     <Modal title="Mi perfil" onClose={onClose}>
       <div>
@@ -90,48 +95,15 @@ export default function ProfileModal({ onClose }) {
         </a>
       </div>
 
-      <div className="profile__videos">
-        <h3 className="profile__videos-title">Mis videos</h3>
-        {videosState.loading && <p className="profile__videos-hint">Cargando...</p>}
-        {!videosState.loading && videosState.error && <p className="modal__error">{videosState.error}</p>}
-        {!videosState.loading && !videosState.error && videosState.locked && (
-          <p className="profile__videos-hint">
-            Los videos de ejercicios están disponibles a partir del plan Premium.{' '}
-            <a href="#planes" onClick={onClose}>
-              Ver planes
-            </a>
-            .
-          </p>
-        )}
-        {!videosState.loading && !videosState.error && !videosState.locked && videosState.videos.length === 0 && (
-          <p className="profile__videos-hint">Todavía no hay videos cargados para tu rutina.</p>
-        )}
-        {!videosState.loading && !videosState.error && !videosState.locked && videosState.videos.length > 0 && (
-          <ul className="profile__videos-list">
-            {videosState.videos.map((video) => {
-              const thumb = youtubeThumbnail(video.videoUrl);
-              return (
-                <li key={video.id}>
-                  <a href={video.videoUrl} target="_blank" rel="noreferrer" className="profile__video-card">
-                    <span className="profile__video-thumb">
-                      {thumb && <img src={thumb} alt="" loading="lazy" />}
-                      <span className="profile__video-play" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M8 5v14l11-7z" />
-                        </svg>
-                      </span>
-                    </span>
-                    <span className="profile__video-info">
-                      <span className="profile__video-title">{video.title}</span>
-                      {video.description && <span className="profile__video-desc">{video.description}</span>}
-                    </span>
-                  </a>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
+      <button type="button" className="profile__videos-teaser" onClick={() => setShowVideos(true)}>
+        <span className="profile__videos-teaser-text">
+          <span className="profile__videos-teaser-title">Mis videos</span>
+          <span className="profile__videos-teaser-sub">{videosSummary(videosState)}</span>
+        </span>
+        <span className="profile__videos-teaser-arrow" aria-hidden="true">
+          →
+        </span>
+      </button>
 
       <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <div className="modal__row">
