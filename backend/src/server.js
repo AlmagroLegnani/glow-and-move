@@ -12,6 +12,8 @@ const webhooksRoutes = require('./routes/webhooks');
 const contactRoutes = require('./routes/contact');
 const healthProfileRoutes = require('./routes/healthProfile');
 const videosRoutes = require('./routes/videos');
+const blocksRoutes = require('./routes/blocks');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -29,6 +31,8 @@ app.use('/api/webhooks', webhooksRoutes);
 app.use('/api/contact', contactRoutes);
 app.use('/api/health-profile', healthProfileRoutes);
 app.use('/api/videos', videosRoutes);
+app.use('/api/blocks', blocksRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Web Fitness API funcionando' });

@@ -34,4 +34,45 @@ async function sendPasswordResetEmail({ to, resetUrl }) {
   }
 }
 
-module.exports = { sendPasswordResetEmail };
+// Aviso de "nueva rutina/bloque disponible". Mismo proveedor (Resend) que el reset de
+// contraseña — no se suma ningún servicio nuevo. El envío por WhatsApp queda pendiente de
+// que se defina un proveedor (Twilio, WhatsApp Business API, etc.); este es el punto donde
+// se engancharía cuando esté decidido.
+async function sendBlockUnlockedEmail(user, blockNumber) {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    // No es un error fatal: el desbloqueo del bloque ya ocurrió, sólo no se pudo avisar por
+    // email. El caller lo loguea y sigue.
+    const err = new Error('El envío de emails no está configurado (falta RESEND_API_KEY)');
+    err.code = 'EMAIL_NOT_CONFIGURED';
+    throw err;
+  }
+
+  const from = process.env.RESEND_FROM || 'Glow & Move <onboarding@resend.dev>';
+
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from,
+      to: user.email,
+      subject: `Bloque ${blockNumber} ya está en tu rutina — Glow & Move`,
+      html: `
+        <p>Hola ${user.firstName},</p>
+        <p>El Bloque ${blockNumber} de tu programa ya está disponible. Entrá a la app para ver tu rutina y objetivos.</p>
+      `,
+    }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    const err = new Error(`Resend respondió ${res.status}: ${body}`);
+    err.code = 'EMAIL_SEND_FAILED';
+    throw err;
+  }
+}
+
+module.exports = { sendPasswordResetEmail, sendBlockUnlockedEmail };
