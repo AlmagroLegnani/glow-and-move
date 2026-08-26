@@ -15,40 +15,53 @@ export default function VideosModal({ videosState, onClose, onBack }) {
 
       {videosState.loading && <p className="profile__videos-hint">Cargando...</p>}
       {!videosState.loading && videosState.error && <p className="modal__error">{videosState.error}</p>}
-      {!videosState.loading && !videosState.error && videosState.locked && (
-        <p className="profile__videos-hint">
-          Los videos de ejercicios están disponibles a partir del plan Premium.{' '}
-          <a href="#planes" onClick={onClose}>
-            Ver planes
-          </a>
-          .
-        </p>
+      {!videosState.loading && !videosState.error && videosState.videos.length === 0 && (
+        <p className="profile__videos-hint">Todavía no hay ejercicios cargados.</p>
       )}
-      {!videosState.loading && !videosState.error && !videosState.locked && videosState.videos.length === 0 && (
-        <p className="profile__videos-hint">Todavía no hay videos cargados para tu rutina.</p>
-      )}
-      {!videosState.loading && !videosState.error && !videosState.locked && videosState.videos.length > 0 && (
+      {!videosState.loading && !videosState.error && videosState.videos.length > 0 && (
         <ul className="video-grid">
           {videosState.videos.map((video) => {
-            const thumb = youtubeThumbnail(video.videoUrl);
+            const thumb = video.videoUrl ? youtubeThumbnail(video.videoUrl) : null;
             const muscleLabel = MUSCLE_GROUP_LABEL[video.muscleGroup];
+            const locked = !video.videoUrl;
             return (
               <li key={video.id}>
-                <a href={video.videoUrl} target="_blank" rel="noreferrer" className="video-card">
+                <div className={`video-card ${locked ? 'video-card--locked' : ''}`}>
                   <span className="video-card__thumb">
                     {thumb && <img src={thumb} alt="" loading="lazy" />}
-                    <span className="video-card__play" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M8 5v14l11-7z" />
-                      </svg>
-                    </span>
+                    {!locked ? (
+                      <a
+                        href={video.videoUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="video-card__play"
+                        aria-label={`Ver video de ${video.title}`}
+                      >
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M8 5v14l11-7z" />
+                        </svg>
+                      </a>
+                    ) : (
+                      <span className="video-card__locked" aria-hidden="true">
+                        🔒
+                      </span>
+                    )}
                     {muscleLabel && <span className="video-card__badge">{muscleLabel}</span>}
                   </span>
                   <span className="video-card__info">
                     <span className="video-card__title">{video.title}</span>
                     {video.description && <span className="video-card__desc">{video.description}</span>}
+                    {locked && (
+                      <span className="video-card__upgrade">
+                        Este contenido está disponible en una experiencia superior.{' '}
+                        <a href="#planes" onClick={onClose}>
+                          Actualizar experiencia
+                        </a>
+                        .
+                      </span>
+                    )}
                   </span>
-                </a>
+                </div>
               </li>
             );
           })}

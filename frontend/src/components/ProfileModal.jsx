@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Modal from './Modal.jsx';
 import VideosModal from './VideosModal.jsx';
+import BlocksModal from './BlocksModal.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { api } from '../lib/api.js';
 
@@ -15,23 +16,25 @@ const STATUS_LABEL = {
 function videosSummary(videosState) {
   if (videosState.loading) return 'Cargando...';
   if (videosState.error) return 'No se pudieron cargar';
-  if (videosState.locked) return 'Disponibles desde el plan Premium';
-  if (videosState.videos.length === 0) return 'Todavía no hay videos cargados';
+  if (videosState.videos.length === 0) return 'Todavía no hay ejercicios cargados';
+  if (!videosState.hasVideoAccess) return `${videosState.videos.length} ejercicios — videos desde el plan Premium`;
   return `${videosState.videos.length} video${videosState.videos.length === 1 ? '' : 's'} disponible${videosState.videos.length === 1 ? '' : 's'}`;
 }
 
 export default function ProfileModal({ onClose }) {
   const { user, token, logout, refreshMe } = useAuth();
   const subscription = user?.subscriptions?.[0];
+  const isAdmin = user?.role === 'admin';
 
-  const [videosState, setVideosState] = useState({ loading: true, locked: true, videos: [], error: '' });
+  const [videosState, setVideosState] = useState({ loading: true, hasVideoAccess: false, videos: [], error: '' });
   const [showVideos, setShowVideos] = useState(false);
+  const [showBlocks, setShowBlocks] = useState(false);
 
   useEffect(() => {
     api
       .myVideos(token)
-      .then((data) => setVideosState({ loading: false, locked: data.locked, videos: data.videos || [], error: '' }))
-      .catch((err) => setVideosState({ loading: false, locked: true, videos: [], error: err.message }));
+      .then((data) => setVideosState({ loading: false, hasVideoAccess: data.hasVideoAccess, videos: data.videos || [], error: '' }))
+      .catch((err) => setVideosState({ loading: false, hasVideoAccess: false, videos: [], error: err.message }));
   }, [token]);
 
   const [form, setForm] = useState({
@@ -76,6 +79,10 @@ export default function ProfileModal({ onClose }) {
     return <VideosModal videosState={videosState} onClose={onClose} onBack={() => setShowVideos(false)} />;
   }
 
+  if (showBlocks) {
+    return <BlocksModal onClose={onClose} onBack={() => setShowBlocks(false)} />;
+  }
+
   return (
     <Modal title="Mi perfil" onClose={onClose}>
       <div>
@@ -95,15 +102,39 @@ export default function ProfileModal({ onClose }) {
         </a>
       </div>
 
-      <button type="button" className="profile__videos-teaser" onClick={() => setShowVideos(true)}>
-        <span className="profile__videos-teaser-text">
-          <span className="profile__videos-teaser-title">Mis videos</span>
-          <span className="profile__videos-teaser-sub">{videosSummary(videosState)}</span>
+      <button type="button" className="profile__teaser" onClick={() => setShowVideos(true)}>
+        <span className="profile__teaser-text">
+          <span className="profile__teaser-title">Mis videos</span>
+          <span className="profile__teaser-sub">{videosSummary(videosState)}</span>
         </span>
-        <span className="profile__videos-teaser-arrow" aria-hidden="true">
+        <span className="profile__teaser-arrow" aria-hidden="true">
           →
         </span>
       </button>
+
+      <button type="button" className="profile__teaser" onClick={() => setShowBlocks(true)}>
+        <span className="profile__teaser-text">
+          <span className="profile__teaser-title">Mi rutina</span>
+          <span className="profile__teaser-sub">
+            {videosState.loading ? 'Cargando...' : !videosState.hasVideoAccess ? 'Disponible desde el plan Premium' : 'Bloques, bitácora y progreso'}
+          </span>
+        </span>
+        <span className="profile__teaser-arrow" aria-hidden="true">
+          →
+        </span>
+      </button>
+
+      {isAdmin && (
+        <a className="profile__teaser" href="/admin" onClick={onClose}>
+          <span className="profile__teaser-text">
+            <span className="profile__teaser-title">Administración</span>
+            <span className="profile__teaser-sub">Planes, bloques, ejercicios y usuarios</span>
+          </span>
+          <span className="profile__teaser-arrow" aria-hidden="true">
+            →
+          </span>
+        </a>
+      )}
 
       <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <div className="modal__row">

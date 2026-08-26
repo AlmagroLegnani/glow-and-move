@@ -26,7 +26,7 @@
 
 .plans__grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 1.5rem;
 }
 
@@ -235,16 +235,6 @@
 }
 
 @media (max-width: 1000px) {
-  .plans__grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .plans__grid > :nth-child(3) {
-    grid-column: 1 / -1;
-    max-width: calc(50% - 0.7rem);
-    margin-inline: auto;
-  }
-
   .plans__featured {
     grid-template-columns: 1fr;
   }
@@ -257,11 +247,5 @@
 @media (max-width: 560px) {
   .plans__grid {
     grid-template-columns: 1fr;
-  }
-
-  .plans__grid > :nth-child(3) {
-    grid-column: auto;
-    max-width: none;
-    margin-inline: 0;
   }
 }
