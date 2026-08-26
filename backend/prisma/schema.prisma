@@ -21,6 +21,24 @@ enum RoutineChoice {
   tren_inferior
 }
 
+enum UserRole {
+  user
+  admin
+}
+
+enum BillingMode {
+  trimestral
+  semestral
+  anual
+}
+
+enum BlockStatus {
+  locked
+  scheduled
+  active
+  completed
+}
+
 model User {
   id            Int       @id @default(autoincrement())
   email         String    @unique
@@ -32,6 +50,7 @@ model User {
   phone         String?
   city          String?
   age           Int?
+  role          UserRole  @default(user)
   resetToken          String?   @unique
   resetTokenExpiresAt DateTime?
   createdAt     DateTime  @default(now())
@@ -40,6 +59,8 @@ model User {
   subscriptions Subscription[]
   healthProfile HealthProfile?
   payments      Payment[]
+  routines      Routine[]
+  dayExecutions DayExecution[]
 }
 
 model Plan {
@@ -50,6 +71,7 @@ model Plan {
   billingPeriod String  // mensual | semestral | anual
   hasAds       Boolean  @default(true)
   hasVideoAccess Boolean @default(false)
+  hasPersonalizedRoutine Boolean @default(false)
   routineOptions Int    @default(1)
   features     String[]
   sortOrder    Int      @default(0)
@@ -57,14 +79,24 @@ model Plan {
   subscriptions Subscription[]
 }
 
+// Catálogo de ejercicios. Sigue llamándose "Video" (la tabla ya existía y "Mis videos" la
+// usa tal cual) pero ahora también es la fuente de la que toma RoutineExercise/ExerciseLog
+// — así evitamos el catálogo duplicado que existía antes entre este modelo y los ejercicios
+// hardcodeados del sistema de bloques.
 model Video {
   id             Int      @id @default(autoincrement())
   title          String   @unique
   muscleGroup    RoutineChoice?
   videoUrl       String
   description    String?
+  defaultSets    Int?
+  defaultReps    Int?
+  defaultWeight  Decimal? @db.Decimal(6, 2)
   sortOrder      Int      @default(0)
   createdAt      DateTime @default(now())
+
+  routineExercises RoutineExercise[]
+  exerciseLogs      ExerciseLog[]
 }
 
 model Subscription {
@@ -75,6 +107,7 @@ model Subscription {
   plan              Plan               @relation(fields: [planId], references: [id])
   status            SubscriptionStatus @default(trial)
   routineChoice     RoutineChoice?
+  billingMode       BillingMode        @default(trimestral)
   isTrial           Boolean            @default(false)
   trialEndsAt       DateTime?
   currentPeriodEnd  DateTime?
@@ -83,6 +116,133 @@ model Subscription {
   updatedAt         DateTime           @updatedAt
 
   payments          Payment[]
+  blockProgress     BlockProgress[]
+}
+
+// Catálogo de bloques del programa anual (1-4), administrable: objetivo, descripción y
+// duración. Es el mismo concepto de "Bloque" del prototipo anterior, ahora separado en
+// catálogo (esta tabla, igual para todos) + instancia por usuario (BlockProgress).
+model Block {
+  id            Int      @id @default(autoincrement())
+  number        Int      @unique
+  name          String
+  objective     String
+  description   String?
+  durationWeeks Int      @default(12)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  blockProgress BlockProgress[]
+  routines      Routine[]
+}
+
+// Instancia de un Block para una Subscription puntual: estado de desbloqueo, pago vigente,
+// semana actual dentro del bloque. Reemplaza al blocks[i] que antes vivía adentro del JSON
+// de TrainingProgress.
+model BlockProgress {
+  id             Int          @id @default(autoincrement())
+  subscriptionId Int
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id])
+  blockId        Int
+  block          Block        @relation(fields: [blockId], references: [id])
+  cycle          Int          @default(1) // "año" del programa: al completar el Bloque 4 se vuelve al Bloque 1 con cycle+1
+  status         BlockStatus  @default(locked)
+  currentWeek    Int          @default(1)
+  startedAt      DateTime?
+  paidUntil      DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  dayExecutions  DayExecution[]
+
+  @@unique([subscriptionId, blockId, cycle])
+}
+
+// Rutina de un bloque: Día 1..N con sus ejercicios. userId null = plantilla genérica (lo que
+// ve el plan Premium); userId seteado = override personalizado para ese usuario puntual (lo
+// que habilita la "rutina 100% personalizada" del plan Full, armada/editada por el
+// entrenador desde el admin). No modelamos todavía CÓMO se genera esa personalización — sólo
+// dejamos la estructura para que el entrenador la cargue a mano vía admin.
+model Routine {
+  id        Int      @id @default(autoincrement())
+  blockId   Int
+  block     Block    @relation(fields: [blockId], references: [id])
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id])
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  days      RoutineDay[]
+
+  @@index([blockId, userId])
+}
+
+// Día 1, Día 2, etc. — no representa un día de la semana, sino el N-ésimo entrenamiento de
+// la rutina (cada usuario lo hace el día calendario que le queda cómodo).
+model RoutineDay {
+  id        Int     @id @default(autoincrement())
+  routineId Int
+  routine   Routine @relation(fields: [routineId], references: [id])
+  dayNumber Int
+  label     String?
+  sortOrder Int     @default(0)
+
+  exercises RoutineExercise[]
+
+  @@unique([routineId, dayNumber])
+}
+
+model RoutineExercise {
+  id              Int        @id @default(autoincrement())
+  routineDayId    Int
+  routineDay      RoutineDay @relation(fields: [routineDayId], references: [id])
+  videoId         Int
+  video           Video      @relation(fields: [videoId], references: [id])
+  order           Int        @default(0)
+  suggestedSets   Int
+  suggestedReps   Int
+  suggestedWeight Decimal    @db.Decimal(6, 2)
+
+  @@unique([routineDayId, videoId])
+}
+
+// "¿Realizaste este entrenamiento?" — un registro por usuario/bloque/semana/día. Si
+// performed=false no se le pide al usuario ningún dato de peso/reps (quedan sin
+// ExerciseLog para ese día).
+model DayExecution {
+  id              Int           @id @default(autoincrement())
+  userId          Int
+  user            User          @relation(fields: [userId], references: [id])
+  blockProgressId Int
+  blockProgress   BlockProgress @relation(fields: [blockProgressId], references: [id])
+  weekNumber      Int
+  dayNumber       Int
+  performed       Boolean
+  performedAt     DateTime      @default(now())
+
+  exerciseLogs    ExerciseLog[]
+
+  @@unique([blockProgressId, weekNumber, dayNumber])
+}
+
+// La bitácora en sí: sugerido (snapshot de RoutineExercise al momento de esa ejecución, para
+// que un cambio futuro en la rutina no altere el histórico) + real. actualReps/actualWeight
+// quedan null si el día no se realizó.
+model ExerciseLog {
+  id              Int          @id @default(autoincrement())
+  dayExecutionId  Int
+  dayExecution    DayExecution @relation(fields: [dayExecutionId], references: [id])
+  videoId         Int
+  video           Video        @relation(fields: [videoId], references: [id])
+  suggestedSets   Int
+  suggestedReps   Int
+  suggestedWeight Decimal      @db.Decimal(6, 2)
+  actualReps      Int?
+  actualWeight    Decimal?     @db.Decimal(6, 2)
+  createdAt       DateTime     @default(now())
 }
 
 model HealthProfile {
