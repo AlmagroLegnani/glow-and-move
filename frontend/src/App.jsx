@@ -8,6 +8,7 @@ import Footer from './components/Footer.jsx';
 import AIAssistant from './components/AIAssistant.jsx';
 import CheckoutStatus from './components/CheckoutStatus.jsx';
 import ResetPassword from './components/ResetPassword.jsx';
+import AdminPage from './components/AdminPage.jsx';
 
 const CHECKOUT_PATHS = {
   '/checkout/exito': 'exito',
@@ -23,6 +24,10 @@ function App() {
 
   if (window.location.pathname === '/reset-password') {
     return <ResetPassword />;
+  }
+
+  if (window.location.pathname === '/admin') {
+    return <AdminPage />;
   }
 
   return (
