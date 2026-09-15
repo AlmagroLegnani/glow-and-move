@@ -206,9 +206,15 @@ export default function MiRutinaPage() {
               <tr key={ex.videoId}>
                 <td>{ex.name}</td>
                 <td>
-                  <a href={ex.videoUrl} target="_blank" rel="noreferrer">
-                    ▶ Ver ejercicio
-                  </a>
+                  {ex.hasVideoAccess ? (
+                    <a href={ex.videoUrl} target="_blank" rel="noreferrer">
+                      ▶ Ver ejercicio
+                    </a>
+                  ) : (
+                    <a href="/#planes" className="bl-video-locked">
+                      🔒 Mejorar plan
+                    </a>
+                  )}
                 </td>
                 <td>{ex.suggestedSets}</td>
                 <td>{ex.suggestedReps}</td>

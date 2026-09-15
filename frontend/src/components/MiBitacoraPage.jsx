@@ -311,9 +311,15 @@ export default function MiBitacoraPage() {
                       <tr key={ex.videoId}>
                         <td>{ex.name}</td>
                         <td>
-                          <a href={ex.videoUrl} target="_blank" rel="noreferrer">
-                            ▶ Ver video
-                          </a>
+                          {ex.hasVideoAccess ? (
+                            <a href={ex.videoUrl} target="_blank" rel="noreferrer">
+                              ▶ Ver video
+                            </a>
+                          ) : (
+                            <a href="/#planes" className="bl-video-locked">
+                              🔒 Mejorar plan
+                            </a>
+                          )}
                         </td>
                         <td>
                           {ex.suggestedSets} series × {ex.suggestedReps} reps

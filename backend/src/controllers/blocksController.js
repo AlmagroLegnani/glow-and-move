@@ -1,7 +1,7 @@
 const prisma = require('../lib/prisma');
 const { sendBlockUnlockedEmail } = require('../lib/email');
 
-const LOCKED_MESSAGE = 'La rutina por bloques está disponible a partir del plan Premium. Cambiá de plan para acceder.';
+const LOCKED_MESSAGE = 'Necesitás un plan activo para acceder a tu rutina. Elegí un plan para empezar.';
 const BILLING_MODES = ['trimestral', 'semestral', 'anual'];
 // Al pasar de un bloque al siguiente ya no se puede elegir "anual": esa tarifa es solo para
 // quien paga todo el año por adelantado desde el principio, no para quien ya viene pagando
@@ -151,7 +151,7 @@ async function resolveCurrentView(subscription, cycle) {
       exercises: day.exercises.map((ex) => ({
         videoId: ex.videoId,
         name: ex.video.title,
-        videoUrl: ex.video.videoUrl,
+        videoUrl: subscription.plan.hasVideoAccess ? ex.video.videoUrl : null,
         hasVideoAccess: subscription.plan.hasVideoAccess,
         suggestedSets: ex.suggestedSets,
         suggestedReps: ex.suggestedReps,
@@ -169,7 +169,9 @@ async function loadContext(req, res, next) {
     include: { plan: true, user: true },
   });
 
-  const hasAccess = !!subscription && subscription.status !== 'canceled' && subscription.plan.hasVideoAccess;
+  // La rutina por bloques (columnas, sugeridos, bitácora) está disponible en todos los planes;
+  // solo el link al video del ejercicio queda restringido por plan.hasVideoAccess más abajo.
+  const hasAccess = !!subscription && subscription.status !== 'canceled';
   if (!hasAccess) {
     return res.json({ locked: true, message: LOCKED_MESSAGE });
   }

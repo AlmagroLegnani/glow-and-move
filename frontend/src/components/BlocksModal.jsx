@@ -311,9 +311,15 @@ export default function BlocksModal({ onClose, onBack }) {
                       <tr key={ex.videoId}>
                         <td>{ex.name}</td>
                         <td>
-                          <a href={ex.videoUrl} target="_blank" rel="noreferrer">
-                            ▶ Ver video
-                          </a>
+                          {ex.hasVideoAccess ? (
+                            <a href={ex.videoUrl} target="_blank" rel="noreferrer">
+                              ▶ Ver video
+                            </a>
+                          ) : (
+                            <a href="#planes" className="bl-video-locked" onClick={onClose}>
+                              🔒 Mejorar plan
+                            </a>
+                          )}
                         </td>
                         <td>
                           {ex.suggestedSets} series × {ex.suggestedReps} reps

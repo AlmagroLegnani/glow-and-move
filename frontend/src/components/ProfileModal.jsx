@@ -115,9 +115,7 @@ export default function ProfileModal({ onClose }) {
       <button type="button" className="profile__teaser" onClick={() => setShowBlocks(true)}>
         <span className="profile__teaser-text">
           <span className="profile__teaser-title">Mi rutina</span>
-          <span className="profile__teaser-sub">
-            {videosState.loading ? 'Cargando...' : !videosState.hasVideoAccess ? 'Disponible desde el plan Premium' : 'Bloques, bitácora y progreso'}
-          </span>
+          <span className="profile__teaser-sub">Bloques, bitácora y progreso</span>
         </span>
         <span className="profile__teaser-arrow" aria-hidden="true">
           →

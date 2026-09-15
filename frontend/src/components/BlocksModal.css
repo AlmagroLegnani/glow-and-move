@@ -114,6 +114,12 @@
   letter-spacing: 0.03em;
 }
 
+.bl-video-locked {
+  color: var(--ink-soft);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .bl-log {
   display: flex;
   align-items: center;
