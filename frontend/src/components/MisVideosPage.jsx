@@ -10,6 +10,48 @@ const MUSCLE_GROUP_LABEL = {
   tren_inferior: 'Tren inferior',
 };
 
+const LEVELS = [
+  { id: 'principiante', label: 'Principiante', hint: 'Bloques 1 y 2' },
+  { id: 'intermedio', label: 'Intermedio', hint: 'Bloques 3 y 4' },
+  { id: 'experto', label: 'Experto', hint: 'Plan Full' },
+];
+
+function VideoCard({ video }) {
+  const thumb = video.videoUrl ? youtubeThumbnail(video.videoUrl) : null;
+  const muscleLabel = MUSCLE_GROUP_LABEL[video.muscleGroup];
+  const locked = !video.videoUrl;
+  return (
+    <li>
+      <div className={`video-card ${locked ? 'video-card--locked' : ''}`}>
+        <span className="video-card__thumb">
+          {thumb && <img src={thumb} alt="" loading="lazy" />}
+          {!locked ? (
+            <a href={video.videoUrl} target="_blank" rel="noreferrer" className="video-card__play" aria-label={`Ver video de ${video.title}`}>
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </a>
+          ) : (
+            <span className="video-card__locked" aria-hidden="true">
+              🔒
+            </span>
+          )}
+          {muscleLabel && <span className="video-card__badge">{muscleLabel}</span>}
+        </span>
+        <span className="video-card__info">
+          <span className="video-card__title">{video.title}</span>
+          {video.description && <span className="video-card__desc">{video.description}</span>}
+          {locked && (
+            <span className="video-card__upgrade">
+              Este contenido está disponible en una experiencia superior. <a href="/#planes">Actualizar experiencia</a>.
+            </span>
+          )}
+        </span>
+      </div>
+    </li>
+  );
+}
+
 export default function MisVideosPage() {
   const { user, token, loading } = useAuth();
   const [videosState, setVideosState] = useState({ loading: true, hasVideoAccess: false, videos: [], error: '' });
@@ -51,51 +93,24 @@ export default function MisVideosPage() {
       {!videosState.loading && !videosState.error && videosState.videos.length === 0 && (
         <p className="profile__videos-hint">Todavía no hay ejercicios cargados.</p>
       )}
-      {!videosState.loading && !videosState.error && videosState.videos.length > 0 && (
-        <ul className="video-grid">
-          {videosState.videos.map((video) => {
-            const thumb = video.videoUrl ? youtubeThumbnail(video.videoUrl) : null;
-            const muscleLabel = MUSCLE_GROUP_LABEL[video.muscleGroup];
-            const locked = !video.videoUrl;
-            return (
-              <li key={video.id}>
-                <div className={`video-card ${locked ? 'video-card--locked' : ''}`}>
-                  <span className="video-card__thumb">
-                    {thumb && <img src={thumb} alt="" loading="lazy" />}
-                    {!locked ? (
-                      <a
-                        href={video.videoUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="video-card__play"
-                        aria-label={`Ver video de ${video.title}`}
-                      >
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M8 5v14l11-7z" />
-                        </svg>
-                      </a>
-                    ) : (
-                      <span className="video-card__locked" aria-hidden="true">
-                        🔒
-                      </span>
-                    )}
-                    {muscleLabel && <span className="video-card__badge">{muscleLabel}</span>}
-                  </span>
-                  <span className="video-card__info">
-                    <span className="video-card__title">{video.title}</span>
-                    {video.description && <span className="video-card__desc">{video.description}</span>}
-                    {locked && (
-                      <span className="video-card__upgrade">
-                        Este contenido está disponible en una experiencia superior. <a href="/#planes">Actualizar experiencia</a>.
-                      </span>
-                    )}
-                  </span>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+      {!videosState.loading &&
+        !videosState.error &&
+        LEVELS.map((level) => {
+          const videosForLevel = videosState.videos.filter((v) => v.level === level.id);
+          if (videosForLevel.length === 0) return null;
+          return (
+            <div key={level.id} className="video-level-section">
+              <h2 className="video-level-section__title">
+                {level.label} <span className="video-level-section__hint">({level.hint})</span>
+              </h2>
+              <ul className="video-grid">
+                {videosForLevel.map((video) => (
+                  <VideoCard key={video.id} video={video} />
+                ))}
+              </ul>
+            </div>
+          );
+        })}
     </AccountShell>
   );
 }

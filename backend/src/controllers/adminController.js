@@ -86,18 +86,18 @@ async function listVideos(req, res) {
 }
 
 async function createVideo(req, res) {
-  const { title, videoUrl, muscleGroup, description, defaultSets, defaultReps, defaultWeight, sortOrder } = req.body;
+  const { title, videoUrl, muscleGroup, description, defaultSets, defaultReps, defaultWeight, level, sortOrder } = req.body;
   if (!title || !videoUrl) {
     return res.status(400).json({ error: 'Nombre y link de video son requeridos' });
   }
   const video = await prisma.video.create({
-    data: { title, videoUrl, muscleGroup, description, defaultSets, defaultReps, defaultWeight, sortOrder: sortOrder ?? 0 },
+    data: { title, videoUrl, muscleGroup, description, defaultSets, defaultReps, defaultWeight, level: level || undefined, sortOrder: sortOrder ?? 0 },
   });
   res.status(201).json(video);
 }
 
 async function updateVideo(req, res) {
-  const { title, videoUrl, muscleGroup, description, defaultSets, defaultReps, defaultWeight, sortOrder } = req.body;
+  const { title, videoUrl, muscleGroup, description, defaultSets, defaultReps, defaultWeight, level, sortOrder } = req.body;
   const data = {};
   if (title !== undefined) data.title = title;
   if (videoUrl !== undefined) data.videoUrl = videoUrl;
@@ -106,6 +106,7 @@ async function updateVideo(req, res) {
   if (defaultSets !== undefined) data.defaultSets = defaultSets;
   if (defaultReps !== undefined) data.defaultReps = defaultReps;
   if (defaultWeight !== undefined) data.defaultWeight = defaultWeight;
+  if (level !== undefined) data.level = level;
   if (sortOrder !== undefined) data.sortOrder = sortOrder;
 
   const video = await prisma.video.update({ where: { id: Number(req.params.id) }, data });

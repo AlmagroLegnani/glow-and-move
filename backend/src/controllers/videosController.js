@@ -10,20 +10,28 @@ async function listMyVideos(req, res) {
     include: { plan: true },
   });
 
-  const hasAccess = !!subscription && subscription.status !== 'canceled' && subscription.plan.hasVideoAccess;
+  const isActive = !!subscription && subscription.status !== 'canceled';
+  const hasAccess = isActive && subscription.plan.hasVideoAccess;
+  // Los videos de nivel "experto" son exclusivos del plan Full (rutina personalizada), no
+  // alcanza con el acceso a video general de Premium.
+  const hasFullAccess = isActive && subscription.plan.hasPersonalizedRoutine;
   const videos = await prisma.video.findMany({ orderBy: { sortOrder: 'asc' } });
 
   res.json({
     locked: false,
     hasVideoAccess: hasAccess,
     upgradeMessage: hasAccess ? null : 'Este contenido está disponible en una experiencia superior.',
-    videos: videos.map((v) => ({
-      id: v.id,
-      title: v.title,
-      muscleGroup: v.muscleGroup,
-      description: v.description,
-      videoUrl: hasAccess ? v.videoUrl : null,
-    })),
+    videos: videos.map((v) => {
+      const unlocked = v.level === 'experto' ? hasFullAccess : hasAccess;
+      return {
+        id: v.id,
+        title: v.title,
+        muscleGroup: v.muscleGroup,
+        description: v.description,
+        level: v.level,
+        videoUrl: unlocked ? v.videoUrl : null,
+      };
+    }),
   });
 }
 

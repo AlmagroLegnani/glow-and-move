@@ -267,6 +267,33 @@
   font-weight: 700;
 }
 
+.video-level-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.video-level-section + .video-level-section {
+  margin-top: 1.6rem;
+}
+
+.video-level-section__title {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+}
+
+.video-level-section__hint {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--ink-soft);
+}
+
 .video-grid {
   list-style: none;
   margin: 0;

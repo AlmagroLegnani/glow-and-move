@@ -240,7 +240,7 @@ function BlockCard({ block, saving, saved, onSave }) {
 
 function ExercisesTab({ token }) {
   const { items, error, reload } = useEntity(() => api.admin.listVideos(token));
-  const [form, setForm] = useState({ title: '', videoUrl: '', description: '', defaultSets: 4, defaultReps: 10, defaultWeight: 0 });
+  const [form, setForm] = useState({ title: '', videoUrl: '', description: '', defaultSets: 4, defaultReps: 10, defaultWeight: 0, level: 'principiante' });
   const [creating, setCreating] = useState(false);
   const [formError, setFormError] = useState('');
 
@@ -260,7 +260,7 @@ function ExercisesTab({ token }) {
         { ...form, defaultSets: Number(form.defaultSets), defaultReps: Number(form.defaultReps), defaultWeight: Number(form.defaultWeight) },
         token
       );
-      setForm({ title: '', videoUrl: '', description: '', defaultSets: 4, defaultReps: 10, defaultWeight: 0 });
+      setForm({ title: '', videoUrl: '', description: '', defaultSets: 4, defaultReps: 10, defaultWeight: 0, level: 'principiante' });
       reload();
     } catch (err) {
       setFormError(err.message);
@@ -279,6 +279,15 @@ function ExercisesTab({ token }) {
     }
   }
 
+  async function handleLevelChange(id, level) {
+    try {
+      await api.admin.updateVideo(id, { level }, token);
+      reload();
+    } catch (err) {
+      alert(err.message);
+    }
+  }
+
   return (
     <div>
       <div className="admin-table-wrap">
@@ -288,6 +297,7 @@ function ExercisesTab({ token }) {
               <th>Nombre</th>
               <th>Video</th>
               <th>Series/Reps/Peso sugeridos</th>
+              <th>Nivel</th>
               <th></th>
             </tr>
           </thead>
@@ -302,6 +312,13 @@ function ExercisesTab({ token }) {
                 </td>
                 <td>
                   {v.defaultSets ?? '—'} × {v.defaultReps ?? '—'} × {v.defaultWeight ?? '0'}kg
+                </td>
+                <td>
+                  <select value={v.level} onChange={(e) => handleLevelChange(v.id, e.target.value)}>
+                    <option value="principiante">Principiante</option>
+                    <option value="intermedio">Intermedio</option>
+                    <option value="experto">Experto</option>
+                  </select>
                 </td>
                 <td>
                   <button type="button" className="admin-link-btn" onClick={() => handleDelete(v.id)}>
@@ -340,6 +357,14 @@ function ExercisesTab({ token }) {
           <div className="field">
             <label>Peso por defecto (kg)</label>
             <input type="number" step="0.5" value={form.defaultWeight} onChange={(e) => setForm({ ...form, defaultWeight: e.target.value })} />
+          </div>
+          <div className="field">
+            <label>Nivel</label>
+            <select value={form.level} onChange={(e) => setForm({ ...form, level: e.target.value })}>
+              <option value="principiante">Principiante</option>
+              <option value="intermedio">Intermedio</option>
+              <option value="experto">Experto</option>
+            </select>
           </div>
         </div>
         {formError && <p className="modal__error">{formError}</p>}
