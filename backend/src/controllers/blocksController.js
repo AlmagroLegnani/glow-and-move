@@ -3,6 +3,15 @@ const { sendBlockUnlockedEmail } = require('../lib/email');
 
 const LOCKED_MESSAGE = 'La rutina por bloques está disponible a partir del plan Premium. Cambiá de plan para acceder.';
 const BILLING_MODES = ['trimestral', 'semestral', 'anual'];
+// Al pasar de un bloque al siguiente ya no se puede elegir "anual": esa tarifa es solo para
+// quien paga todo el año por adelantado desde el principio, no para quien ya viene pagando
+// bloque a bloque.
+const CONTINUE_BILLING_MODES = ['trimestral', 'semestral'];
+
+async function hasCompletedAnyBlock(subscriptionId) {
+  const count = await prisma.blockProgress.count({ where: { subscriptionId, status: 'completed' } });
+  return count > 0;
+}
 
 function blocksPrepaidByMode(billingMode) {
   if (billingMode === 'anual') return 4;
@@ -275,7 +284,7 @@ async function logDay(req, res) {
 }
 
 async function payBlock(req, res) {
-  const { blockNumber } = req.body;
+  const { blockNumber, billingMode } = req.body;
   const bp = await prisma.blockProgress.findFirst({
     where: { subscriptionId: req.subscription.id, cycle: req.cycle, block: { number: blockNumber } },
   });
@@ -283,16 +292,26 @@ async function payBlock(req, res) {
     return res.status(400).json({ error: 'Ese bloque no está pendiente de pago' });
   }
 
+  let effectiveBillingMode = req.subscription.billingMode;
+  if (billingMode) {
+    if (!CONTINUE_BILLING_MODES.includes(billingMode)) {
+      return res.status(400).json({ error: 'Forma de pago inválida' });
+    }
+    effectiveBillingMode = billingMode;
+    await prisma.subscription.update({ where: { id: req.subscription.id }, data: { billingMode } });
+  }
+
   // TODO: cuando haya un producto de Mercado Pago por bloque, generar la preferencia acá
   // (mismo patrón que subscriptionsController.checkout) y desbloquear recién desde el
   // webhook. Por ahora el desbloqueo es inmediato, simulando el pago acreditado.
   await prisma.blockProgress.update({
     where: { id: bp.id },
-    data: { status: 'active', startedAt: new Date(), paidUntil: paidUntilFor(req.subscription.billingMode, new Date()) },
+    data: { status: 'active', startedAt: new Date(), paidUntil: paidUntilFor(effectiveBillingMode, new Date()) },
   });
+  await recomputeSchedule(req.subscription.id, req.cycle, effectiveBillingMode);
   sendBlockUnlockedEmail(req.subscription.user, blockNumber).catch((err) => console.error('Error enviando email de bloque desbloqueado', err));
 
-  const view = await resolveCurrentView(req.subscription, req.cycle);
+  const view = await resolveCurrentView({ ...req.subscription, billingMode: effectiveBillingMode }, req.cycle);
   res.json({ locked: false, cycle: req.cycle, ...view });
 }
 
@@ -300,6 +319,9 @@ async function changeBillingMode(req, res) {
   const { billingMode } = req.body;
   if (!BILLING_MODES.includes(billingMode)) {
     return res.status(400).json({ error: 'Forma de pago inválida' });
+  }
+  if (billingMode === 'anual' && (await hasCompletedAnyBlock(req.subscription.id))) {
+    return res.status(400).json({ error: 'La opción anual ya no está disponible una vez que empezaste a completar bloques' });
   }
   await prisma.subscription.update({ where: { id: req.subscription.id }, data: { billingMode } });
   await recomputeSchedule(req.subscription.id, req.cycle, billingMode);

@@ -11,6 +11,10 @@ const BILLING_OPTIONS = [
   { id: 'anual', label: 'Anual' },
 ];
 
+// Una vez que ya completaste algún bloque, "Anual" deja de poder elegirse (esa tarifa es
+// solo para quien paga todo el año por adelantado desde el arranque).
+const CONTINUE_BILLING_OPTIONS = BILLING_OPTIONS.filter((opt) => opt.id !== 'anual');
+
 const BLOCK_STATUS_LABEL = {
   active: 'En curso',
   scheduled: 'Pago al día — se desbloquea solo',
@@ -39,6 +43,13 @@ export default function MiBitacoraPage() {
   const [view, setView] = useState('today'); // today | progress
   const [stats, setStats] = useState(null);
   const [statsLoading, setStatsLoading] = useState(false);
+
+  const [continueBilling, setContinueBilling] = useState('trimestral');
+  useEffect(() => {
+    if (data?.today?.state === 'awaiting_payment') {
+      setContinueBilling(data.billingMode !== 'anual' ? data.billingMode : 'trimestral');
+    }
+  }, [data?.today?.blockNumber, data?.today?.state, data?.billingMode]);
 
   useEffect(() => {
     if (!token) return undefined;
@@ -190,6 +201,8 @@ export default function MiBitacoraPage() {
   }
 
   const { today, blocks } = data;
+  const hasCompletedBlock = blocks.some((b) => b.status === 'completed');
+  const billingOptions = hasCompletedBlock ? CONTINUE_BILLING_OPTIONS : BILLING_OPTIONS;
 
   return (
     <AccountShell active="bitacora">
@@ -235,13 +248,29 @@ export default function MiBitacoraPage() {
 
           {today.state === 'awaiting_payment' && (
             <div className="bl-paywall">
-              <p>Terminaste el bloque anterior. Pagá el Bloque {today.blockNumber} para desbloquearlo y que aparezca en tu rutina.</p>
+              <p>
+                Terminaste el Bloque {today.blockNumber - 1}. ¿Querés seguir con el Bloque {today.blockNumber}?
+              </p>
+              <div className="bl-billing">
+                <span className="bl-billing__label">Forma de pago:</span>
+                {CONTINUE_BILLING_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    disabled={busy}
+                    className={`bl-billing__pill ${continueBilling === opt.id ? 'bl-billing__pill--active' : ''}`}
+                    onClick={() => setContinueBilling(opt.id)}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
               <div className="bl-paywall__actions">
                 <button
                   type="button"
                   className="btn btn-primary"
                   disabled={busy}
-                  onClick={() => runAction(api.payBlock({ blockNumber: today.blockNumber }, token))}
+                  onClick={() => runAction(api.payBlock({ blockNumber: today.blockNumber, billingMode: continueBilling }, token))}
                 >
                   Pagar y desbloquear Bloque {today.blockNumber}
                 </button>
@@ -366,7 +395,7 @@ export default function MiBitacoraPage() {
 
             <div className="bl-billing">
               <span className="bl-billing__label">Forma de pago:</span>
-              {BILLING_OPTIONS.map((opt) => (
+              {billingOptions.map((opt) => (
                 <button
                   key={opt.id}
                   type="button"
