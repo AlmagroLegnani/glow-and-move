@@ -35,12 +35,7 @@ export default function MiBitacoraPage() {
   const [fetchError, setFetchError] = useState('');
   const [actionError, setActionError] = useState('');
   const [busy, setBusy] = useState(false);
-  const [notice, setNotice] = useState(null);
 
-  const [performedChoice, setPerformedChoice] = useState(null); // null | true | false
-  const [drafts, setDrafts] = useState({});
-
-  const [view, setView] = useState('today'); // today | progress
   const [stats, setStats] = useState(null);
   const [statsLoading, setStatsLoading] = useState(false);
 
@@ -74,77 +69,15 @@ export default function MiBitacoraPage() {
     };
   }, [token]);
 
-  // cada vez que cambia el día/semana/bloque actual, arrancamos de cero el formulario
   useEffect(() => {
-    setPerformedChoice(null);
-    setDrafts({});
-  }, [data?.today?.blockNumber, data?.today?.week, data?.today?.dayNumber]);
-
-  async function loadStats() {
+    if (status !== 'ready' || !token) return;
     setStatsLoading(true);
-    try {
-      const res = await api.blockStats(token);
-      setStats(res);
-    } catch (err) {
-      setActionError(err.message);
-    } finally {
-      setStatsLoading(false);
-    }
-  }
-
-  function openProgress() {
-    setView('progress');
-    if (!stats) loadStats();
-  }
-
-  async function submitDay(performed, exercisesPayload) {
-    setBusy(true);
-    setActionError('');
-    try {
-      const res = await api.logDay(performed ? { performed, exercises: exercisesPayload } : { performed }, token);
-      setData(res);
-      setNotice(res.notice || null);
-      setStats(null); // se recalcula la próxima vez que se abra "Mi progreso"
-    } catch (err) {
-      setActionError(err.message);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  function handleChoosePerformed(value) {
-    setActionError('');
-    setPerformedChoice(value);
-    if (value === false) {
-      submitDay(false, []);
-      return;
-    }
-    const initial = {};
-    data.today.exercises.forEach((ex) => {
-      initial[ex.videoId] = { reps: String(ex.suggestedReps), weight: String(ex.suggestedWeight) };
-    });
-    setDrafts(initial);
-  }
-
-  function updateDraft(videoId, field, value) {
-    setDrafts((prev) => ({ ...prev, [videoId]: { ...prev[videoId], [field]: value } }));
-  }
-
-  function handleSaveDay() {
-    const exercisesPayload = data.today.exercises.map((ex) => ({
-      videoId: ex.videoId,
-      actualReps: Number(drafts[ex.videoId]?.reps),
-      actualWeight: Number(drafts[ex.videoId]?.weight),
-    }));
-    const invalid = exercisesPayload.some(
-      (e) => !Number.isFinite(e.actualReps) || e.actualReps <= 0 || !Number.isFinite(e.actualWeight) || e.actualWeight < 0
-    );
-    if (invalid) {
-      setActionError('Completá repeticiones y peso reales de todos los ejercicios antes de guardar.');
-      return;
-    }
-    submitDay(true, exercisesPayload);
-  }
+    api
+      .blockStats(token)
+      .then((res) => setStats(res))
+      .catch((err) => setActionError(err.message))
+      .finally(() => setStatsLoading(false));
+  }, [status, token]);
 
   async function runAction(promise) {
     setBusy(true);
@@ -210,212 +143,92 @@ export default function MiBitacoraPage() {
 
       {actionError && <p className="modal__error">{actionError}</p>}
 
-      {notice && (
-        <div className="bl-notice">
-          <span>
-            {notice.type === 'block_unlocked' && `¡Bloque ${notice.blockNumber} desbloqueado! Ya está en tu rutina (te avisamos por email).`}
-            {notice.type === 'awaiting_payment' && `Terminaste el bloque. Pagá el Bloque ${notice.blockNumber} para seguir.`}
-            {notice.type === 'year_complete' && '¡Completaste los 4 bloques del año!'}
-          </span>
-          <button type="button" onClick={() => setNotice(null)} aria-label="Cerrar aviso">
-            ×
+      {today.state === 'year_complete' && (
+        <div className="bl-yearend">
+          <h3>¡Completaste los 4 bloques de este año! 🎉</h3>
+          <p>Revisá tu progreso más abajo antes de arrancar el siguiente.</p>
+          <button type="button" className="btn btn-primary" disabled={busy} onClick={() => runAction(api.startBlockNewYear(token))}>
+            Empezar el próximo año
           </button>
         </div>
       )}
 
-      <div className="bl-tabs">
-        <button type="button" className={`bl-tabs__btn ${view === 'today' ? 'bl-tabs__btn--active' : ''}`} onClick={() => setView('today')}>
-          Hoy
-        </button>
-        <button type="button" className={`bl-tabs__btn ${view === 'progress' ? 'bl-tabs__btn--active' : ''}`} onClick={openProgress}>
-          Mi progreso
-        </button>
-      </div>
-
-      {view === 'progress' ? (
-        <ProgressView stats={stats} loading={statsLoading} />
-      ) : (
-        <>
-          {today.state === 'year_complete' && (
-            <div className="bl-yearend">
-              <h3>¡Completaste los 4 bloques de este año! 🎉</h3>
-              <p>Revisá tu progreso del año en la pestaña "Mi progreso" antes de arrancar el siguiente.</p>
-              <button type="button" className="btn btn-primary" disabled={busy} onClick={() => runAction(api.startBlockNewYear(token))}>
-                Empezar el próximo año
+      {today.state === 'awaiting_payment' && (
+        <div className="bl-paywall">
+          <p>
+            Terminaste el Bloque {today.blockNumber - 1}. ¿Querés seguir con el Bloque {today.blockNumber}?
+          </p>
+          <div className="bl-billing">
+            <span className="bl-billing__label">Forma de pago:</span>
+            {CONTINUE_BILLING_OPTIONS.map((opt) => (
+              <button
+                key={opt.id}
+                type="button"
+                disabled={busy}
+                className={`bl-billing__pill ${continueBilling === opt.id ? 'bl-billing__pill--active' : ''}`}
+                onClick={() => setContinueBilling(opt.id)}
+              >
+                {opt.label}
               </button>
-            </div>
-          )}
-
-          {today.state === 'awaiting_payment' && (
-            <div className="bl-paywall">
-              <p>
-                Terminaste el Bloque {today.blockNumber - 1}. ¿Querés seguir con el Bloque {today.blockNumber}?
-              </p>
-              <div className="bl-billing">
-                <span className="bl-billing__label">Forma de pago:</span>
-                {CONTINUE_BILLING_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    disabled={busy}
-                    className={`bl-billing__pill ${continueBilling === opt.id ? 'bl-billing__pill--active' : ''}`}
-                    onClick={() => setContinueBilling(opt.id)}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-              <div className="bl-paywall__actions">
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  disabled={busy}
-                  onClick={() => runAction(api.payBlock({ blockNumber: today.blockNumber, billingMode: continueBilling }, token))}
-                >
-                  Pagar y desbloquear Bloque {today.blockNumber}
-                </button>
-                <a href="/#planes">Cambiar de experiencia</a>
-              </div>
-            </div>
-          )}
-
-          {today.state === 'no_routine' && (
-            <p className="profile__videos-hint">Este bloque todavía no tiene una rutina cargada. Escribinos y lo resolvemos.</p>
-          )}
-
-          {today.state === 'active' && (
-            <>
-              <div className="bl-today">
-                <p className="bl-today__eyebrow">
-                  Bloque {today.blockNumber} · Semana {today.week} de {today.totalWeeks}
-                </p>
-                <p className="bl-today__objective">{today.objective}</p>
-                <h3 className="bl-today__day">
-                  Día {today.dayNumber} de {today.totalDays} — {today.routineName}
-                  {today.personalized && <span className="bl-today__badge">Personalizada</span>}
-                </h3>
-              </div>
-
-              <div className="bl-table-wrap">
-                <table className="bl-table">
-                  <thead>
-                    <tr>
-                      <th>Ejercicio</th>
-                      <th>Video</th>
-                      <th>Sugerido</th>
-                      {performedChoice === true && <th>Real</th>}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {today.exercises.map((ex) => (
-                      <tr key={ex.videoId}>
-                        <td>{ex.name}</td>
-                        <td>
-                          {ex.hasVideoAccess ? (
-                            <a href={ex.videoUrl} target="_blank" rel="noreferrer">
-                              ▶ Ver video
-                            </a>
-                          ) : (
-                            <a href="/#planes" className="bl-video-locked">
-                              🔒 Mejorar plan
-                            </a>
-                          )}
-                        </td>
-                        <td>
-                          {ex.suggestedSets} series × {ex.suggestedReps} reps
-                          {ex.suggestedWeight > 0 ? ` × ${ex.suggestedWeight}kg` : ' (peso corporal)'}
-                        </td>
-                        {performedChoice === true && (
-                          <td>
-                            <div className="bl-log">
-                              <input
-                                type="number"
-                                min="1"
-                                placeholder="reps"
-                                value={drafts[ex.videoId]?.reps ?? ''}
-                                disabled={busy}
-                                onChange={(e) => updateDraft(ex.videoId, 'reps', e.target.value)}
-                                aria-label={`Repeticiones reales de ${ex.name}`}
-                              />
-                              <input
-                                type="number"
-                                min="0"
-                                step="0.5"
-                                placeholder="kg"
-                                value={drafts[ex.videoId]?.weight ?? ''}
-                                disabled={busy}
-                                onChange={(e) => updateDraft(ex.videoId, 'weight', e.target.value)}
-                                aria-label={`Peso real de ${ex.name}`}
-                              />
-                            </div>
-                          </td>
-                        )}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {performedChoice === null && (
-                <div className="bl-ask">
-                  <p>¿Realizaste este entrenamiento?</p>
-                  <div className="bl-ask__buttons">
-                    <button type="button" className="btn btn-primary" disabled={busy} onClick={() => handleChoosePerformed(true)}>
-                      Sí, lo hice
-                    </button>
-                    <button type="button" className="btn" disabled={busy} onClick={() => handleChoosePerformed(false)}>
-                      No lo hice
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {performedChoice === true && (
-                <div className="bl-ask">
-                  <button type="button" className="btn btn-primary" disabled={busy} onClick={handleSaveDay}>
-                    Guardar entrenamiento
-                  </button>
-                  <button type="button" className="bl-ask__cancel" disabled={busy} onClick={() => setPerformedChoice(null)}>
-                    Cancelar
-                  </button>
-                </div>
-              )}
-            </>
-          )}
-
-          <details className="bl-track-details">
-            <summary>Ver los 4 bloques del año</summary>
-            <div className="bl-track">
-              {blocks.map((b) => (
-                <div key={b.number} className={`bl-track__item bl-track__item--${b.status} ${b.number === today.blockNumber ? 'bl-track__item--current' : ''}`}>
-                  <span className="bl-track__icon" aria-hidden="true">
-                    {b.status === 'completed' ? '✓' : b.status === 'locked' ? '🔒' : b.number}
-                  </span>
-                  <span className="bl-track__title">{b.name}</span>
-                  <span className="bl-track__months">{b.objective}</span>
-                  <span className="bl-track__status">{BLOCK_STATUS_LABEL[b.status]}</span>
-                  {b.paidUntil && <span className="bl-track__months">Pago vigente hasta {new Date(b.paidUntil).toLocaleDateString('es-UY')}</span>}
-                </div>
-              ))}
-            </div>
-
-            <div className="bl-billing">
-              <span className="bl-billing__label">Forma de pago:</span>
-              {billingOptions.map((opt) => (
-                <button
-                  key={opt.id}
-                  type="button"
-                  disabled={busy}
-                  className={`bl-billing__pill ${data.billingMode === opt.id ? 'bl-billing__pill--active' : ''}`}
-                  onClick={() => runAction(api.changeBlockBilling({ billingMode: opt.id }, token))}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </details>
-        </>
+            ))}
+          </div>
+          <div className="bl-paywall__actions">
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={busy}
+              onClick={() => runAction(api.payBlock({ blockNumber: today.blockNumber, billingMode: continueBilling }, token))}
+            >
+              Pagar y desbloquear Bloque {today.blockNumber}
+            </button>
+            <a href="/#planes">Cambiar de experiencia</a>
+          </div>
+        </div>
       )}
+
+      {today.state === 'no_routine' && (
+        <p className="profile__videos-hint">Este bloque todavía no tiene una rutina cargada. Escribinos y lo resolvemos.</p>
+      )}
+
+      {today.state === 'active' && (
+        <p className="profile__videos-hint">
+          Tenés un entrenamiento pendiente hoy. Cargalo desde <a href="/mi-rutina">Mi rutina</a>.
+        </p>
+      )}
+
+      <ProgressView stats={stats} loading={statsLoading} />
+
+      <details className="bl-track-details">
+        <summary>Ver los 4 bloques del año</summary>
+        <div className="bl-track">
+          {blocks.map((b) => (
+            <div key={b.number} className={`bl-track__item bl-track__item--${b.status} ${b.number === today.blockNumber ? 'bl-track__item--current' : ''}`}>
+              <span className="bl-track__icon" aria-hidden="true">
+                {b.status === 'completed' ? '✓' : b.status === 'locked' ? '🔒' : b.number}
+              </span>
+              <span className="bl-track__title">{b.name}</span>
+              <span className="bl-track__months">{b.objective}</span>
+              <span className="bl-track__status">{BLOCK_STATUS_LABEL[b.status]}</span>
+              {b.paidUntil && <span className="bl-track__months">Pago vigente hasta {new Date(b.paidUntil).toLocaleDateString('es-UY')}</span>}
+            </div>
+          ))}
+        </div>
+
+        <div className="bl-billing">
+          <span className="bl-billing__label">Forma de pago:</span>
+          {billingOptions.map((opt) => (
+            <button
+              key={opt.id}
+              type="button"
+              disabled={busy}
+              className={`bl-billing__pill ${data.billingMode === opt.id ? 'bl-billing__pill--active' : ''}`}
+              onClick={() => runAction(api.changeBlockBilling({ billingMode: opt.id }, token))}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </details>
     </AccountShell>
   );
 }
