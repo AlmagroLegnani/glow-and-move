@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
-import { api } from '../lib/api.js';
 import AccountShell from './AccountShell.jsx';
 import './Modal.css';
+import './PlanStatus.css';
 
 const STATUS_LABEL = {
   trial: 'Prueba gratis',
@@ -12,53 +11,88 @@ const STATUS_LABEL = {
   canceled: 'Cancelado',
 };
 
-export default function MiPlanPage() {
-  const { user, token, loading, logout, refreshMe } = useAuth();
+const BILLING_LABEL = {
+  trimestral: 'Trimestral',
+  semestral: 'Semestral',
+  anual: 'Anual',
+};
 
-  const [form, setForm] = useState({
-    firstName: '',
-    lastName: '',
-    documentId: '',
-    nationality: '',
-    phone: '',
-    city: '',
-  });
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [saved, setSaved] = useState(false);
+// Umbrales de "cerca del vencimiento": generales para plan activo, más cortos
+// para la prueba gratis porque dura apenas una semana.
+const WARN_DAYS_ACTIVE = 7;
+const WARN_DAYS_TRIAL = 2;
 
-  useEffect(() => {
-    if (!user) return;
-    setForm({
-      firstName: user.firstName || '',
-      lastName: user.lastName || '',
-      documentId: user.documentId || '',
-      nationality: user.nationality || '',
-      phone: user.phone || '',
-      city: user.city || '',
-    });
-  }, [user]);
+function daysUntil(date) {
+  if (!date) return null;
+  const ms = new Date(date).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0);
+  return Math.round(ms / (1000 * 60 * 60 * 24));
+}
 
-  function handleChange(e) {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-    setSaved(false);
-  }
+function formatDate(date) {
+  return new Date(date).toLocaleDateString('es-UY');
+}
 
-  async function handleSave(e) {
-    e.preventDefault();
-    setSaving(true);
-    setError('');
-    try {
-      await api.updateMe(form, token);
-      await refreshMe();
-      setSaved(true);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setSaving(false);
+function getPlanStatusInfo(subscription) {
+  const { status, trialEndsAt, currentPeriodEnd, createdAt, billingMode } = subscription;
+
+  if (status === 'trial') {
+    const days = daysUntil(trialEndsAt);
+    let tone = 'green';
+    if (days !== null) {
+      if (days <= 1) tone = 'red';
+      else if (days <= WARN_DAYS_TRIAL) tone = 'yellow';
     }
+    return { tone, label: STATUS_LABEL.trial, startDate: createdAt, endDate: trialEndsAt, billingLabel: null };
   }
+
+  if (status === 'active') {
+    const days = daysUntil(currentPeriodEnd);
+    let tone = 'green';
+    if (days !== null) {
+      if (days <= 1) tone = 'red';
+      else if (days <= WARN_DAYS_ACTIVE) tone = 'yellow';
+    }
+    return {
+      tone,
+      label: STATUS_LABEL.active,
+      startDate: createdAt,
+      endDate: currentPeriodEnd,
+      billingLabel: BILLING_LABEL[billingMode] || null,
+    };
+  }
+
+  if (status === 'past_due') {
+    return { tone: 'red', label: STATUS_LABEL.past_due, startDate: createdAt, endDate: currentPeriodEnd, billingLabel: BILLING_LABEL[billingMode] || null };
+  }
+
+  if (status === 'canceled') {
+    return { tone: 'gray', label: STATUS_LABEL.canceled, startDate: createdAt, endDate: currentPeriodEnd, billingLabel: null };
+  }
+
+  // pending_payment
+  return { tone: 'orange', label: STATUS_LABEL.pending_payment, startDate: createdAt, endDate: null, billingLabel: null };
+}
+
+function PlanStatusCard({ subscription }) {
+  const info = getPlanStatusInfo(subscription);
+  return (
+    <div className={`plan-status plan-status--${info.tone}`}>
+      <div className="plan-status__top">
+        <span className="plan-status__dot" aria-hidden="true" />
+        <span className="plan-status__plan">{subscription.plan?.name}</span>
+        <span className="plan-status__badge">{info.label}</span>
+      </div>
+      <div className="plan-status__dates">
+        {info.startDate && <span>Inicio: {formatDate(info.startDate)}</span>}
+        {info.endDate && <span>Vencimiento: {formatDate(info.endDate)}</span>}
+        {info.billingLabel && <span>Facturación: {info.billingLabel}</span>}
+      </div>
+    </div>
+  );
+}
+
+export default function MiPlanPage() {
+  const { user, loading, logout } = useAuth();
 
   function handleLogout() {
     logout();
@@ -93,16 +127,8 @@ export default function MiPlanPage() {
       <h1>Mi plan (Mi experiencia)</h1>
       <p className="account-page__email">{user.email}</p>
 
-      {subscription ? (
-        <p style={{ fontSize: '0.9rem' }}>
-          Plan actual: <strong>{subscription.plan?.name}</strong> — {STATUS_LABEL[subscription.status] || subscription.status}
-          {subscription.isTrial && subscription.trialEndsAt && (
-            <> (termina el {new Date(subscription.trialEndsAt).toLocaleDateString('es-UY')})</>
-          )}
-        </p>
-      ) : (
-        <p style={{ fontSize: '0.9rem' }}>Todavía no tenés un plan activo.</p>
-      )}
+      {subscription ? <PlanStatusCard subscription={subscription} /> : <p style={{ fontSize: '0.9rem' }}>Todavía no tenés un plan activo.</p>}
+
       <a href="/#planes" className="modal__switch" style={{ display: 'inline-block' }}>
         <button type="button">Cambiar de plan</button>
       </a>
@@ -119,50 +145,9 @@ export default function MiPlanPage() {
         </a>
       )}
 
-      <form onSubmit={handleSave} className="account-page__form">
-        <div className="modal__row">
-          <div className="field">
-            <label htmlFor="pfirstName">Nombre</label>
-            <input id="pfirstName" name="firstName" value={form.firstName} onChange={handleChange} />
-          </div>
-          <div className="field">
-            <label htmlFor="plastName">Apellido</label>
-            <input id="plastName" name="lastName" value={form.lastName} onChange={handleChange} />
-          </div>
-        </div>
-
-        <div className="field">
-          <label htmlFor="pdocumentId">CI / DNI / Pasaporte</label>
-          <input id="pdocumentId" name="documentId" value={form.documentId} onChange={handleChange} />
-        </div>
-
-        <div className="modal__row">
-          <div className="field">
-            <label htmlFor="pnationality">Nacionalidad</label>
-            <input id="pnationality" name="nationality" value={form.nationality} onChange={handleChange} />
-          </div>
-          <div className="field">
-            <label htmlFor="pphone">WhatsApp</label>
-            <input id="pphone" name="phone" value={form.phone} onChange={handleChange} />
-          </div>
-        </div>
-
-        <div className="field">
-          <label htmlFor="pcity">Ciudad</label>
-          <input id="pcity" name="city" value={form.city} onChange={handleChange} />
-        </div>
-
-        {error && <p className="modal__error">{error}</p>}
-        {saved && <p className="modal__success">Datos actualizados.</p>}
-
-        <button type="submit" className="btn btn-primary" disabled={saving}>
-          {saving ? 'Guardando...' : 'Guardar cambios'}
-        </button>
-
-        <button type="button" className="btn" onClick={handleLogout}>
-          Cerrar sesión
-        </button>
-      </form>
+      <button type="button" className="btn" onClick={handleLogout} style={{ alignSelf: 'flex-start' }}>
+        Cerrar sesión
+      </button>
     </AccountShell>
   );
 }

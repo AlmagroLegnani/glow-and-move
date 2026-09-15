@@ -1,0 +1,75 @@
+.plan-status {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1rem 1.2rem;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+  background: var(--cream);
+}
+
+.plan-status__top {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.plan-status__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.plan-status__plan {
+  font-family: var(--font-sans);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+
+.plan-status__badge {
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.25em 0.7em;
+  border-radius: 100px;
+  color: var(--cream);
+}
+
+.plan-status__dates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem 1.1rem;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+
+.plan-status--green .plan-status__dot,
+.plan-status--green .plan-status__badge {
+  background: var(--sage-dark);
+}
+
+.plan-status--yellow .plan-status__dot,
+.plan-status--yellow .plan-status__badge {
+  background: #b58a2e;
+}
+
+.plan-status--red .plan-status__dot,
+.plan-status--red .plan-status__badge {
+  background: #b3543f;
+}
+
+.plan-status--orange .plan-status__dot,
+.plan-status--orange .plan-status__badge {
+  background: #c07a3a;
+}
+
+.plan-status--gray .plan-status__dot,
+.plan-status--gray .plan-status__badge {
+  background: var(--ink-soft);
+}
