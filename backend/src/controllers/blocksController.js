@@ -156,6 +156,7 @@ async function resolveCurrentView(subscription, cycle) {
         suggestedSets: ex.suggestedSets,
         suggestedReps: ex.suggestedReps,
         suggestedWeight: Number(ex.suggestedWeight),
+        suggestedRest: ex.suggestedRest,
       })),
     },
   };
@@ -227,20 +228,26 @@ async function logDay(req, res) {
     const payload = Array.isArray(req.body.exercises) ? req.body.exercises : [];
     for (const routineExercise of day.exercises) {
       const entry = payload.find((e) => Number(e.videoId) === routineExercise.videoId);
+      const actualSets = Number(entry?.actualSets);
       const actualReps = Number(entry?.actualReps);
       const actualWeight = Number(entry?.actualWeight);
+      const actualRest = typeof entry?.actualRest === 'string' ? entry.actualRest.trim() : '';
+      const setsOk = Number.isFinite(actualSets) && actualSets > 0;
       const repsOk = Number.isFinite(actualReps) && actualReps > 0;
       const weightOk = Number.isFinite(actualWeight) && actualWeight >= 0;
-      if (!entry || !repsOk || !weightOk) {
-        return res.status(400).json({ error: `Completá reps y peso reales de "${routineExercise.video.title}" antes de guardar` });
+      if (!entry || !setsOk || !repsOk || !weightOk) {
+        return res.status(400).json({ error: `Completá series, reps y peso reales de "${routineExercise.video.title}" antes de guardar` });
       }
       exerciseLogsData.push({
         videoId: routineExercise.videoId,
         suggestedSets: routineExercise.suggestedSets,
         suggestedReps: routineExercise.suggestedReps,
         suggestedWeight: routineExercise.suggestedWeight,
+        suggestedRest: routineExercise.suggestedRest,
+        actualSets,
         actualReps,
         actualWeight,
+        actualRest: actualRest || null,
       });
     }
   }

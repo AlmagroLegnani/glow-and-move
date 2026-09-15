@@ -165,7 +165,7 @@ async function deleteRoutineDay(req, res) {
 }
 
 async function createRoutineExercise(req, res) {
-  const { videoId, order, suggestedSets, suggestedReps, suggestedWeight } = req.body;
+  const { videoId, order, suggestedSets, suggestedReps, suggestedWeight, suggestedRest } = req.body;
   if (!videoId || !suggestedSets || !suggestedReps || suggestedWeight === undefined) {
     return res.status(400).json({ error: 'videoId, suggestedSets, suggestedReps y suggestedWeight son requeridos' });
   }
@@ -177,18 +177,20 @@ async function createRoutineExercise(req, res) {
       suggestedSets,
       suggestedReps,
       suggestedWeight,
+      suggestedRest: suggestedRest || null,
     },
   });
   res.status(201).json(exercise);
 }
 
 async function updateRoutineExercise(req, res) {
-  const { order, suggestedSets, suggestedReps, suggestedWeight } = req.body;
+  const { order, suggestedSets, suggestedReps, suggestedWeight, suggestedRest } = req.body;
   const data = {};
   if (order !== undefined) data.order = order;
   if (suggestedSets !== undefined) data.suggestedSets = suggestedSets;
   if (suggestedReps !== undefined) data.suggestedReps = suggestedReps;
   if (suggestedWeight !== undefined) data.suggestedWeight = suggestedWeight;
+  if (suggestedRest !== undefined) data.suggestedRest = suggestedRest || null;
 
   const exercise = await prisma.routineExercise.update({ where: { id: Number(req.params.id) }, data });
   res.json(exercise);

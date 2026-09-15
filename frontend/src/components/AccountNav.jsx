@@ -3,6 +3,7 @@ import './AccountNav.css';
 const ITEMS = [
   { id: 'plan', label: 'Mi plan (Mi experiencia)', href: '/mi-plan' },
   { id: 'videos', label: 'Mis videos', href: '/mis-videos' },
+  { id: 'rutina', label: 'Mi rutina', href: '/mi-rutina' },
   { id: 'bitacora', label: 'Mi bitácora', href: '/mi-bitacora' },
 ];
 

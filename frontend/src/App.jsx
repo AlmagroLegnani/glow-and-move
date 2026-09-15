@@ -12,6 +12,7 @@ import AdminPage from './components/AdminPage.jsx';
 import MiPlanPage from './components/MiPlanPage.jsx';
 import MisVideosPage from './components/MisVideosPage.jsx';
 import MiBitacoraPage from './components/MiBitacoraPage.jsx';
+import MiRutinaPage from './components/MiRutinaPage.jsx';
 
 const CHECKOUT_PATHS = {
   '/checkout/exito': 'exito',
@@ -43,6 +44,10 @@ function App() {
 
   if (window.location.pathname === '/mi-bitacora') {
     return <MiBitacoraPage />;
+  }
+
+  if (window.location.pathname === '/mi-rutina') {
+    return <MiRutinaPage />;
   }
 
   return (

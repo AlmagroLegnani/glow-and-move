@@ -464,12 +464,20 @@ function RoutineDayRow({ day, videos, token, onChange }) {
   const [sets, setSets] = useState(4);
   const [reps, setReps] = useState(10);
   const [weight, setWeight] = useState(0);
+  const [rest, setRest] = useState('');
 
   async function handleAddExercise() {
     if (!videoId) return;
     await api.admin.createRoutineExercise(
       day.id,
-      { videoId: Number(videoId), order: day.exercises.length + 1, suggestedSets: Number(sets), suggestedReps: Number(reps), suggestedWeight: Number(weight) },
+      {
+        videoId: Number(videoId),
+        order: day.exercises.length + 1,
+        suggestedSets: Number(sets),
+        suggestedReps: Number(reps),
+        suggestedWeight: Number(weight),
+        suggestedRest: rest,
+      },
       token
     );
     onChange();
@@ -498,6 +506,7 @@ function RoutineDayRow({ day, videos, token, onChange }) {
         {day.exercises.map((ex) => (
           <li key={ex.id}>
             {ex.video.title} — {ex.suggestedSets}×{ex.suggestedReps} × {Number(ex.suggestedWeight)}kg
+            {ex.suggestedRest ? ` — descanso ${ex.suggestedRest}` : ''}
             <button type="button" className="admin-link-btn" onClick={() => handleDeleteExercise(ex.id)}>
               quitar
             </button>
@@ -515,6 +524,7 @@ function RoutineDayRow({ day, videos, token, onChange }) {
         <input type="number" value={sets} onChange={(e) => setSets(e.target.value)} title="Series" />
         <input type="number" value={reps} onChange={(e) => setReps(e.target.value)} title="Reps" />
         <input type="number" step="0.5" value={weight} onChange={(e) => setWeight(e.target.value)} title="Peso" />
+        <input type="text" placeholder="Descanso, ej. 1:30" value={rest} onChange={(e) => setRest(e.target.value)} title="Descanso" />
         <button type="button" className="btn" onClick={handleAddExercise}>
           Agregar ejercicio
         </button>

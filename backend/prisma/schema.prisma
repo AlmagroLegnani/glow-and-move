@@ -205,6 +205,7 @@ model RoutineExercise {
   suggestedSets   Int
   suggestedReps   Int
   suggestedWeight Decimal    @db.Decimal(6, 2)
+  suggestedRest   String? // texto libre, ej. "1:30" o "90s"
 
   @@unique([routineDayId, videoId])
 }
@@ -240,8 +241,11 @@ model ExerciseLog {
   suggestedSets   Int
   suggestedReps   Int
   suggestedWeight Decimal      @db.Decimal(6, 2)
+  suggestedRest   String?
+  actualSets      Int?
   actualReps      Int?
   actualWeight    Decimal?     @db.Decimal(6, 2)
+  actualRest      String?
   createdAt       DateTime     @default(now())
 }
 
