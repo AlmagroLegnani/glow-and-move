@@ -168,7 +168,7 @@ async function main() {
 
     const factor = BLOCK_WEIGHT_FACTOR[i] ?? 1;
     const routine = await prisma.routine.create({
-      data: { blockId: block.id, name: `Rutina base — ${block.name}` },
+      data: { blockId: block.id, name: block.name },
     });
 
     for (let dayNumber = 1; dayNumber <= videos.length; dayNumber += 1) {
