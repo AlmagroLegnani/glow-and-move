@@ -11,10 +11,13 @@ function publicUser(user) {
 }
 
 async function register(req, res) {
-  const { email, password, firstName, lastName, nationality, phone } = req.body;
+  const { email, password, firstName, lastName, nationality, phone, heightCm, weightKg } = req.body;
 
   if (!email || !password || !firstName || !lastName) {
     return res.status(400).json({ error: 'Nombre, apellido, email y contraseña son requeridos' });
+  }
+  if (!heightCm || !weightKg) {
+    return res.status(400).json({ error: 'Peso y altura estimados son requeridos' });
   }
 
   const existing = await prisma.user.findUnique({ where: { email } });
@@ -24,7 +27,7 @@ async function register(req, res) {
 
   const passwordHash = await hashPassword(password);
   const user = await prisma.user.create({
-    data: { email, passwordHash, firstName, lastName, nationality, phone },
+    data: { email, passwordHash, firstName, lastName, nationality, phone, heightCm, weightKg },
   });
 
   const token = signToken(user.id);

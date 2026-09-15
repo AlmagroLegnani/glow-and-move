@@ -18,10 +18,15 @@ async function startTrial(req, res) {
     email,
     password,
     routineChoice,
+    heightCm,
+    weightKg,
   } = req.body;
 
   if (!firstName || !lastName || !email || !password) {
     return res.status(400).json({ error: 'Nombre, apellido, email y contraseña son requeridos' });
+  }
+  if (!heightCm || !weightKg) {
+    return res.status(400).json({ error: 'Peso y altura estimados son requeridos' });
   }
 
   if (!['tren_superior', 'tren_inferior'].includes(routineChoice)) {
@@ -50,6 +55,8 @@ async function startTrial(req, res) {
       documentId,
       nationality,
       phone,
+      heightCm,
+      weightKg,
       subscriptions: {
         create: {
           planId: fullPlan.id,

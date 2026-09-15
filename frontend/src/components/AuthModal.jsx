@@ -83,6 +83,8 @@ export default function AuthModal({ onClose, onSuccess }) {
     lastName: '',
     nationality: '',
     phone: '',
+    heightCm: '',
+    weightKg: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -106,7 +108,7 @@ export default function AuthModal({ onClose, onSuccess }) {
       if (mode === 'login') {
         await login(form.email, form.password);
       } else {
-        await register(form);
+        await register({ ...form, heightCm: Number(form.heightCm), weightKg: Number(form.weightKg) });
       }
       onSuccess?.();
       onClose();
@@ -183,6 +185,37 @@ export default function AuthModal({ onClose, onSuccess }) {
             <div className="field">
               <label htmlFor="phone">WhatsApp</label>
               <input id="phone" name="phone" value={form.phone} onChange={handleChange} />
+            </div>
+          </div>
+        )}
+
+        {mode === 'register' && (
+          <div className="modal__row">
+            <div className="field">
+              <label htmlFor="weightKg">Peso estimado (kg)</label>
+              <input
+                id="weightKg"
+                name="weightKg"
+                type="number"
+                min="1"
+                step="0.1"
+                required
+                value={form.weightKg}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="heightCm">Altura estimada (cm)</label>
+              <input
+                id="heightCm"
+                name="heightCm"
+                type="number"
+                min="1"
+                step="0.1"
+                required
+                value={form.heightCm}
+                onChange={handleChange}
+              />
             </div>
           </div>
         )}

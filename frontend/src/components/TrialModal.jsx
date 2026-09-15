@@ -14,6 +14,8 @@ export default function TrialModal({ onClose, onSuccess }) {
     email: '',
     password: '',
     routineChoice: 'tren_superior',
+    heightCm: '',
+    weightKg: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -29,7 +31,7 @@ export default function TrialModal({ onClose, onSuccess }) {
     setError('');
     setLoading(true);
     try {
-      await startTrial(form);
+      await startTrial({ ...form, heightCm: Number(form.heightCm), weightKg: Number(form.weightKg) });
       setDone(true);
       onSuccess?.();
     } catch (err) {
@@ -87,6 +89,35 @@ export default function TrialModal({ onClose, onSuccess }) {
         <div className="field">
           <label htmlFor="temail">Email</label>
           <input id="temail" name="email" type="email" required value={form.email} onChange={handleChange} />
+        </div>
+
+        <div className="modal__row">
+          <div className="field">
+            <label htmlFor="tweightKg">Peso estimado (kg)</label>
+            <input
+              id="tweightKg"
+              name="weightKg"
+              type="number"
+              min="1"
+              step="0.1"
+              required
+              value={form.weightKg}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="theightCm">Altura estimada (cm)</label>
+            <input
+              id="theightCm"
+              name="heightCm"
+              type="number"
+              min="1"
+              step="0.1"
+              required
+              value={form.heightCm}
+              onChange={handleChange}
+            />
+          </div>
         </div>
 
         <PasswordField

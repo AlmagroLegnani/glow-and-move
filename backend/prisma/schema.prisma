@@ -50,6 +50,8 @@ model User {
   phone         String?
   city          String?
   age           Int?
+  heightCm      Decimal?  @db.Decimal(5, 1)
+  weightKg      Decimal?  @db.Decimal(5, 1)
   role          UserRole  @default(user)
   resetToken          String?   @unique
   resetTokenExpiresAt DateTime?

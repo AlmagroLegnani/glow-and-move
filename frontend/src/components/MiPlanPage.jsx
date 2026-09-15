@@ -89,6 +89,39 @@ function getPlanStatusInfo(subscription) {
   return { tone: 'orange', label: STATUS_LABEL.pending_payment, startDate: createdAt, endDate: null, billingLabel: null };
 }
 
+function computeBmi(weightKg, heightCm) {
+  if (!weightKg || !heightCm) return null;
+  const heightM = heightCm / 100;
+  return Math.round((weightKg / (heightM * heightM)) * 10) / 10;
+}
+
+// Categorías estándar de la OMS para IMC en adultos.
+function bmiCategory(bmi) {
+  if (bmi < 18.5) return { label: 'Bajo peso', tone: 'yellow' };
+  if (bmi < 25) return { label: 'Normal', tone: 'green' };
+  if (bmi < 30) return { label: 'Sobrepeso', tone: 'yellow' };
+  return { label: 'Obesidad', tone: 'red' };
+}
+
+function BmiCard({ weightKg, heightCm }) {
+  const bmi = computeBmi(weightKg, heightCm);
+  if (bmi === null) return null;
+  const category = bmiCategory(bmi);
+  return (
+    <div className={`plan-status plan-status--${category.tone}`}>
+      <div className="plan-status__top">
+        <span className="plan-status__dot" aria-hidden="true" />
+        <span className="plan-status__plan">IMC: {bmi}</span>
+        <span className="plan-status__badge">{category.label}</span>
+      </div>
+      <div className="plan-status__dates">
+        <span>Peso: {weightKg}kg</span>
+        <span>Altura: {heightCm}cm</span>
+      </div>
+    </div>
+  );
+}
+
 function PlanStatusCard({ subscription }) {
   const info = getPlanStatusInfo(subscription);
   return (
@@ -145,6 +178,8 @@ export default function MiPlanPage() {
       <p className="account-page__email">{user.email}</p>
 
       {subscription ? <PlanStatusCard subscription={subscription} /> : <p style={{ fontSize: '0.9rem' }}>Todavía no tenés un plan activo.</p>}
+
+      {user.weightKg && user.heightCm && <BmiCard weightKg={Number(user.weightKg)} heightCm={Number(user.heightCm)} />}
 
       <a href="/#planes" className="modal__switch" style={{ display: 'inline-block' }}>
         <button type="button">Cambiar de plan</button>
