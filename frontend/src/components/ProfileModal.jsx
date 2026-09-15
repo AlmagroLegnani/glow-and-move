@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Modal from './Modal.jsx';
 import VideosModal from './VideosModal.jsx';
 import BlocksModal from './BlocksModal.jsx';
+import WeightUpdateForm from './WeightUpdateForm.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { api } from '../lib/api.js';
 
@@ -133,6 +134,8 @@ export default function ProfileModal({ onClose }) {
           </span>
         </a>
       )}
+
+      <WeightUpdateForm token={token} refreshMe={refreshMe} />
 
       <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <div className="modal__row">

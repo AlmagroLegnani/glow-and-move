@@ -1,6 +1,4 @@
-import { useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
-import { api } from '../lib/api.js';
 import AccountShell from './AccountShell.jsx';
 import './Modal.css';
 import './PlanStatus.css';
@@ -124,54 +122,6 @@ function BmiCard({ weightKg, heightCm }) {
   );
 }
 
-function WeightUpdateForm({ token, refreshMe }) {
-  const [value, setValue] = useState('');
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
-  const [saved, setSaved] = useState(false);
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setError('');
-    setSaving(true);
-    try {
-      await api.logWeight({ weightKg: Number(value) }, token);
-      await refreshMe();
-      setSaved(true);
-      setValue('');
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '0.6rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-      <div className="field" style={{ maxWidth: '160px' }}>
-        <label htmlFor="newWeight">Actualizar peso (kg)</label>
-        <input
-          id="newWeight"
-          type="number"
-          min="1"
-          step="0.1"
-          required
-          value={value}
-          onChange={(e) => {
-            setValue(e.target.value);
-            setSaved(false);
-          }}
-        />
-      </div>
-      <button type="submit" className="btn" disabled={saving}>
-        {saving ? 'Guardando...' : 'Actualizar'}
-      </button>
-      {error && <p className="modal__error">{error}</p>}
-      {saved && <p className="modal__success">Peso actualizado.</p>}
-    </form>
-  );
-}
-
 function PlanStatusCard({ subscription }) {
   const info = getPlanStatusInfo(subscription);
   return (
@@ -192,7 +142,7 @@ function PlanStatusCard({ subscription }) {
 }
 
 export default function MiPlanPage() {
-  const { user, token, loading, logout, refreshMe } = useAuth();
+  const { user, loading, logout } = useAuth();
 
   function handleLogout() {
     logout();
@@ -230,8 +180,6 @@ export default function MiPlanPage() {
       {subscription ? <PlanStatusCard subscription={subscription} /> : <p style={{ fontSize: '0.9rem' }}>Todavía no tenés un plan activo.</p>}
 
       {user.weightKg && user.heightCm && <BmiCard weightKg={Number(user.weightKg)} heightCm={Number(user.heightCm)} />}
-
-      <WeightUpdateForm token={token} refreshMe={refreshMe} />
 
       <a href="/#planes" className="modal__switch" style={{ display: 'inline-block' }}>
         <button type="button">Cambiar de plan</button>
