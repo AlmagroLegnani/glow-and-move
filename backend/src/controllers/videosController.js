@@ -20,6 +20,7 @@ async function listMyVideos(req, res) {
   res.json({
     locked: false,
     hasVideoAccess: hasAccess,
+    hasFullAccess,
     upgradeMessage: hasAccess ? null : 'Este contenido está disponible en una experiencia superior.',
     videos: videos.map((v) => {
       const unlocked = v.level === 'experto' ? hasFullAccess : hasAccess;

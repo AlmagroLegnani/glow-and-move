@@ -52,16 +52,44 @@ function VideoCard({ video }) {
   );
 }
 
+function ComingSoonCard() {
+  return (
+    <li>
+      <div className="video-card video-card--locked video-card--soon">
+        <span className="video-card__thumb">
+          <span className="video-card__locked" aria-hidden="true">
+            🔒
+          </span>
+        </span>
+        <span className="video-card__info">
+          <span className="video-card__title">Próximamente</span>
+          <span className="video-card__upgrade">
+            Todavía no hay ejercicios cargados en este nivel. <a href="/#planes">Ver planes</a>.
+          </span>
+        </span>
+      </div>
+    </li>
+  );
+}
+
 export default function MisVideosPage() {
   const { user, token, loading } = useAuth();
-  const [videosState, setVideosState] = useState({ loading: true, hasVideoAccess: false, videos: [], error: '' });
+  const [videosState, setVideosState] = useState({ loading: true, hasVideoAccess: false, hasFullAccess: false, videos: [], error: '' });
 
   useEffect(() => {
     if (!token) return;
     api
       .myVideos(token)
-      .then((data) => setVideosState({ loading: false, hasVideoAccess: data.hasVideoAccess, videos: data.videos || [], error: '' }))
-      .catch((err) => setVideosState({ loading: false, hasVideoAccess: false, videos: [], error: err.message }));
+      .then((data) =>
+        setVideosState({
+          loading: false,
+          hasVideoAccess: data.hasVideoAccess,
+          hasFullAccess: data.hasFullAccess,
+          videos: data.videos || [],
+          error: '',
+        })
+      )
+      .catch((err) => setVideosState({ loading: false, hasVideoAccess: false, hasFullAccess: false, videos: [], error: err.message }));
   }, [token]);
 
   if (loading) {
@@ -90,23 +118,20 @@ export default function MisVideosPage() {
 
       {videosState.loading && <p className="profile__videos-hint">Cargando...</p>}
       {!videosState.loading && videosState.error && <p className="modal__error">{videosState.error}</p>}
-      {!videosState.loading && !videosState.error && videosState.videos.length === 0 && (
-        <p className="profile__videos-hint">Todavía no hay ejercicios cargados.</p>
-      )}
+
       {!videosState.loading &&
         !videosState.error &&
         LEVELS.map((level) => {
           const videosForLevel = videosState.videos.filter((v) => v.level === level.id);
-          if (videosForLevel.length === 0) return null;
+          const sectionUnlocked = level.id === 'experto' ? videosState.hasFullAccess : videosState.hasVideoAccess;
           return (
             <div key={level.id} className="video-level-section">
               <h2 className="video-level-section__title">
+                {!sectionUnlocked && <span aria-hidden="true">🔒 </span>}
                 {level.label} <span className="video-level-section__hint">({level.hint})</span>
               </h2>
               <ul className="video-grid">
-                {videosForLevel.map((video) => (
-                  <VideoCard key={video.id} video={video} />
-                ))}
+                {videosForLevel.length > 0 ? videosForLevel.map((video) => <VideoCard key={video.id} video={video} />) : <ComingSoonCard />}
               </ul>
             </div>
           );
