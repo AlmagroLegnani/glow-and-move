@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import AuthModal from './AuthModal.jsx';
 import TrialModal from './TrialModal.jsx';
 import ProfileModal from './ProfileModal.jsx';
+import AccountNav from './AccountNav.jsx';
 
 const TICKER_MESSAGES = [
   'Prueba gratis 7 días, plan Full sin anuncios',
@@ -120,6 +121,12 @@ export default function Navbar() {
           </svg>
           <span>{user ? user.firstName : 'Mi perfil'}</span>
         </button>
+
+        {user && (
+          <div className="navbar__account-nav">
+            <AccountNav />
+          </div>
+        )}
 
         <div className="navbar__lang" role="group" aria-label="Traducir página">
           {LANGUAGES.map((l) => (

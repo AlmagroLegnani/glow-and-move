@@ -1,0 +1,31 @@
+.account-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.account-nav__link {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--ink-soft);
+  text-decoration: none;
+  padding: 0.45rem 0.85rem;
+  border-radius: 100px;
+  border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+  white-space: nowrap;
+  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+
+.account-nav__link:hover {
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  color: var(--ink);
+}
+
+.account-nav__link--active {
+  background: var(--mocha-deep);
+  border-color: var(--mocha-deep);
+  color: var(--cream);
+}

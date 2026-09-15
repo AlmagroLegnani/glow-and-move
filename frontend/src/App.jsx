@@ -9,6 +9,9 @@ import AIAssistant from './components/AIAssistant.jsx';
 import CheckoutStatus from './components/CheckoutStatus.jsx';
 import ResetPassword from './components/ResetPassword.jsx';
 import AdminPage from './components/AdminPage.jsx';
+import MiPlanPage from './components/MiPlanPage.jsx';
+import MisVideosPage from './components/MisVideosPage.jsx';
+import MiBitacoraPage from './components/MiBitacoraPage.jsx';
 
 const CHECKOUT_PATHS = {
   '/checkout/exito': 'exito',
@@ -28,6 +31,18 @@ function App() {
 
   if (window.location.pathname === '/admin') {
     return <AdminPage />;
+  }
+
+  if (window.location.pathname === '/mi-plan') {
+    return <MiPlanPage />;
+  }
+
+  if (window.location.pathname === '/mis-videos') {
+    return <MisVideosPage />;
+  }
+
+  if (window.location.pathname === '/mi-bitacora') {
+    return <MiBitacoraPage />;
   }
 
   return (

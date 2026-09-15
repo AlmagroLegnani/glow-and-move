@@ -80,6 +80,11 @@
   border-color: color-mix(in srgb, var(--ink) 12%, transparent);
 }
 
+.navbar__account-nav {
+  display: flex;
+  min-width: 0;
+}
+
 .navbar__lang {
   display: flex;
   align-items: center;
@@ -224,6 +229,12 @@
   font-weight: 600;
   box-shadow: var(--shadow-card);
   z-index: 80;
+}
+
+@media (max-width: 900px) {
+  .navbar__account-nav {
+    display: none;
+  }
 }
 
 @media (max-width: 760px) {

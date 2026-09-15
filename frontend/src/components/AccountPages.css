@@ -1,0 +1,54 @@
+.account-page {
+  min-height: 100vh;
+  background: var(--cream);
+  padding-block: 2.5rem 4rem;
+}
+
+.account-page__inner {
+  max-width: 880px;
+}
+
+.account-page__home {
+  display: inline-block;
+  margin-bottom: 1.2rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+
+.account-page__home:hover {
+  color: var(--ink);
+}
+
+.account-page__content {
+  margin-top: 1.5rem;
+  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--ink) 8%, transparent);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  padding: clamp(1.6rem, 4vw, 2.4rem);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.account-page__content h1 {
+  font-family: var(--font-sans);
+  font-size: 1.3rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+}
+
+.account-page__email {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.account-page__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
