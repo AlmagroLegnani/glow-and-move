@@ -191,14 +191,6 @@ export default function MiRutinaPage() {
               <th>Repeticiones recomendadas</th>
               <th>Kilos recomendados</th>
               <th>Descanso recomendado</th>
-              {performedChoice === true && (
-                <>
-                  <th>Tus series</th>
-                  <th>Tus repeticiones</th>
-                  <th>Tus kilos</th>
-                  <th>Tu descanso</th>
-                </>
-              )}
             </tr>
           </thead>
           <tbody>
@@ -220,59 +212,69 @@ export default function MiRutinaPage() {
                 <td>{ex.suggestedReps}</td>
                 <td>{ex.suggestedWeight > 0 ? `${ex.suggestedWeight}kg` : 'Peso corporal'}</td>
                 <td>{ex.suggestedRest || '—'}</td>
-                {performedChoice === true && (
-                  <>
-                    <td>
-                      <input
-                        type="number"
-                        min="1"
-                        placeholder="series"
-                        value={drafts[ex.videoId]?.sets ?? ''}
-                        disabled={busy}
-                        onChange={(e) => updateDraft(ex.videoId, 'sets', e.target.value)}
-                        aria-label={`Series reales de ${ex.name}`}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        min="1"
-                        placeholder="reps"
-                        value={drafts[ex.videoId]?.reps ?? ''}
-                        disabled={busy}
-                        onChange={(e) => updateDraft(ex.videoId, 'reps', e.target.value)}
-                        aria-label={`Repeticiones reales de ${ex.name}`}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.5"
-                        placeholder="kg"
-                        value={drafts[ex.videoId]?.weight ?? ''}
-                        disabled={busy}
-                        onChange={(e) => updateDraft(ex.videoId, 'weight', e.target.value)}
-                        aria-label={`Peso real de ${ex.name}`}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="text"
-                        placeholder="ej. 1:30"
-                        value={drafts[ex.videoId]?.rest ?? ''}
-                        disabled={busy}
-                        onChange={(e) => updateDraft(ex.videoId, 'rest', e.target.value)}
-                        aria-label={`Descanso real de ${ex.name}`}
-                      />
-                    </td>
-                  </>
-                )}
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {performedChoice === true && (
+        <div className="rutina-log">
+          <p className="rutina-log__title">Cargá lo que hiciste realmente</p>
+          {today.exercises.map((ex) => (
+            <div key={ex.videoId} className="rutina-log__row">
+              <span className="rutina-log__name">{ex.name}</span>
+              <div className="rutina-log__fields">
+                <label>
+                  Tus series
+                  <input
+                    type="number"
+                    min="1"
+                    value={drafts[ex.videoId]?.sets ?? ''}
+                    disabled={busy}
+                    onChange={(e) => updateDraft(ex.videoId, 'sets', e.target.value)}
+                    aria-label={`Series reales de ${ex.name}`}
+                  />
+                </label>
+                <label>
+                  Tus repeticiones
+                  <input
+                    type="number"
+                    min="1"
+                    value={drafts[ex.videoId]?.reps ?? ''}
+                    disabled={busy}
+                    onChange={(e) => updateDraft(ex.videoId, 'reps', e.target.value)}
+                    aria-label={`Repeticiones reales de ${ex.name}`}
+                  />
+                </label>
+                <label>
+                  Tus kilos
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    value={drafts[ex.videoId]?.weight ?? ''}
+                    disabled={busy}
+                    onChange={(e) => updateDraft(ex.videoId, 'weight', e.target.value)}
+                    aria-label={`Peso real de ${ex.name}`}
+                  />
+                </label>
+                <label>
+                  Tu descanso
+                  <input
+                    type="text"
+                    placeholder="ej. 1:30"
+                    value={drafts[ex.videoId]?.rest ?? ''}
+                    disabled={busy}
+                    onChange={(e) => updateDraft(ex.videoId, 'rest', e.target.value)}
+                    aria-label={`Descanso real de ${ex.name}`}
+                  />
+                </label>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {performedChoice === null && (
         <div className="bl-ask">
