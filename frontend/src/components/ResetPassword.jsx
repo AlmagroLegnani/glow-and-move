@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { api } from '../lib/api.js';
+import PasswordField from './PasswordField.jsx';
 import './CheckoutStatus.css';
 import './Modal.css';
 
@@ -70,28 +71,24 @@ export default function ResetPassword() {
           className="modal__body"
           style={{ width: '100%', textAlign: 'left' }}
         >
-          <div className="field">
-            <label htmlFor="password">Contraseña nueva</label>
-            <input
-              id="password"
-              type="password"
-              required
-              minLength={6}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-          <div className="field">
-            <label htmlFor="confirmPassword">Confirmar contraseña</label>
-            <input
-              id="confirmPassword"
-              type="password"
-              required
-              minLength={6}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
-          </div>
+          <PasswordField
+            id="password"
+            label="Contraseña nueva"
+            required
+            minLength={6}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="new-password"
+          />
+          <PasswordField
+            id="confirmPassword"
+            label="Confirmar contraseña"
+            required
+            minLength={6}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            autoComplete="new-password"
+          />
 
           {error && <p className="modal__error">{error}</p>}
 

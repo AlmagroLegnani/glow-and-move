@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Modal from './Modal.jsx';
+import PasswordField from './PasswordField.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { api } from '../lib/api.js';
 
@@ -141,32 +142,28 @@ export default function AuthModal({ onClose, onSuccess }) {
           <input id="email" name="email" type="email" required value={form.email} onChange={handleChange} />
         </div>
 
-        <div className="field">
-          <label htmlFor="password">Contraseña</label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            required
-            minLength={6}
-            value={form.password}
-            onChange={handleChange}
-          />
-        </div>
+        <PasswordField
+          id="password"
+          name="password"
+          label="Contraseña"
+          required
+          minLength={6}
+          value={form.password}
+          onChange={handleChange}
+          autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+        />
 
         {mode === 'register' && (
-          <div className="field">
-            <label htmlFor="confirmPassword">Confirmar contraseña</label>
-            <input
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              required
-              minLength={6}
-              value={form.confirmPassword}
-              onChange={handleChange}
-            />
-          </div>
+          <PasswordField
+            id="confirmPassword"
+            name="confirmPassword"
+            label="Confirmar contraseña"
+            required
+            minLength={6}
+            value={form.confirmPassword}
+            onChange={handleChange}
+            autoComplete="new-password"
+          />
         )}
 
         {mode === 'login' && (

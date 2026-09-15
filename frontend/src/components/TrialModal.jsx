@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Modal from './Modal.jsx';
+import PasswordField from './PasswordField.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 
 export default function TrialModal({ onClose, onSuccess }) {
@@ -88,18 +89,16 @@ export default function TrialModal({ onClose, onSuccess }) {
           <input id="temail" name="email" type="email" required value={form.email} onChange={handleChange} />
         </div>
 
-        <div className="field">
-          <label htmlFor="tpassword">Elegí una contraseña</label>
-          <input
-            id="tpassword"
-            name="password"
-            type="password"
-            required
-            minLength={6}
-            value={form.password}
-            onChange={handleChange}
-          />
-        </div>
+        <PasswordField
+          id="tpassword"
+          name="password"
+          label="Elegí una contraseña"
+          required
+          minLength={6}
+          value={form.password}
+          onChange={handleChange}
+          autoComplete="new-password"
+        />
 
         <div className="field">
           <label htmlFor="routineChoice">Rutina</label>
