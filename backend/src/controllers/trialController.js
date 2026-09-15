@@ -57,6 +57,7 @@ async function startTrial(req, res) {
       phone,
       heightCm,
       weightKg,
+      weightLogs: { create: { weightKg } },
       subscriptions: {
         create: {
           planId: fullPlan.id,

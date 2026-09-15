@@ -24,6 +24,7 @@ export const api = {
   resetPassword: (body) => request('/api/auth/reset-password', { method: 'POST', body }),
   me: (token) => request('/api/auth/me', { token }),
   updateMe: (body, token) => request('/api/auth/me', { method: 'PATCH', body, token }),
+  logWeight: (body, token) => request('/api/auth/weight', { method: 'POST', body, token }),
   plans: () => request('/api/plans'),
   startTrial: (body) => request('/api/trial', { method: 'POST', body }),
   checkout: (body, token) => request('/api/subscriptions/checkout', { method: 'POST', body, token }),

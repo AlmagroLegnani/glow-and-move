@@ -134,8 +134,6 @@ export default function MiBitacoraPage() {
   }
 
   const { today, blocks } = data;
-  const hasCompletedBlock = blocks.some((b) => b.status === 'completed');
-  const billingOptions = hasCompletedBlock ? CONTINUE_BILLING_OPTIONS : BILLING_OPTIONS;
 
   return (
     <AccountShell active="bitacora">
@@ -196,7 +194,7 @@ export default function MiBitacoraPage() {
         </p>
       )}
 
-      <ProgressView stats={stats} loading={statsLoading} />
+      <ProgressView stats={stats} loading={statsLoading} userName={`${user.firstName} ${user.lastName}`} />
 
       <details className="bl-track-details">
         <summary>Ver los 4 bloques del año</summary>
@@ -213,21 +211,6 @@ export default function MiBitacoraPage() {
             </div>
           ))}
         </div>
-
-        <div className="bl-billing">
-          <span className="bl-billing__label">Forma de pago:</span>
-          {billingOptions.map((opt) => (
-            <button
-              key={opt.id}
-              type="button"
-              disabled={busy}
-              className={`bl-billing__pill ${data.billingMode === opt.id ? 'bl-billing__pill--active' : ''}`}
-              onClick={() => runAction(api.changeBlockBilling({ billingMode: opt.id }, token))}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
       </details>
     </AccountShell>
   );
@@ -237,7 +220,81 @@ function round1(n) {
   return Math.round(n * 10) / 10;
 }
 
-function ProgressView({ stats, loading }) {
+function buildReportHtml(block, userName) {
+  const rows = block.exercises
+    .map(
+      (ex) => `
+        <tr>
+          <td>${ex.name}</td>
+          <td>${PERFORMANCE_LABEL[ex.performance]}</td>
+          <td>${round1(ex.avgWeight)}kg × ${Math.round(ex.avgReps)} reps</td>
+          <td>${round1(ex.avgSuggestedWeight)}kg × ${Math.round(ex.avgSuggestedReps)} reps</td>
+          <td>${ex.weightDelta > 0 ? '+' : ''}${round1(ex.weightDelta)}kg, ${ex.repsDelta > 0 ? '+' : ''}${round1(ex.repsDelta)} reps</td>
+        </tr>`
+    )
+    .join('');
+
+  const weightSection =
+    block.startWeightKg !== null && block.endWeightKg !== null
+      ? `<p><strong>Peso al empezar el bloque:</strong> ${block.startWeightKg}kg<br/>
+         <strong>Peso al terminar el bloque:</strong> ${block.endWeightKg}kg<br/>
+         <strong>Diferencia:</strong> ${block.weightDeltaKg > 0 ? '+' : ''}${block.weightDeltaKg}kg
+         (${block.weightDeltaKg > 0 ? 'aumento' : block.weightDeltaKg < 0 ? 'baja' : 'sin cambios'} de peso)</p>`
+      : `<p><em>No hay suficientes registros de peso cargados desde "Mi plan" para calcular la diferencia de este bloque.</em></p>`;
+
+  return `<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<title>Informe — ${block.blockName}</title>
+<style>
+  body { font-family: Arial, sans-serif; color: #33291f; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
+  h1 { font-size: 1.3rem; }
+  h2 { font-size: 1rem; margin-top: 2rem; border-bottom: 1px solid #ddd; padding-bottom: 0.3rem; }
+  table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; font-size: 0.85rem; }
+  th, td { text-align: left; padding: 0.4rem 0.5rem; border-bottom: 1px solid #eee; }
+  th { background: #f0e6da; }
+</style>
+</head>
+<body>
+  <h1>Informe de progreso — ${block.blockName}</h1>
+  <p><strong>Alumno/a:</strong> ${userName}</p>
+  <p><strong>Objetivo de este bloque:</strong> ${block.objective || '—'}</p>
+  <p><strong>Objetivo del próximo bloque:</strong> ${block.nextObjective || '—'}</p>
+
+  <h2>Frecuencia de entrenamiento</h2>
+  <p>${block.performedCount} entrenamientos realizados, ${block.missedCount} salteados — ${block.adherencePct}% de adherencia.</p>
+
+  <h2>Peso corporal</h2>
+  ${weightSection}
+
+  <h2>Superación personal por ejercicio</h2>
+  <table>
+    <thead>
+      <tr><th>Ejercicio</th><th>Resultado</th><th>Promedio real</th><th>Promedio sugerido</th><th>Diferencia</th></tr>
+    </thead>
+    <tbody>${rows || '<tr><td colspan="5">Sin registros en este bloque.</td></tr>'}</tbody>
+  </table>
+
+  <p style="margin-top:2rem;font-size:0.75rem;color:#6b5f52;">Generado desde Glow &amp; Move — ${new Date().toLocaleDateString('es-UY')}</p>
+</body>
+</html>`;
+}
+
+function downloadBlockReport(block, userName) {
+  const html = buildReportHtml(block, userName);
+  const blob = new Blob([html], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `informe-${block.blockName.replace(/\s+/g, '-').toLowerCase()}.html`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function ProgressView({ stats, loading, userName }) {
   if (loading) return <p className="profile__videos-hint">Cargando progreso...</p>;
   if (!stats) return null;
 
@@ -252,6 +309,11 @@ function ProgressView({ stats, loading }) {
           <h4>
             {block.blockName} — {BLOCK_STATUS_LABEL[block.status]}
           </h4>
+          {block.status === 'completed' && (
+            <button type="button" className="btn" onClick={() => downloadBlockReport(block, userName)}>
+              Descargar informe
+            </button>
+          )}
           {block.adherencePct !== null ? (
             <>
               <div className="bl-progressbar">

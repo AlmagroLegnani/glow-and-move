@@ -347,6 +347,16 @@ function classifyPerformance(avgWeight, avgSuggestedWeight, avgReps, avgSuggeste
   return 'esperado';
 }
 
+// Último peso cargado por el usuario en o antes de esa fecha (null si nunca cargó nada antes).
+async function weightAtOrBefore(userId, date) {
+  if (!date) return null;
+  const log = await prisma.weightLog.findFirst({
+    where: { userId, loggedAt: { lte: date } },
+    orderBy: { loggedAt: 'desc' },
+  });
+  return log ? Number(log.weightKg) : null;
+}
+
 // Adherencia + comparación sugerido/real por bloque, y comparación del mismo ejercicio entre
 // bloques. Sin fórmula de progresión: sólo diferencias (delta) y una clasificación simple
 // superior/esperado/inferior, tal como pide el punto 12 de los requerimientos.
@@ -402,13 +412,22 @@ async function getStats(req, res) {
       return point;
     });
 
+    const nextBlock = rows.find((r) => r.block.number === bp.block.number + 1);
+    const startWeightKg = await weightAtOrBefore(req.subscription.userId, bp.startedAt);
+    const endWeightKg = await weightAtOrBefore(req.subscription.userId, bp.completedAt);
+
     perBlock.push({
       blockNumber: bp.block.number,
       blockName: bp.block.name,
       status: bp.status,
+      objective: bp.block.objective,
+      nextObjective: nextBlock?.block.objective || null,
       performedCount,
       missedCount,
       adherencePct: performedCount + missedCount > 0 ? Math.round((performedCount / (performedCount + missedCount)) * 100) : null,
+      startWeightKg,
+      endWeightKg,
+      weightDeltaKg: startWeightKg !== null && endWeightKg !== null ? Math.round((endWeightKg - startWeightKg) * 10) / 10 : null,
       exercises,
     });
   }

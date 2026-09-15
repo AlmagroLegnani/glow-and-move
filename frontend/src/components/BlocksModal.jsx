@@ -197,8 +197,6 @@ export default function BlocksModal({ onClose, onBack }) {
   }
 
   const { today, blocks } = data;
-  const hasCompletedBlock = blocks.some((b) => b.status === 'completed');
-  const billingOptions = hasCompletedBlock ? CONTINUE_BILLING_OPTIONS : BILLING_OPTIONS;
 
   return (
     <Modal title="Mi rutina" onClose={onClose} size="lg">
@@ -396,21 +394,6 @@ export default function BlocksModal({ onClose, onBack }) {
                   <span className="bl-track__status">{BLOCK_STATUS_LABEL[b.status]}</span>
                   {b.paidUntil && <span className="bl-track__months">Pago vigente hasta {new Date(b.paidUntil).toLocaleDateString('es-UY')}</span>}
                 </div>
-              ))}
-            </div>
-
-            <div className="bl-billing">
-              <span className="bl-billing__label">Forma de pago:</span>
-              {billingOptions.map((opt) => (
-                <button
-                  key={opt.id}
-                  type="button"
-                  disabled={busy}
-                  className={`bl-billing__pill ${data.billingMode === opt.id ? 'bl-billing__pill--active' : ''}`}
-                  onClick={() => runAction(api.changeBlockBilling({ billingMode: opt.id }, token))}
-                >
-                  {opt.label}
-                </button>
               ))}
             </div>
           </details>

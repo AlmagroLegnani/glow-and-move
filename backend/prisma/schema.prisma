@@ -63,6 +63,20 @@ model User {
   payments      Payment[]
   routines      Routine[]
   dayExecutions DayExecution[]
+  weightLogs    WeightLog[]
+}
+
+// Historial de peso cargado a mano por el usuario desde "Mi plan". Además del valor en
+// User.weightKg (el más reciente, usado para el IMC), esto permite comparar el peso al
+// inicio y al final de cada bloque en el informe descargable.
+model WeightLog {
+  id       Int      @id @default(autoincrement())
+  userId   Int
+  user     User     @relation(fields: [userId], references: [id])
+  weightKg Decimal  @db.Decimal(5, 1)
+  loggedAt DateTime @default(now())
+
+  @@index([userId, loggedAt])
 }
 
 model Plan {

@@ -27,7 +27,17 @@ async function register(req, res) {
 
   const passwordHash = await hashPassword(password);
   const user = await prisma.user.create({
-    data: { email, passwordHash, firstName, lastName, nationality, phone, heightCm, weightKg },
+    data: {
+      email,
+      passwordHash,
+      firstName,
+      lastName,
+      nationality,
+      phone,
+      heightCm,
+      weightKg,
+      weightLogs: { create: { weightKg } },
+    },
   });
 
   const token = signToken(user.id);
@@ -152,4 +162,16 @@ async function updateMe(req, res) {
   res.json(publicUser(user));
 }
 
-module.exports = { register, login, me, updateMe, forgotPassword, resetPassword };
+async function logWeight(req, res) {
+  const { weightKg } = req.body;
+  if (!weightKg || Number(weightKg) <= 0) {
+    return res.status(400).json({ error: 'Peso inválido' });
+  }
+
+  await prisma.weightLog.create({ data: { userId: req.userId, weightKg } });
+  const user = await prisma.user.update({ where: { id: req.userId }, data: { weightKg } });
+
+  res.json(publicUser(user));
+}
+
+module.exports = { register, login, me, updateMe, forgotPassword, resetPassword, logWeight };
