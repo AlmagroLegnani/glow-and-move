@@ -73,3 +73,16 @@
 .plan-status--gray .plan-status__badge {
   background: var(--ink-soft);
 }
+
+.plan-status__message {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.plan-status--yellow .plan-status__message {
+  color: #8a6a1f;
+}
+
+.plan-status--red .plan-status__message {
+  color: #b3543f;
+}

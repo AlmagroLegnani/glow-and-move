@@ -32,6 +32,14 @@ function formatDate(date) {
   return new Date(date).toLocaleDateString('es-UY');
 }
 
+function expirationMessage(days) {
+  if (days === null) return null;
+  if (days < 0) return 'Tu plan venció.';
+  if (days === 0) return 'Tu plan vence hoy.';
+  if (days === 1) return 'Tu plan vence mañana.';
+  return `Tu plan vence en ${days} días.`;
+}
+
 function getPlanStatusInfo(subscription) {
   const { status, trialEndsAt, currentPeriodEnd, createdAt, billingMode } = subscription;
 
@@ -42,7 +50,14 @@ function getPlanStatusInfo(subscription) {
       if (days <= 1) tone = 'red';
       else if (days <= WARN_DAYS_TRIAL) tone = 'yellow';
     }
-    return { tone, label: STATUS_LABEL.trial, startDate: createdAt, endDate: trialEndsAt, billingLabel: null };
+    return {
+      tone,
+      label: STATUS_LABEL.trial,
+      startDate: createdAt,
+      endDate: trialEndsAt,
+      billingLabel: null,
+      message: tone !== 'green' ? expirationMessage(days) : null,
+    };
   }
 
   if (status === 'active') {
@@ -58,6 +73,7 @@ function getPlanStatusInfo(subscription) {
       startDate: createdAt,
       endDate: currentPeriodEnd,
       billingLabel: BILLING_LABEL[billingMode] || null,
+      message: tone !== 'green' ? expirationMessage(days) : null,
     };
   }
 
@@ -87,6 +103,7 @@ function PlanStatusCard({ subscription }) {
         {info.endDate && <span>Vencimiento: {formatDate(info.endDate)}</span>}
         {info.billingLabel && <span>Facturación: {info.billingLabel}</span>}
       </div>
+      {info.message && <p className="plan-status__message">{info.message}</p>}
     </div>
   );
 }
