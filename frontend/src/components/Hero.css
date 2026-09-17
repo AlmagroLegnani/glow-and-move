@@ -27,7 +27,9 @@
   position: relative;
   border-radius: var(--radius-lg);
   overflow: hidden;
-  aspect-ratio: 16 / 9;
+  max-width: 560px;
+  margin-inline: auto;
+  aspect-ratio: 3 / 4;
   box-shadow: var(--shadow-soft);
 }
 
@@ -35,6 +37,7 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: top center;
 }
 
 .hero__overlay {
@@ -86,6 +89,6 @@
 
 @media (max-width: 640px) {
   .hero__frame {
-    aspect-ratio: 3 / 4;
+    max-width: 100%;
   }
 }
