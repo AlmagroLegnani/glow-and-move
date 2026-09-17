@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import mascotAvatar from '../assets/photos/mascot-avatar.jpg';
 import './AIAssistant.css';
 
 export default function AIAssistant() {
@@ -34,7 +33,12 @@ export default function AIAssistant() {
         onClick={() => setOpen((v) => !v)}
         aria-label="Abrir asistente IA"
       >
-        <img src={mascotAvatar} alt="" className="ai-assistant__avatar" />
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+          <path d="M4 12a8 8 0 1 1 3.2 6.4L4 20l1.2-3.6A7.96 7.96 0 0 1 4 12Z" strokeLinejoin="round" />
+          <circle cx="9" cy="12" r="1" fill="currentColor" stroke="none" />
+          <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
+          <circle cx="15" cy="12" r="1" fill="currentColor" stroke="none" />
+        </svg>
       </button>
     </div>
   );

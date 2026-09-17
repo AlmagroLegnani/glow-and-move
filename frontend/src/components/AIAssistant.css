@@ -10,12 +10,10 @@
 }
 
 .ai-assistant__toggle {
-  width: 62px;
-  height: 62px;
+  width: 58px;
+  height: 58px;
   border-radius: 50%;
-  border: 3px solid var(--surface);
-  padding: 0;
-  overflow: hidden;
+  border: none;
   background: var(--mocha-deep);
   color: var(--cream);
   box-shadow: var(--shadow-soft);
@@ -23,20 +21,17 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform 0.3s ease, background 0.3s ease;
 }
 
 .ai-assistant__toggle:hover {
   transform: translateY(-3px);
-  box-shadow: var(--shadow-card);
+  background: var(--sage-dark);
 }
 
-.ai-assistant__avatar {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: top center;
-  transform: scale(1.6);
+.ai-assistant__toggle svg {
+  width: 26px;
+  height: 26px;
 }
 
 .ai-assistant__panel {
