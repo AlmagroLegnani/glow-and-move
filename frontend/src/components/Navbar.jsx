@@ -5,6 +5,7 @@ import AuthModal from './AuthModal.jsx';
 import TrialModal from './TrialModal.jsx';
 import ProfileModal from './ProfileModal.jsx';
 import AccountNav from './AccountNav.jsx';
+import mascotLogo from '../assets/mascot/mascot.jpg';
 
 const TICKER_MESSAGES = [
   'Prueba gratis 7 días, plan Full sin anuncios',
@@ -114,6 +115,10 @@ export default function Navbar() {
       </div>
 
       <div className="navbar__inner container">
+        <a href="/" className="navbar__logo" aria-label="Glow & Move — inicio">
+          <img src={mascotLogo} alt="" />
+        </a>
+
         <button type="button" className="navbar__profile" onClick={handleProfileClick} disabled={loading}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
             <circle cx="12" cy="8" r="3.4" />
