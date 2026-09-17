@@ -24,7 +24,7 @@
   height: 100%;
   object-fit: cover;
   object-position: top center;
-  transform: scale(1.7);
+  transform: scale(1.3);
 }
 
 @keyframes mascot-float-up {
