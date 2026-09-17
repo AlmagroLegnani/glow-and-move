@@ -11,9 +11,39 @@ const TABS = [
   { id: 'users', label: 'Usuarios' },
 ];
 
+const PING_INTERVAL_MS = 60 * 1000; // mantiene el lock vivo mientras el panel sigue abierto
+
 export default function AdminPage() {
   const { user, token, loading } = useAuth();
   const [tab, setTab] = useState('plans');
+  const [lockState, setLockState] = useState('checking'); // checking | ok | locked
+  const [lockMessage, setLockMessage] = useState('');
+
+  useEffect(() => {
+    if (!user || user.role !== 'admin' || !token) return undefined;
+    let cancelled = false;
+
+    function ping() {
+      api.admin
+        .ping(token)
+        .then(() => {
+          if (!cancelled) setLockState('ok');
+        })
+        .catch((err) => {
+          if (!cancelled) {
+            setLockState('locked');
+            setLockMessage(err.message);
+          }
+        });
+    }
+
+    ping();
+    const interval = setInterval(ping, PING_INTERVAL_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [user, token]);
 
   if (loading) {
     return <AdminShell>Cargando...</AdminShell>;
@@ -26,6 +56,19 @@ export default function AdminPage() {
         <a className="btn btn-primary" href="/">
           Volver al inicio
         </a>
+      </AdminShell>
+    );
+  }
+
+  if (lockState === 'checking') {
+    return <AdminShell>Cargando...</AdminShell>;
+  }
+
+  if (lockState === 'locked') {
+    return (
+      <AdminShell>
+        <p className="modal__error">{lockMessage}</p>
+        <p>Solo un admin puede usar el panel a la vez, para que dos personas no editen lo mismo al mismo tiempo.</p>
       </AdminShell>
     );
   }

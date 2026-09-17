@@ -1,5 +1,23 @@
 const prisma = require('../lib/prisma');
 
+// ---------- Lock de un solo admin a la vez ----------
+
+// Llamado al cerrar sesión (o al salir del panel): libera el lock si lo tenía este mismo
+// usuario, para que otro admin pueda entrar sin esperar a que expire por inactividad.
+async function releaseLock(req, res) {
+  const lock = await prisma.adminLock.findUnique({ where: { id: 1 } });
+  if (lock && lock.adminUserId === req.userId) {
+    await prisma.adminLock.update({ where: { id: 1 }, data: { adminUserId: null } });
+  }
+  res.json({ ok: true });
+}
+
+// Latido periódico desde el panel para mantener el lock vigente mientras el admin sigue
+// activo, sin depender de que haga otras llamadas. requireAdmin ya renueva lastSeenAt.
+async function ping(req, res) {
+  res.json({ ok: true });
+}
+
 // ---------- Usuarios ----------
 
 async function listUsers(req, res) {
@@ -203,6 +221,8 @@ async function deleteRoutineExercise(req, res) {
 }
 
 module.exports = {
+  releaseLock,
+  ping,
   listUsers,
   updateUserRole,
   updateSubscriptionStatus,

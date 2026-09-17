@@ -43,6 +43,8 @@ export const api = {
 
   // Administración
   admin: {
+    ping: (token) => request('/api/admin/ping', { token }),
+    releaseLock: (token) => request('/api/admin/release-lock', { method: 'POST', token }),
     listUsers: (token) => request('/api/admin/users', { token }),
     updateUserRole: (id, body, token) => request(`/api/admin/users/${id}/role`, { method: 'PATCH', body, token }),
     updateSubscriptionStatus: (id, body, token) => request(`/api/admin/subscriptions/${id}/status`, { method: 'PATCH', body, token }),

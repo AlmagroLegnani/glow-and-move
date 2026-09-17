@@ -60,6 +60,7 @@ export function AuthProvider({ children }) {
   }
 
   function logout() {
+    if (token) api.admin.releaseLock(token).catch(() => {});
     setUser(null);
     setToken(null);
     localStorage.removeItem(STORAGE_KEY);

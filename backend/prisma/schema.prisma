@@ -314,3 +314,13 @@ model ContactMessage {
   comments    String
   createdAt   DateTime @default(now())
 }
+
+// Fila única (id fijo = 1) que dice qué admin está usando el panel ahora mismo. Mientras
+// adminUserId esté seteado y lastSeenAt sea reciente, ningún otro admin puede entrar — así
+// evitamos que dos personas editen planes/bloques/rutinas al mismo tiempo. Sin relación
+// formal a User a propósito, para no tocar ese modelo por una tabla puramente operativa.
+model AdminLock {
+  id          Int      @id @default(1)
+  adminUserId Int?
+  lastSeenAt  DateTime @default(now())
+}

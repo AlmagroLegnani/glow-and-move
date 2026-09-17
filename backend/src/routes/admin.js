@@ -4,7 +4,13 @@ const requireAuth = require('../middleware/requireAuth');
 const requireAdmin = require('../middleware/requireAdmin');
 const admin = require('../controllers/adminController');
 
+// No pasa por requireAdmin: cualquier usuario logueado puede liberar el lock si lo tenía
+// (por ejemplo al cerrar sesión), sin quedar bloqueado por el lock que está soltando.
+router.post('/release-lock', requireAuth, admin.releaseLock);
+
 router.use(requireAuth, requireAdmin);
+
+router.get('/ping', admin.ping);
 
 router.get('/users', admin.listUsers);
 router.patch('/users/:id/role', admin.updateUserRole);
