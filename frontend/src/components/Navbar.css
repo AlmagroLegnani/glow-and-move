@@ -12,6 +12,11 @@
   box-shadow: 0 1px 3px rgba(51, 41, 31, 0.06);
 }
 
+.navbar__logo-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
 .navbar__logo {
   display: inline-flex;
   flex-shrink: 0;
@@ -21,6 +26,9 @@
   overflow: hidden;
   border: 2px solid var(--surface);
   box-shadow: var(--shadow-sm);
+  padding: 0;
+  cursor: pointer;
+  background: none;
 }
 
 .navbar__logo img {
@@ -29,6 +37,48 @@
   object-fit: cover;
   object-position: center -25%;
   transform: scale(2);
+}
+
+.navbar__logo-menu {
+  position: absolute;
+  top: calc(100% + 0.6rem);
+  left: 0;
+  min-width: 210px;
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-soft);
+  border: 1px solid color-mix(in srgb, var(--ink) 8%, transparent);
+  overflow: hidden;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+}
+
+.navbar__logo-menu button,
+.navbar__logo-menu a {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 0.7rem 1rem;
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ink);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.18s ease;
+}
+
+.navbar__logo-menu button + a,
+.navbar__logo-menu button + button {
+  border-top: 1px solid color-mix(in srgb, var(--ink) 8%, transparent);
+}
+
+.navbar__logo-menu button:hover,
+.navbar__logo-menu a:hover {
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
 }
 
 .navbar__inner {

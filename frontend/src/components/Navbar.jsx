@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import './Navbar.css';
 import { useAuth } from '../context/AuthContext.jsx';
 import AuthModal from './AuthModal.jsx';
@@ -43,6 +43,8 @@ export default function Navbar() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [trialModalOpen, setTrialModalOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [logoMenuOpen, setLogoMenuOpen] = useState(false);
+  const logoMenuRef = useRef(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -63,6 +65,17 @@ export default function Navbar() {
     const id = setTimeout(() => setToast(''), 2400);
     return () => clearTimeout(id);
   }, [toast]);
+
+  useEffect(() => {
+    if (!logoMenuOpen) return undefined;
+    function handleClickOutside(e) {
+      if (logoMenuRef.current && !logoMenuRef.current.contains(e.target)) {
+        setLogoMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [logoMenuOpen]);
 
   function showComingSoon(label) {
     setToast(`${label}: disponible próximamente`);
@@ -115,9 +128,36 @@ export default function Navbar() {
       </div>
 
       <div className="navbar__inner container">
-        <a href="/" className="navbar__logo" aria-label="Glow & Move — inicio">
-          <img src={mascotLogo} alt="" />
-        </a>
+        <div className="navbar__logo-wrap" ref={logoMenuRef}>
+          <button
+            type="button"
+            className="navbar__logo"
+            aria-label="Menú de cuenta"
+            aria-expanded={logoMenuOpen}
+            onClick={() => setLogoMenuOpen((v) => !v)}
+          >
+            <img src={mascotLogo} alt="" />
+          </button>
+
+          {logoMenuOpen && (
+            <div className="navbar__logo-menu">
+              <button
+                type="button"
+                onClick={() => {
+                  setLogoMenuOpen(false);
+                  handleProfileClick();
+                }}
+              >
+                Configurar perfil
+              </button>
+              {user?.role === 'admin' && (
+                <a href="/admin" onClick={() => setLogoMenuOpen(false)}>
+                  Panel de administración
+                </a>
+              )}
+            </div>
+          )}
+        </div>
 
         <button type="button" className="navbar__profile" onClick={handleProfileClick} disabled={loading}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
