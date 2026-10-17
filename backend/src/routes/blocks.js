@@ -6,10 +6,10 @@ const blocks = require('../controllers/blocksController');
 router.use(requireAuth, blocks.loadContext);
 
 router.get('/', blocks.getOverview);
-router.post('/day', blocks.logDay);
-router.post('/pay', blocks.payBlock);
-router.post('/billing-mode', blocks.changeBillingMode);
+router.post('/day', blocks.requireActivePlan, blocks.logDay);
+router.post('/pay', blocks.requireActivePlan, blocks.payBlock);
+router.post('/billing-mode', blocks.requireActivePlan, blocks.changeBillingMode);
 router.get('/stats', blocks.getStats);
-router.post('/new-year', blocks.startNewYear);
+router.post('/new-year', blocks.requireActivePlan, blocks.startNewYear);
 
 module.exports = router;

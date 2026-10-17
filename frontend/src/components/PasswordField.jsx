@@ -1,12 +1,24 @@
 import { useState } from 'react';
 
-export default function PasswordField({ id, name, label, value, onChange, required, minLength, autoComplete }) {
+export default function PasswordField({
+  id,
+  name,
+  label,
+  value,
+  onChange,
+  required,
+  minLength,
+  autoComplete,
+  icon,
+  placeholder,
+}) {
   const [visible, setVisible] = useState(false);
 
   return (
     <div className="field">
       <label htmlFor={id}>{label}</label>
-      <div className="password-field">
+      <div className={`password-field${icon ? ' input-icon' : ''}`}>
+        {icon}
         <input
           id={id}
           name={name}
@@ -16,6 +28,7 @@ export default function PasswordField({ id, name, label, value, onChange, requir
           value={value}
           onChange={onChange}
           autoComplete={autoComplete}
+          placeholder={placeholder}
         />
         <button
           type="button"

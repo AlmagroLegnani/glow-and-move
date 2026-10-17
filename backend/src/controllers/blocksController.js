@@ -1,7 +1,9 @@
 const prisma = require('../lib/prisma');
 const { sendBlockUnlockedEmail } = require('../lib/email');
+const { isInactive, MONTHS_PER_BLOCK } = require('../lib/billing');
 
 const LOCKED_MESSAGE = 'Necesitás un plan activo para acceder a tu rutina. Elegí un plan para empezar.';
+const INACTIVE_MESSAGE = 'Tu plan está inactivo. Podés ver tus rutinas y tu bitácora, pero para registrar entrenamientos nuevos tenés que actualizar el pago.';
 const BILLING_MODES = ['trimestral', 'semestral', 'anual'];
 // Al pasar de un bloque al siguiente ya no se puede elegir "anual": esa tarifa es solo para
 // quien paga todo el año por adelantado desde el principio, no para quien ya viene pagando
@@ -70,6 +72,40 @@ async function recomputeSchedule(subscriptionId, cycle, billingMode) {
         where: { id: rows[i].id },
         data: { status, paidUntil: shouldSchedule ? paidUntilFor(billingMode, new Date()) : null },
       });
+    }
+  }
+}
+
+// Renovación acreditada: cada 3 meses pagos desbloquea el siguiente bloque bloqueado del año
+// en curso. Si no hay ningún bloque en marcha, el primero pasa a activo y el resto queda
+// programado. Si el usuario todavía no tiene filas BlockProgress no hace nada: se crean al
+// entrar a la rutina según la forma de pago.
+async function applyPaidMonths(subscription, months, paidUntil) {
+  const latest = await prisma.blockProgress.aggregate({
+    where: { subscriptionId: subscription.id },
+    _max: { cycle: true },
+  });
+  const cycle = latest._max.cycle;
+  if (!cycle) return;
+
+  const rows = await prisma.blockProgress.findMany({
+    where: { subscriptionId: subscription.id, cycle },
+    include: { block: true },
+    orderBy: { block: { number: 'asc' } },
+  });
+  const hasRunning = rows.some((r) => r.status === 'active' || r.status === 'scheduled');
+  const toUnlock = rows.filter((r) => r.status === 'locked').slice(0, Math.floor(months / MONTHS_PER_BLOCK));
+
+  for (let i = 0; i < toUnlock.length; i += 1) {
+    const activate = !hasRunning && i === 0;
+    await prisma.blockProgress.update({
+      where: { id: toUnlock[i].id },
+      data: { status: activate ? 'active' : 'scheduled', startedAt: activate ? new Date() : null, paidUntil },
+    });
+    if (activate) {
+      sendBlockUnlockedEmail(subscription.user, toUnlock[i].block.number).catch((err) =>
+        console.error('Error enviando email de bloque desbloqueado', err),
+      );
     }
   }
 }
@@ -184,12 +220,22 @@ async function loadContext(req, res, next) {
 
   req.subscription = subscription;
   req.cycle = latest._max.cycle || 1;
+  req.inactive = isInactive(subscription);
+  next();
+}
+
+// Con el plan vencido se puede seguir viendo todo lo ya pagado (rutina, bitácora, stats),
+// pero no registrar entrenamientos ni avanzar/pagar bloques por fuera de la renovación.
+function requireActivePlan(req, res, next) {
+  if (req.inactive) {
+    return res.status(402).json({ error: INACTIVE_MESSAGE, inactive: true });
+  }
   next();
 }
 
 async function getOverview(req, res) {
   const view = await resolveCurrentView(req.subscription, req.cycle);
-  res.json({ locked: false, cycle: req.cycle, ...view });
+  res.json({ locked: false, cycle: req.cycle, inactive: req.inactive, inactiveMessage: req.inactive ? INACTIVE_MESSAGE : null, ...view });
 }
 
 // "¿Realizaste este entrenamiento?" — si performed=true exige reps/peso reales de cada
@@ -465,6 +511,8 @@ async function startNewYear(req, res) {
 
 module.exports = {
   loadContext,
+  requireActivePlan,
+  applyPaidMonths,
   getOverview,
   logDay,
   payBlock,

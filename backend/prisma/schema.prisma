@@ -143,6 +143,22 @@ model Subscription {
 
   payments          Payment[]
   blockProgress     BlockProgress[]
+  notifications     NotificationLog[]
+}
+
+// Avisos de vencimiento ya enviados (uno por suscripción/tipo/canal/período). Evita que el
+// job diario mande el mismo aviso dos veces, y al renovar cambia periodEnd, así que los
+// avisos del período nuevo se vuelven a mandar.
+model NotificationLog {
+  id             Int          @id @default(autoincrement())
+  subscriptionId Int
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id])
+  kind           String // expiry_7d | expiry_3d | expiry_1d | expired
+  channel        String // email | whatsapp | sms
+  periodEnd      DateTime
+  sentAt         DateTime     @default(now())
+
+  @@unique([subscriptionId, kind, channel, periodEnd])
 }
 
 // Catálogo de bloques del programa anual (1-4), administrable: objetivo, descripción y

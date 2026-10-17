@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Modal from './Modal.jsx';
+import InactivePlanBanner from './InactivePlanBanner.jsx';
 import './BlocksModal.css';
 import { useAuth } from '../context/AuthContext.jsx';
 import { api } from '../lib/api.js';
@@ -204,6 +205,8 @@ export default function BlocksModal({ onClose, onBack }) {
         ← Volver a mi perfil
       </button>
 
+      <InactivePlanBanner />
+
       {actionError && <p className="modal__error">{actionError}</p>}
 
       {notice && (
@@ -232,7 +235,7 @@ export default function BlocksModal({ onClose, onBack }) {
         <ProgressView stats={stats} loading={statsLoading} />
       ) : (
         <>
-          {today.state === 'year_complete' && (
+          {!data.inactive && today.state === 'year_complete' && (
             <div className="bl-yearend">
               <h3>¡Completaste los 4 bloques de este año! 🎉</h3>
               <p>Revisá tu progreso del año en la pestaña "Mi progreso" antes de arrancar el siguiente.</p>
@@ -242,7 +245,7 @@ export default function BlocksModal({ onClose, onBack }) {
             </div>
           )}
 
-          {today.state === 'awaiting_payment' && (
+          {!data.inactive && today.state === 'awaiting_payment' && (
             <div className="bl-paywall">
               <p>
                 Terminaste el Bloque {today.blockNumber - 1}. ¿Querés seguir con el Bloque {today.blockNumber}?
@@ -354,7 +357,7 @@ export default function BlocksModal({ onClose, onBack }) {
                 </table>
               </div>
 
-              {performedChoice === null && (
+              {!data.inactive && performedChoice === null && (
                 <div className="bl-ask">
                   <p>¿Realizaste este entrenamiento?</p>
                   <div className="bl-ask__buttons">

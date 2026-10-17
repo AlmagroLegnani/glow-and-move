@@ -147,6 +147,8 @@ export default function MiRutinaPage() {
   }
 
   const { today } = data;
+  // Con el plan inactivo se ve la rutina pero no se registra (el cartel lo pone AccountShell).
+  const canLog = !data.inactive;
 
   if (today.state !== 'active') {
     const MESSAGE = {
@@ -218,7 +220,7 @@ export default function MiRutinaPage() {
         </table>
       </div>
 
-      {performedChoice === true && (
+      {canLog && performedChoice === true && (
         <div className="rutina-log">
           <p className="rutina-log__title">Cargá lo que hiciste realmente</p>
           {today.exercises.map((ex) => (
@@ -276,7 +278,7 @@ export default function MiRutinaPage() {
         </div>
       )}
 
-      {performedChoice === null && (
+      {canLog && performedChoice === null && (
         <div className="bl-ask">
           <p>¿Realizaste este entrenamiento?</p>
           <div className="bl-ask__buttons">
@@ -290,7 +292,7 @@ export default function MiRutinaPage() {
         </div>
       )}
 
-      {performedChoice === true && (
+      {canLog && performedChoice === true && (
         <div className="bl-ask">
           <button type="button" className="btn btn-primary" disabled={busy} onClick={handleSaveDay}>
             Guardar en mi bitácora

@@ -1,88 +1,563 @@
-.plan-status {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  padding: 1rem 1.2rem;
-  border-radius: var(--radius-md);
-  border: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
-  background: var(--cream);
+/* ---------- Tonos de estado ---------- */
+
+.plan-tone--green {
+  --tone: var(--sage-dark);
+  --tone-soft: color-mix(in srgb, var(--sage) 22%, var(--surface));
 }
 
-.plan-status__top {
+.plan-tone--yellow {
+  --tone: #a07a26;
+  --tone-soft: color-mix(in srgb, #d9b45f 20%, var(--surface));
+}
+
+.plan-tone--red {
+  --tone: #b3543f;
+  --tone-soft: color-mix(in srgb, var(--blush) 30%, var(--surface));
+}
+
+.plan-tone--orange {
+  --tone: #b06c30;
+  --tone-soft: color-mix(in srgb, #e0a56b 22%, var(--surface));
+}
+
+.plan-tone--gray {
+  --tone: var(--ink-soft);
+  --tone-soft: color-mix(in srgb, var(--taupe) 14%, var(--surface));
+}
+
+/* ---------- Header de la cuenta ---------- */
+
+.acct-header {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  flex-wrap: wrap;
+  gap: 1rem;
+  padding-bottom: 0.4rem;
 }
 
-.plan-status__dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
+.acct-header__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(140deg, var(--beige), var(--blush));
+  color: var(--mocha-deep);
+  font-family: var(--font-serif);
+  font-size: 1.4rem;
+  font-weight: 600;
+  box-shadow: 0 0 0 3px var(--surface), 0 0 0 4px color-mix(in srgb, var(--taupe) 30%, transparent);
 }
 
-.plan-status__plan {
-  font-family: var(--font-sans);
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  font-size: 0.9rem;
-  color: var(--ink);
+.acct-header h1 {
+  margin-bottom: 0.15rem;
 }
 
-.plan-status__badge {
-  font-size: 0.7rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  padding: 0.25em 0.7em;
-  border-radius: 100px;
-  color: var(--cream);
-}
+/* ---------- Tarjeta base ---------- */
 
-.plan-status__dates {
+.acct-card {
+  position: relative;
   display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  padding: clamp(1.2rem, 3vw, 1.6rem);
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--taupe) 24%, transparent);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm), 0 10px 30px -22px rgba(51, 41, 31, 0.35);
+  overflow: hidden;
+}
+
+.acct-card[class*='plan-tone--']::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: var(--tone);
+  opacity: 0.85;
+}
+
+.acct-card--empty {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
   flex-wrap: wrap;
-  gap: 0.3rem 1.1rem;
-  font-size: 0.82rem;
+  background: var(--cream);
+  border-style: dashed;
+  font-size: 0.92rem;
   color: var(--ink-soft);
 }
 
-.plan-status--green .plan-status__dot,
-.plan-status--green .plan-status__badge {
-  background: var(--sage-dark);
+.acct-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
 }
 
-.plan-status--yellow .plan-status__dot,
-.plan-status--yellow .plan-status__badge {
-  background: #b58a2e;
+.acct-card__eyebrow {
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--taupe);
 }
 
-.plan-status--red .plan-status__dot,
-.plan-status--red .plan-status__badge {
-  background: #b3543f;
+/* ---------- Pastilla de estado ---------- */
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35em 0.85em;
+  border-radius: 100px;
+  background: var(--tone-soft);
+  border: 1px solid color-mix(in srgb, var(--tone) 30%, transparent);
+  color: var(--tone);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
 }
 
-.plan-status--orange .plan-status__dot,
-.plan-status--orange .plan-status__badge {
-  background: #c07a3a;
+.status-pill__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tone) 20%, transparent);
 }
 
-.plan-status--gray .plan-status__dot,
-.plan-status--gray .plan-status__badge {
-  background: var(--ink-soft);
+.plan-tone--green .status-pill__dot {
+  animation: status-pulse 2.2s ease-in-out infinite;
 }
 
-.plan-status__message {
-  font-size: 0.85rem;
+@keyframes status-pulse {
+  50% {
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--tone) 8%, transparent);
+  }
+}
+
+/* ---------- Tarjeta del plan ---------- */
+
+.plan-card {
+  background:
+    radial-gradient(90% 120% at 100% 0%, var(--tone-soft), transparent 55%),
+    var(--surface);
+}
+
+.plan-card__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.8rem 1.2rem;
+}
+
+.plan-card__name {
+  font-family: var(--font-serif);
+  font-size: clamp(1.6rem, 3.5vw, 2rem);
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+}
+
+.plan-card__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7em 1.3em;
+  border-radius: 100px;
+  background: linear-gradient(135deg, var(--mocha), var(--mocha-deep));
+  color: var(--cream);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  box-shadow: 0 10px 20px -12px rgba(85, 64, 44, 0.8);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.plan-card__cta svg {
+  width: 15px;
+  height: 15px;
+  transition: transform 0.2s ease;
+}
+
+.plan-card__cta:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+  box-shadow: 0 14px 26px -12px rgba(85, 64, 44, 0.85);
+}
+
+.plan-card__cta:hover svg {
+  transform: translateX(3px);
+}
+
+.plan-card__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.7rem;
+  margin: 0;
+}
+
+.plan-card__stats > div {
+  padding: 0.8rem 1rem;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--cream) 65%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--taupe) 16%, transparent);
+}
+
+.plan-card__stats dt {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--taupe);
+}
+
+.plan-card__stats dd {
+  margin: 0.25rem 0 0;
+  font-size: 0.98rem;
   font-weight: 700;
+  color: var(--ink);
 }
 
-.plan-status--yellow .plan-status__message {
-  color: #8a6a1f;
+.plan-card__progress {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
 }
 
-.plan-status--red .plan-status__message {
+.plan-card__progress-track {
+  flex: 1;
+  height: 6px;
+  border-radius: 100px;
+  background: color-mix(in srgb, var(--taupe) 20%, transparent);
+  overflow: hidden;
+}
+
+.plan-card__progress-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--tone);
+  transition: width 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.plan-card__progress-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--tone);
+  white-space: nowrap;
+}
+
+.plan-card__alert {
+  display: flex;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0.8rem 1rem;
+  border-radius: var(--radius-sm);
+  background: var(--tone-soft);
+  border: 1px solid color-mix(in srgb, var(--tone) 28%, transparent);
+  color: color-mix(in srgb, var(--tone) 85%, var(--ink));
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.plan-card__alert::before {
+  content: '!';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--tone);
+  color: var(--surface);
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+/* ---------- Tarjeta IMC ---------- */
+
+.bmi-card__main {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.bmi-card__value {
+  font-family: var(--font-serif);
+  font-size: 2.6rem;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.bmi-card__chips {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.chip {
+  padding: 0.35em 0.8em;
+  border-radius: 100px;
+  background: var(--cream);
+  border: 1px solid color-mix(in srgb, var(--taupe) 22%, transparent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.bmi-scale {
+  position: relative;
+  padding-top: 0.3rem;
+}
+
+/* Tramos OMS sobre una escala 15–35: <18.5 | 18.5–25 | 25–30 | ≥30 */
+.bmi-scale__bar {
+  height: 8px;
+  border-radius: 100px;
+  background: linear-gradient(
+    90deg,
+    #d9b45f 0 17.5%,
+    var(--sage) 17.5% 50%,
+    #d9b45f 50% 75%,
+    var(--blush) 75% 100%
+  );
+  opacity: 0.85;
+}
+
+.bmi-scale__marker {
+  position: absolute;
+  top: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 3px solid var(--mocha-deep);
+  box-shadow: var(--shadow-card);
+  transform: translate(-50%, -2px);
+}
+
+.bmi-scale__labels {
+  display: grid;
+  grid-template-columns: 17.5% 32.5% 25% 25%;
+  margin-top: 0.5rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.bmi-scale__labels span {
+  text-align: center;
+}
+
+/* ---------- Renovación ---------- */
+
+.renew-card {
+  scroll-margin-top: 1.5rem;
+  background:
+    radial-gradient(90% 120% at 0% 0%, color-mix(in srgb, var(--beige) 30%, transparent), transparent 60%),
+    var(--surface);
+}
+
+.renew-card__title {
+  font-family: var(--font-serif);
+  font-size: 1.45rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.renew-card__lede {
+  margin: 0.35rem 0 0;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.renew-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.7rem;
+}
+
+.renew-option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  padding: 1rem 1.1rem;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid color-mix(in srgb, var(--taupe) 28%, transparent);
+  background: color-mix(in srgb, var(--cream) 55%, var(--surface));
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease, background 0.18s ease;
+}
+
+.renew-option:hover {
+  border-color: color-mix(in srgb, var(--mocha) 45%, transparent);
+  transform: translateY(-1px);
+}
+
+.renew-option--active {
+  border-color: var(--mocha-deep);
+  background: var(--surface);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--beige) 55%, transparent);
+}
+
+.renew-option__badge {
+  position: absolute;
+  top: 0.7rem;
+  right: 0.7rem;
+  padding: 0.2em 0.6em;
+  border-radius: 100px;
+  background: color-mix(in srgb, var(--sage) 30%, var(--surface));
+  color: var(--sage-dark);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.renew-option__label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--taupe);
+}
+
+.renew-option--active .renew-option__label {
+  color: var(--mocha);
+}
+
+.renew-option__total {
+  font-family: var(--font-serif);
+  font-size: 1.45rem;
+  color: var(--ink);
+}
+
+.renew-option__monthly {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.renew-card__pay {
+  align-self: flex-start;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0.95em 1.8em;
+}
+
+.renew-card__pay:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.renew-card__note {
+  margin: -0.4rem 0 0;
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}
+
+/* ---------- Pie ---------- */
+
+.acct-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 1rem;
+  margin-top: 0.4rem;
+  border-top: 1px solid color-mix(in srgb, var(--taupe) 20%, transparent);
+}
+
+.acct-logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65em 1.2em;
+  border-radius: 100px;
+  border: 1px solid color-mix(in srgb, var(--taupe) 35%, transparent);
+  background: transparent;
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+}
+
+.acct-logout svg {
+  width: 16px;
+  height: 16px;
+}
+
+.acct-logout:hover {
+  background: color-mix(in srgb, var(--blush) 22%, var(--surface));
+  border-color: color-mix(in srgb, #b3543f 35%, transparent);
   color: #b3543f;
+}
+
+@media (max-width: 520px) {
+  .plan-card__stats {
+    grid-template-columns: 1fr;
+    gap: 0;
+    border-radius: var(--radius-sm);
+    border: 1px solid color-mix(in srgb, var(--taupe) 16%, transparent);
+    background: color-mix(in srgb, var(--cream) 65%, var(--surface));
+  }
+
+  .plan-card__stats > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: none;
+    border-radius: 0;
+    background: none;
+    padding: 0.7rem 0.9rem;
+  }
+
+  .plan-card__stats > div + div {
+    border-top: 1px solid color-mix(in srgb, var(--taupe) 16%, transparent);
+  }
+
+  .plan-card__stats dd {
+    margin: 0;
+    font-size: 0.9rem;
+  }
+
+  .plan-card__title-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .plan-card__cta {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .acct-footer {
+    justify-content: stretch;
+  }
+
+  .acct-logout {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .renew-card__pay {
+    width: 100%;
+    justify-content: center;
+  }
 }

@@ -1,6 +1,7 @@
 const prisma = require('../lib/prisma');
 const { getPayment } = require('../lib/mercadopago');
-const { PERIOD_MONTHS, addMonths } = require('./subscriptionsController');
+const { MONTHS_BY_MODE, addMonths, modeForMonths, isInactive } = require('../lib/billing');
+const { applyPaidMonths } = require('./blocksController');
 
 async function mercadopagoWebhook(req, res) {
   const type = req.query.type || req.body.type || req.query.topic;
@@ -12,7 +13,8 @@ async function mercadopagoWebhook(req, res) {
 
   try {
     const payment = await getPayment(paymentId);
-    const [userId, , subscriptionId] = String(payment.external_reference || '').split(':');
+    // userId:planSlug:subscriptionId[:tipo:meses] — las preferencias viejas no traen tipo/meses.
+    const [userId, , subscriptionId, kind = 'new', monthsRaw] = String(payment.external_reference || '').split(':');
 
     if (!subscriptionId) {
       return res.sendStatus(200);
@@ -25,12 +27,14 @@ async function mercadopagoWebhook(req, res) {
 
     const subscription = await prisma.subscription.findUnique({
       where: { id: Number(subscriptionId) },
-      include: { plan: true },
+      include: { plan: true, user: true },
     });
 
     if (!subscription) {
       return res.sendStatus(200);
     }
+
+    const months = Number(monthsRaw) || MONTHS_BY_MODE[subscription.billingMode] || 3;
 
     await prisma.payment.create({
       data: {
@@ -38,19 +42,42 @@ async function mercadopagoWebhook(req, res) {
         subscriptionId: subscription.id,
         mpPaymentId: String(paymentId),
         mpStatus: payment.status,
-        amount: subscription.plan.priceUsd,
-        currency: 'USD',
+        amount: payment.transaction_amount ?? subscription.plan.priceUsd,
+        currency: payment.currency_id || 'USD',
       },
     });
 
-    if (payment.status === 'approved') {
+    if (payment.status !== 'approved') {
+      return res.sendStatus(200);
+    }
+
+    if (kind === 'renew') {
+      // Si renueva antes de vencer, los meses nuevos se suman al final del período actual;
+      // si ya estaba vencido, arrancan hoy.
+      const from =
+        !isInactive(subscription) && subscription.currentPeriodEnd && subscription.currentPeriodEnd > new Date()
+          ? subscription.currentPeriodEnd
+          : new Date();
+      const currentPeriodEnd = addMonths(from, months);
       await prisma.subscription.update({
         where: { id: subscription.id },
         data: {
           status: 'active',
           isTrial: false,
           trialEndsAt: null,
-          currentPeriodEnd: addMonths(new Date(), PERIOD_MONTHS[subscription.plan.billingPeriod] || 1),
+          billingMode: modeForMonths(months),
+          currentPeriodEnd,
+        },
+      });
+      await applyPaidMonths(subscription, months, currentPeriodEnd);
+    } else {
+      await prisma.subscription.update({
+        where: { id: subscription.id },
+        data: {
+          status: 'active',
+          isTrial: false,
+          trialEndsAt: null,
+          currentPeriodEnd: addMonths(new Date(), months),
         },
       });
     }

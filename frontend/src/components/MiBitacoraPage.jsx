@@ -141,7 +141,7 @@ export default function MiBitacoraPage() {
 
       {actionError && <p className="modal__error">{actionError}</p>}
 
-      {today.state === 'year_complete' && (
+      {!data.inactive && today.state === 'year_complete' && (
         <div className="bl-yearend">
           <h3>¡Completaste los 4 bloques de este año! 🎉</h3>
           <p>Revisá tu progreso más abajo antes de arrancar el siguiente.</p>
@@ -151,7 +151,7 @@ export default function MiBitacoraPage() {
         </div>
       )}
 
-      {today.state === 'awaiting_payment' && (
+      {!data.inactive && today.state === 'awaiting_payment' && (
         <div className="bl-paywall">
           <p>
             Terminaste el Bloque {today.blockNumber - 1}. ¿Querés seguir con el Bloque {today.blockNumber}?
@@ -188,7 +188,7 @@ export default function MiBitacoraPage() {
         <p className="profile__videos-hint">Este bloque todavía no tiene una rutina cargada. Escribinos y lo resolvemos.</p>
       )}
 
-      {today.state === 'active' && (
+      {!data.inactive && today.state === 'active' && (
         <p className="profile__videos-hint">
           Tenés un entrenamiento pendiente hoy. Cargalo desde <a href="/mi-rutina">Mi rutina</a>.
         </p>

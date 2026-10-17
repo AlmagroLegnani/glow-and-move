@@ -5,6 +5,7 @@ import BlocksModal from './BlocksModal.jsx';
 import WeightUpdateForm from './WeightUpdateForm.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { api } from '../lib/api.js';
+import { isSubscriptionExpired } from '../lib/subscription.js';
 
 const STATUS_LABEL = {
   trial: 'Prueba gratis',
@@ -90,7 +91,7 @@ export default function ProfileModal({ onClose }) {
         <p style={{ fontSize: '0.85rem', color: 'var(--ink-soft)' }}>{user?.email}</p>
         {subscription ? (
           <p style={{ fontSize: '0.9rem', marginTop: '0.3rem' }}>
-            Plan actual: <strong>{subscription.plan?.name}</strong> — {STATUS_LABEL[subscription.status] || subscription.status}
+            Plan actual: <strong>{subscription.plan?.name}</strong> — {isSubscriptionExpired(subscription) ? 'Vencido' : STATUS_LABEL[subscription.status] || subscription.status}
             {subscription.isTrial && subscription.trialEndsAt && (
               <> (termina el {new Date(subscription.trialEndsAt).toLocaleDateString('es-UY')})</>
             )}

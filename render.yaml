@@ -24,3 +24,9 @@ services:
         sync: false
       - key: MP_PUBLIC_KEY
         sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: CRON_SECRET
+        sync: false
+      - key: NOTIFY_CHANNELS
+        value: email

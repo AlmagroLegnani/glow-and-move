@@ -14,6 +14,7 @@ const healthProfileRoutes = require('./routes/healthProfile');
 const videosRoutes = require('./routes/videos');
 const blocksRoutes = require('./routes/blocks');
 const adminRoutes = require('./routes/admin');
+const jobsRoutes = require('./routes/jobs');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -33,6 +34,7 @@ app.use('/api/health-profile', healthProfileRoutes);
 app.use('/api/videos', videosRoutes);
 app.use('/api/blocks', blocksRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/jobs', jobsRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Web Fitness API funcionando' });

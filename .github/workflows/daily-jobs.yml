@@ -1,0 +1,22 @@
+# Corre una vez por día los avisos de vencimiento de planes (POST /api/jobs/daily).
+# Requiere dos secrets en GitHub (Settings → Secrets and variables → Actions):
+#   BACKEND_URL  → ej. https://glow-and-move-api.onrender.com
+#   CRON_SECRET  → el mismo valor que la variable CRON_SECRET del backend en Render
+name: Daily jobs
+
+on:
+  schedule:
+    - cron: '0 13 * * *' # 10:00 hora de Uruguay
+  workflow_dispatch:
+
+jobs:
+  expirations:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Avisos de vencimiento
+        run: |
+          # Render (plan free) puede tardar en despertar: reintentamos con timeout largo.
+          curl --fail-with-body --silent --show-error \
+            --retry 3 --retry-delay 30 --retry-all-errors --max-time 120 \
+            -X POST "${{ secrets.BACKEND_URL }}/api/jobs/daily" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"

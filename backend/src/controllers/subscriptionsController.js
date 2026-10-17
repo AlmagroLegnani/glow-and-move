@@ -1,13 +1,15 @@
 const prisma = require('../lib/prisma');
 const { createPreference } = require('../lib/mercadopago');
-
-const PERIOD_MONTHS = { mensual: 1, semestral: 6, anual: 12 };
-
-function addMonths(date, months) {
-  const result = new Date(date);
-  result.setMonth(result.getMonth() + months);
-  return result;
-}
+const {
+  MONTHS_BY_MODE,
+  BILLING_MODES,
+  MONTHS_PER_BLOCK,
+  priceFor,
+  labelForMonths,
+  addMonths,
+  accessEndDate,
+  isInactive,
+} = require('../lib/billing');
 
 async function getCurrentSubscription(userId) {
   return prisma.subscription.findFirst({
@@ -17,32 +19,61 @@ async function getCurrentSubscription(userId) {
   });
 }
 
+// external_reference = userId:planSlug:subscriptionId:tipo:meses — el webhook lo parsea para
+// saber si es una compra nueva o una renovación y cuántos meses acreditar.
+async function createCheckout({ userId, plan, subscriptionId, kind, months, title }) {
+  const price = priceFor(plan, months);
+  const frontendUrl = process.env.FRONTEND_URL;
+  const backendUrl = process.env.BACKEND_URL;
+
+  const preference = await createPreference({
+    title,
+    unitPrice: price.total,
+    externalReference: `${userId}:${plan.slug}:${subscriptionId}:${kind}:${months}`,
+    backUrls: {
+      success: `${frontendUrl}/checkout/exito`,
+      failure: `${frontendUrl}/checkout/error`,
+      pending: `${frontendUrl}/checkout/pendiente`,
+    },
+    notificationUrl: `${backendUrl}/api/webhooks/mercadopago`,
+  });
+
+  return preference;
+}
+
+function handleCheckoutError(err, res) {
+  if (err.code === 'MP_NOT_CONFIGURED') {
+    return res.status(503).json({ error: 'Los pagos todavía no están configurados en el servidor' });
+  }
+  console.error(err);
+  return res.status(502).json({ error: 'No se pudo crear el pago con Mercado Pago' });
+}
+
 async function checkout(req, res) {
   const { planSlug } = req.body;
+  const billingMode = req.body.billingMode || 'trimestral';
+  if (!BILLING_MODES.includes(billingMode)) {
+    return res.status(400).json({ error: 'Forma de pago inválida' });
+  }
+
   const plan = await prisma.plan.findUnique({ where: { slug: planSlug } });
   if (!plan) {
     return res.status(404).json({ error: 'Plan no encontrado' });
   }
 
+  const months = MONTHS_BY_MODE[billingMode];
   const subscription = await prisma.subscription.create({
-    data: { userId: req.userId, planId: plan.id, status: 'pending_payment', isTrial: false },
+    data: { userId: req.userId, planId: plan.id, status: 'pending_payment', isTrial: false, billingMode },
   });
 
-  const externalReference = `${req.userId}:${plan.slug}:${subscription.id}`;
-  const frontendUrl = process.env.FRONTEND_URL;
-  const backendUrl = process.env.BACKEND_URL;
-
   try {
-    const preference = await createPreference({
-      title: plan.name,
-      unitPrice: plan.priceUsd,
-      externalReference,
-      backUrls: {
-        success: `${frontendUrl}/checkout/exito`,
-        failure: `${frontendUrl}/checkout/error`,
-        pending: `${frontendUrl}/checkout/pendiente`,
-      },
-      notificationUrl: `${backendUrl}/api/webhooks/mercadopago`,
+    const preference = await createCheckout({
+      userId: req.userId,
+      plan,
+      subscriptionId: subscription.id,
+      kind: 'new',
+      months,
+      title: `${plan.name} — ${labelForMonths(months)}`,
     });
 
     await prisma.subscription.update({
@@ -52,11 +83,89 @@ async function checkout(req, res) {
 
     res.json({ initPoint: preference.init_point, subscriptionId: subscription.id });
   } catch (err) {
-    if (err.code === 'MP_NOT_CONFIGURED') {
-      return res.status(503).json({ error: 'Los pagos todavía no están configurados en el servidor' });
-    }
-    console.error(err);
-    res.status(502).json({ error: 'No se pudo crear el pago con Mercado Pago' });
+    handleCheckoutError(err, res);
+  }
+}
+
+// Bloques del año en curso que todavía no están pagos. Si el usuario nunca abrió su rutina
+// (no hay filas BlockProgress) se asume que pagó lo que indica su forma de pago inicial.
+async function unpaidBlocksThisYear(subscription) {
+  const latest = await prisma.blockProgress.aggregate({
+    where: { subscriptionId: subscription.id },
+    _max: { cycle: true },
+  });
+  const cycle = latest._max.cycle;
+  if (!cycle) {
+    return 4 - MONTHS_BY_MODE[subscription.billingMode] / MONTHS_PER_BLOCK;
+  }
+  return prisma.blockProgress.count({ where: { subscriptionId: subscription.id, cycle, status: 'locked' } });
+}
+
+// Opciones al renovar: trimestral, semestral, o pagar de una lo que resta del año. Si ya no
+// quedan bloques sin pagar en el año (terminó el año o había pagado anual), se ofrece
+// arrancar el año siguiente: trimestral, semestral o anual.
+async function renewalOptionsFor(subscription) {
+  const remainingBlocks = await unpaidBlocksThisYear(subscription);
+  const remainingMonths = remainingBlocks * MONTHS_PER_BLOCK;
+
+  let monthsList;
+  if (remainingMonths === 0) {
+    monthsList = [3, 6, 12];
+  } else {
+    monthsList = [3, 6, remainingMonths].filter((m) => m <= remainingMonths);
+  }
+  monthsList = [...new Set(monthsList)].sort((a, b) => a - b);
+
+  return {
+    remainingMonths,
+    options: monthsList.map((months) => ({
+      months,
+      label: labelForMonths(months, remainingMonths),
+      ...priceFor(subscription.plan, months),
+    })),
+  };
+}
+
+async function getRenewalOptions(req, res) {
+  const subscription = await getCurrentSubscription(req.userId);
+  if (!subscription || !['active', 'past_due', 'trial'].includes(subscription.status)) {
+    return res.status(404).json({ error: 'No tenés un plan para renovar' });
+  }
+  const { remainingMonths, options } = await renewalOptionsFor(subscription);
+  res.json({
+    planName: subscription.plan.name,
+    inactive: isInactive(subscription),
+    accessEndsAt: accessEndDate(subscription),
+    remainingMonths,
+    options,
+  });
+}
+
+async function renew(req, res) {
+  const months = Number(req.body.months);
+  const subscription = await getCurrentSubscription(req.userId);
+  if (!subscription || !['active', 'past_due', 'trial'].includes(subscription.status)) {
+    return res.status(404).json({ error: 'No tenés un plan para renovar' });
+  }
+
+  const { options } = await renewalOptionsFor(subscription);
+  const option = options.find((o) => o.months === months);
+  if (!option) {
+    return res.status(400).json({ error: 'Esa opción de pago no está disponible' });
+  }
+
+  try {
+    const preference = await createCheckout({
+      userId: req.userId,
+      plan: subscription.plan,
+      subscriptionId: subscription.id,
+      kind: 'renew',
+      months,
+      title: `${subscription.plan.name} — Renovación ${option.label}`,
+    });
+    res.json({ initPoint: preference.init_point, subscriptionId: subscription.id });
+  } catch (err) {
+    handleCheckoutError(err, res);
   }
 }
 
@@ -78,7 +187,7 @@ async function changePlan(req, res) {
         status: 'active',
         isTrial: false,
         trialEndsAt: null,
-        currentPeriodEnd: addMonths(new Date(), PERIOD_MONTHS[newPlan.billingPeriod] || 1),
+        currentPeriodEnd: addMonths(new Date(), MONTHS_BY_MODE[current.billingMode] || 3),
       },
       include: { plan: true },
     });
@@ -88,4 +197,4 @@ async function changePlan(req, res) {
   return checkout(req, res);
 }
 
-module.exports = { checkout, changePlan, getCurrentSubscription, PERIOD_MONTHS, addMonths };
+module.exports = { checkout, changePlan, getRenewalOptions, renew, getCurrentSubscription };

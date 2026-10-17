@@ -3,6 +3,48 @@ import Modal from './Modal.jsx';
 import PasswordField from './PasswordField.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { api } from '../lib/api.js';
+import mascotImg from '../assets/mascot/mascot.jpg';
+
+const authMedia = (
+  <div className="auth__avatar" aria-hidden="true">
+    <span>
+      <img src={mascotImg} alt="" />
+    </span>
+  </div>
+);
+
+const MailIcon = (
+  <svg className="input-icon__glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <rect x="3" y="5" width="18" height="14" rx="3" />
+    <path d="m4 7 8 6 8-6" />
+  </svg>
+);
+
+const LockIcon = (
+  <svg className="input-icon__glyph" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <rect x="4" y="10" width="16" height="11" rx="3" />
+    <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+  </svg>
+);
+
+function SubmitLabel({ loading, loadingText, children }) {
+  if (loading) {
+    return (
+      <>
+        <span className="auth__spinner" aria-hidden="true" />
+        {loadingText}
+      </>
+    );
+  }
+  return (
+    <>
+      {children}
+      <svg className="auth__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M5 12h14M13 6l6 6-6 6" />
+      </svg>
+    </>
+  );
+}
 
 function ForgotPasswordForm({ onBackToLogin, onClose }) {
   const [email, setEmail] = useState('');
@@ -26,43 +68,58 @@ function ForgotPasswordForm({ onBackToLogin, onClose }) {
 
   if (sent) {
     return (
-      <Modal title="Recuperar contraseña" onClose={onClose}>
+      <Modal title="Revisá tu email" variant="auth" media={authMedia} onClose={onClose}>
         <p className="modal__success">
           Si <strong>{email}</strong> está registrado, te enviamos un email con un link para elegir una
           contraseña nueva.
         </p>
         <button type="button" className="btn btn-primary" onClick={onBackToLogin}>
-          Volver a iniciar sesión
+          <SubmitLabel>Volver a iniciar sesión</SubmitLabel>
         </button>
       </Modal>
     );
   }
 
   return (
-    <Modal title="Recuperar contraseña" onClose={onClose}>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <p style={{ fontSize: '0.88rem', color: 'var(--ink-soft)' }}>
-          Ingresá el email de tu cuenta y te mandamos un link para restablecer la contraseña.
-        </p>
+    <Modal
+      title="Recuperar contraseña"
+      subtitle="Ingresá el email de tu cuenta y te mandamos un link para restablecerla."
+      variant="auth"
+      media={authMedia}
+      onClose={onClose}
+    >
+      <form onSubmit={handleSubmit} className="auth__form">
         <div className="field">
           <label htmlFor="forgotEmail">Email</label>
-          <input
-            id="forgotEmail"
-            name="email"
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+          <div className="input-icon">
+            {MailIcon}
+            <input
+              id="forgotEmail"
+              name="email"
+              type="email"
+              required
+              autoComplete="email"
+              placeholder="tu@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
         </div>
 
-        {error && <p className="modal__error">{error}</p>}
+        {error && (
+          <p className="modal__error" role="alert">
+            {error}
+          </p>
+        )}
 
         <button type="submit" className="btn btn-primary" disabled={loading}>
-          {loading ? 'Enviando...' : 'Enviar link de recuperación'}
+          <SubmitLabel loading={loading} loadingText="Enviando...">
+            Enviar link
+          </SubmitLabel>
         </button>
 
         <p className="modal__switch">
+          ¿Te acordaste?{' '}
           <button type="button" onClick={onBackToLogin}>
             Volver a iniciar sesión
           </button>
@@ -124,8 +181,18 @@ export default function AuthModal({ onClose, onSuccess }) {
   }
 
   return (
-    <Modal title={mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'} onClose={onClose}>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <Modal
+      title={mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}
+      subtitle={
+        mode === 'login'
+          ? 'Qué bueno verte de nuevo. Ingresá para seguir con tus rutinas.'
+          : 'Sumate a Glow & Move y empezá a entrenar a tu ritmo.'
+      }
+      variant="auth"
+      media={authMedia}
+      onClose={onClose}
+    >
+      <form onSubmit={handleSubmit} className="auth__form">
         {mode === 'register' && (
           <div className="modal__row">
             <div className="field">
@@ -141,7 +208,19 @@ export default function AuthModal({ onClose, onSuccess }) {
 
         <div className="field">
           <label htmlFor="email">Email</label>
-          <input id="email" name="email" type="email" required value={form.email} onChange={handleChange} />
+          <div className="input-icon">
+            {MailIcon}
+            <input
+              id="email"
+              name="email"
+              type="email"
+              required
+              autoComplete="email"
+              placeholder="tu@email.com"
+              value={form.email}
+              onChange={handleChange}
+            />
+          </div>
         </div>
 
         <PasswordField
@@ -153,6 +232,8 @@ export default function AuthModal({ onClose, onSuccess }) {
           value={form.password}
           onChange={handleChange}
           autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+          icon={LockIcon}
+          placeholder="••••••••"
         />
 
         {mode === 'register' && (
@@ -165,11 +246,13 @@ export default function AuthModal({ onClose, onSuccess }) {
             value={form.confirmPassword}
             onChange={handleChange}
             autoComplete="new-password"
+            icon={LockIcon}
+            placeholder="••••••••"
           />
         )}
 
         {mode === 'login' && (
-          <p className="modal__switch" style={{ textAlign: 'right', marginTop: '-0.6rem' }}>
+          <p className="auth__forgot">
             <button type="button" onClick={() => setMode('forgot')}>
               ¿Olvidaste tu contraseña?
             </button>
@@ -220,10 +303,16 @@ export default function AuthModal({ onClose, onSuccess }) {
           </div>
         )}
 
-        {error && <p className="modal__error">{error}</p>}
+        {error && (
+          <p className="modal__error" role="alert">
+            {error}
+          </p>
+        )}
 
         <button type="submit" className="btn btn-primary" disabled={loading}>
-          {loading ? 'Un momento...' : mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}
+          <SubmitLabel loading={loading} loadingText="Un momento...">
+            {mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}
+          </SubmitLabel>
         </button>
 
         <p className="modal__switch">
