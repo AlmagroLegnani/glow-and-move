@@ -35,6 +35,10 @@
   max-width: 1040px;
 }
 
+.account-topbar--wide .account-topbar__inner {
+  max-width: 1080px;
+}
+
 .account-topbar__home {
   display: inline-flex;
   align-items: center;
@@ -160,7 +164,7 @@
 
 /* Tabs de la cuenta como control segmentado (solo dentro de estas páginas;
    el mismo AccountNav del navbar mantiene su estilo). */
-.account-page .account-nav {
+.account-topbar .account-nav {
   display: inline-flex;
   flex-wrap: nowrap;
   gap: 0.25rem;
@@ -174,22 +178,22 @@
   scrollbar-width: none;
 }
 
-.account-page .account-nav::-webkit-scrollbar {
+.account-topbar .account-nav::-webkit-scrollbar {
   display: none;
 }
 
-.account-page .account-nav__link {
+.account-topbar .account-nav__link {
   border-color: transparent;
   padding: 0.55rem 1rem;
   font-size: 0.8rem;
 }
 
-.account-page .account-nav__link:hover {
+.account-topbar .account-nav__link:hover {
   background: color-mix(in srgb, var(--beige) 35%, transparent);
 }
 
-.account-page .account-nav__link--active,
-.account-page .account-nav__link--active:hover {
+.account-topbar .account-nav__link--active,
+.account-topbar .account-nav__link--active:hover {
   background: linear-gradient(135deg, var(--mocha), var(--mocha-deep));
   color: var(--cream);
   box-shadow: 0 6px 14px -8px rgba(85, 64, 44, 0.8);

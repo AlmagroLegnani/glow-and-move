@@ -1,71 +1,86 @@
 .admin-page {
   min-height: 100vh;
   background: var(--cream);
-  padding-block: 2.5rem 4rem;
+  padding-bottom: 4rem;
 }
 
 .admin-page__inner {
   max-width: 1080px;
-  margin-inline: auto;
-  padding-inline: clamp(1.2rem, 4vw, 2.5rem);
 }
 
-.admin-page__back {
-  display: inline-block;
-  margin-bottom: 1.2rem;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--ink-soft);
-  text-decoration: none;
-  transition: color 0.18s ease;
+.admin-page__header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin: 1.2rem 0 1.4rem;
 }
 
-.admin-page__back:hover {
-  color: var(--ink);
+.admin-page__eyebrow {
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--taupe);
 }
 
 .admin-page__title {
-  font-family: var(--font-sans);
-  font-size: 1.3rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 4.5vw, 2.6rem);
+  font-weight: 500;
+  letter-spacing: -0.02em;
   color: var(--ink);
-  margin: 0 0 1.2rem;
+}
+
+.admin-page__lede {
+  font-size: 0.9rem;
+  color: var(--ink-soft);
 }
 
 .admin-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
+  display: inline-flex;
+  flex-wrap: nowrap;
+  gap: 0.25rem;
+  max-width: 100%;
+  margin-bottom: 1.2rem;
+  padding: 0.3rem;
+  border-radius: 100px;
+  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--taupe) 25%, transparent);
+  box-shadow: var(--shadow-sm);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.admin-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .admin-tabs__btn {
   display: inline-flex;
   align-items: center;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: var(--ink-soft);
-  background: none;
-  padding: 0.45rem 0.85rem;
+  padding: 0.55rem 1.1rem;
+  border: none;
   border-radius: 100px;
-  border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ink-soft);
   white-space: nowrap;
   cursor: pointer;
-  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+  transition: background 0.18s ease, color 0.18s ease;
 }
 
 .admin-tabs__btn:hover {
-  background: color-mix(in srgb, var(--ink) 6%, transparent);
+  background: color-mix(in srgb, var(--beige) 35%, transparent);
   color: var(--ink);
 }
 
-.admin-tabs__btn--active {
-  background: var(--mocha-deep);
-  border-color: var(--mocha-deep);
+.admin-tabs__btn--active,
+.admin-tabs__btn--active:hover {
+  background: linear-gradient(135deg, var(--mocha), var(--mocha-deep));
   color: var(--cream);
+  box-shadow: 0 6px 14px -8px rgba(85, 64, 44, 0.8);
 }
 
 .admin-page__content {

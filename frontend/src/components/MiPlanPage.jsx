@@ -338,6 +338,48 @@ function RenewalCard({ token }) {
   );
 }
 
+const ADMIN_SECTIONS = [
+  { tab: 'plans', label: 'Planes', hint: 'Precios y beneficios', icon: 'M4 7h16M4 12h16M4 17h10' },
+  { tab: 'blocks', label: 'Bloques', hint: 'Objetivos del año', icon: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z' },
+  { tab: 'exercises', label: 'Ejercicios', hint: 'Catálogo y videos', icon: 'M6.5 6.5v11M17.5 6.5v11M6.5 12h11M3.5 9v6M20.5 9v6' },
+  { tab: 'routines', label: 'Rutinas', hint: 'Días y series', icon: 'M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01' },
+  { tab: 'users', label: 'Usuarios', hint: 'Roles y suscripciones', icon: 'M16 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1M9.5 10a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7M21 19v-1a4 4 0 0 0-3-3.9M15.5 3.1a3.5 3.5 0 0 1 0 6.8' },
+];
+
+// Para el admin, lo principal de su perfil es el panel: accesos directos a cada sección.
+function AdminHub() {
+  return (
+    <section className="admin-hub">
+      <div className="admin-hub__head">
+        <div>
+          <span className="admin-hub__eyebrow">Panel de control</span>
+          <h2 className="admin-hub__title">Administración</h2>
+          <p className="admin-hub__lede">Gestioná los planes, el programa y los usuarios de Glow &amp; Move.</p>
+        </div>
+        <a className="admin-hub__cta" href="/admin">
+          Abrir panel
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M5 12h14M13 6l6 6-6 6" />
+          </svg>
+        </a>
+      </div>
+      <div className="admin-hub__grid">
+        {ADMIN_SECTIONS.map((s) => (
+          <a key={s.tab} className="admin-hub__item" href={`/admin?tab=${s.tab}`}>
+            <span className="admin-hub__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d={s.icon} />
+              </svg>
+            </span>
+            <span className="admin-hub__label">{s.label}</span>
+            <span className="admin-hub__hint">{s.hint}</span>
+          </a>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export default function MiPlanPage() {
   const { user, token, loading, logout } = useAuth();
   const [avatarModalOpen, setAvatarModalOpen] = useState(false);
@@ -382,12 +424,19 @@ export default function MiPlanPage() {
           </span>
         </button>
         <div>
-          <h1>Mi plan</h1>
-          <p className="account-page__email">{user.email}</p>
+          <h1>{isAdmin ? 'Mi perfil' : 'Mi plan'}</h1>
+          <p className="account-page__email">
+            {user.email}
+            {isAdmin && <span className="acct-role">Admin</span>}
+          </p>
         </div>
       </header>
 
-      {subscription ? (
+      {isAdmin && <AdminHub />}
+
+      {isAdmin ? (
+        subscription && <PlanStatusCard subscription={subscription} />
+      ) : subscription ? (
         <>
           <PlanStatusCard subscription={subscription} />
           {getPlanStatusInfo(subscription).canRenew && <RenewalCard token={token} />}
@@ -401,19 +450,7 @@ export default function MiPlanPage() {
         </section>
       )}
 
-      {user.weightKg && user.heightCm && <BmiCard weightKg={Number(user.weightKg)} heightCm={Number(user.heightCm)} />}
-
-      {isAdmin && (
-        <a className="profile__teaser" href="/admin">
-          <span className="profile__teaser-text">
-            <span className="profile__teaser-title">Administración</span>
-            <span className="profile__teaser-sub">Planes, bloques, ejercicios y usuarios</span>
-          </span>
-          <span className="profile__teaser-arrow" aria-hidden="true">
-            →
-          </span>
-        </a>
-      )}
+      {!isAdmin && user.weightKg && user.heightCm && <BmiCard weightKg={Number(user.weightKg)} heightCm={Number(user.heightCm)} />}
 
       {avatarModalOpen && <AvatarPickerModal onClose={() => setAvatarModalOpen(false)} />}
 

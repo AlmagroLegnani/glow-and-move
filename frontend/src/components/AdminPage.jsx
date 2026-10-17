@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { api } from '../lib/api.js';
+import AccountTopbar from './AccountTopbar.jsx';
 import './AdminPage.css';
 
 const TABS = [
@@ -11,11 +12,17 @@ const TABS = [
   { id: 'users', label: 'Usuarios' },
 ];
 
+// Permite entrar directo a una sección desde "Mi perfil" (ej. /admin?tab=users).
+function initialTab() {
+  const fromUrl = new URLSearchParams(window.location.search).get('tab');
+  return TABS.some((t) => t.id === fromUrl) ? fromUrl : 'plans';
+}
+
 const PING_INTERVAL_MS = 60 * 1000; // mantiene el lock vivo mientras el panel sigue abierto
 
 export default function AdminPage() {
   const { user, token, loading } = useAuth();
-  const [tab, setTab] = useState('plans');
+  const [tab, setTab] = useState(initialTab);
   const [lockState, setLockState] = useState('checking'); // checking | ok | locked
   const [lockMessage, setLockMessage] = useState('');
 
@@ -91,9 +98,18 @@ export default function AdminPage() {
 
   return (
     <AdminShell>
-      <nav className="admin-tabs">
+      <nav className="admin-tabs" aria-label="Secciones de administración">
         {TABS.map((t) => (
-          <button key={t.id} type="button" className={`admin-tabs__btn ${tab === t.id ? 'admin-tabs__btn--active' : ''}`} onClick={() => setTab(t.id)}>
+          <button
+            key={t.id}
+            type="button"
+            className={`admin-tabs__btn ${tab === t.id ? 'admin-tabs__btn--active' : ''}`}
+            aria-current={tab === t.id ? 'page' : undefined}
+            onClick={() => {
+              setTab(t.id);
+              window.history.replaceState(null, '', `/admin?tab=${t.id}`);
+            }}
+          >
             {t.label}
           </button>
         ))}
@@ -113,11 +129,13 @@ export default function AdminPage() {
 function AdminShell({ children }) {
   return (
     <div className="admin-page">
-      <div className="admin-page__inner">
-        <a href="/" className="admin-page__back">
-          ← Volver al sitio
-        </a>
-        <h1 className="admin-page__title">Administración — Glow &amp; Move</h1>
+      <AccountTopbar active="admin" wide />
+      <div className="container admin-page__inner">
+        <header className="admin-page__header">
+          <span className="admin-page__eyebrow">Panel de control</span>
+          <h1 className="admin-page__title">Administración</h1>
+          <p className="admin-page__lede">Planes, bloques, ejercicios, rutinas y usuarios de Glow &amp; Move.</p>
+        </header>
         {children}
       </div>
     </div>
