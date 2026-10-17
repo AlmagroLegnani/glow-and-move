@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { api } from '../lib/api.js';
 import AccountTopbar from './AccountTopbar.jsx';
+import AdminDropdown from './AdminDropdown.jsx';
 import './AdminPage.css';
 
 const TABS = [
@@ -441,9 +442,9 @@ function BlockCard({ block, saving, saved, onSave }) {
 // ---------- Ejercicios ----------
 
 const LEVELS = [
-  { id: 'principiante', label: 'Principiante' },
-  { id: 'intermedio', label: 'Intermedio' },
-  { id: 'experto', label: 'Experto' },
+  { id: 'principiante', label: 'Principiante', tone: 'green' },
+  { id: 'intermedio', label: 'Intermedio', tone: 'beige' },
+  { id: 'experto', label: 'Experto', tone: 'dark' },
 ];
 
 const EMPTY_EXERCISE = { title: '', videoUrl: '', description: '', defaultSets: 4, defaultReps: 10, defaultWeight: 0, level: 'principiante' };
@@ -551,13 +552,7 @@ function ExercisesTab({ token }) {
             </div>
             <div className="ad-field">
               <label>Nivel</label>
-              <select value={form.level} onChange={(e) => setForm({ ...form, level: e.target.value })}>
-                {LEVELS.map((l) => (
-                  <option key={l.id} value={l.id}>
-                    {l.label}
-                  </option>
-                ))}
-              </select>
+              <AdminDropdown variant="field" ariaLabel="Nivel" value={form.level} options={LEVELS} onChange={(level) => setForm({ ...form, level })} />
             </div>
           </div>
           {formError && <p className="modal__error">{formError}</p>}
@@ -617,13 +612,7 @@ function ExercisesTab({ token }) {
                   {v.defaultSets ?? '—'} × {v.defaultReps ?? '—'} · {Number(v.defaultWeight ?? 0)} kg
                 </td>
                 <td>
-                  <select className={`ad-pill-select ad-pill-select--${v.level}`} value={v.level} onChange={(e) => handleLevelChange(v.id, e.target.value)}>
-                    {LEVELS.map((l) => (
-                      <option key={l.id} value={l.id}>
-                        {l.label}
-                      </option>
-                    ))}
-                  </select>
+                  <AdminDropdown ariaLabel={`Nivel de ${v.title}`} value={v.level} options={LEVELS} onChange={(level) => handleLevelChange(v.id, level)} />
                 </td>
                 <td className="ad-actions">
                   <button type="button" className="ad-icon-btn ad-icon-btn--danger" onClick={() => handleDelete(v.id)} aria-label={`Eliminar ${v.title}`}>
@@ -862,13 +851,13 @@ function RoutineDayRow({ day, videos, token, onChange }) {
       <div className="ad-day__add">
         <div className="ad-field ad-field--grow">
           <label>Ejercicio</label>
-          <select value={videoId} onChange={(e) => setVideoId(e.target.value)}>
-            {videos.map((v) => (
-              <option key={v.id} value={v.id}>
-                {v.title}
-              </option>
-            ))}
-          </select>
+          <AdminDropdown
+            variant="field"
+            ariaLabel="Ejercicio"
+            value={videoId}
+            options={videos.map((v) => ({ id: v.id, label: v.title }))}
+            onChange={setVideoId}
+          />
         </div>
         <div className="ad-field ad-field--xs">
           <label>Series</label>
@@ -898,11 +887,16 @@ function RoutineDayRow({ day, videos, token, onChange }) {
 // ---------- Usuarios ----------
 
 const STATUS_OPTIONS = [
-  { id: 'trial', label: 'Prueba' },
-  { id: 'pending_payment', label: 'Pago pendiente' },
-  { id: 'active', label: 'Activo' },
-  { id: 'past_due', label: 'Inactivo' },
-  { id: 'canceled', label: 'Cancelado' },
+  { id: 'trial', label: 'Prueba', tone: 'beige' },
+  { id: 'pending_payment', label: 'Pago pendiente', tone: 'orange' },
+  { id: 'active', label: 'Activo', tone: 'green' },
+  { id: 'past_due', label: 'Inactivo', tone: 'rose' },
+  { id: 'canceled', label: 'Cancelado', tone: 'neutral' },
+];
+
+const ROLE_OPTIONS = [
+  { id: 'user', label: 'Usuario', tone: 'neutral' },
+  { id: 'admin', label: 'Admin', tone: 'dark' },
 ];
 
 function UsersTab({ token }) {
@@ -967,22 +961,13 @@ function UsersTab({ token }) {
                   <td>{sub?.plan?.name || <span className="ad-muted">Sin plan</span>}</td>
                   <td>
                     {sub ? (
-                      <select className={`ad-pill-select ad-pill-select--${sub.status}`} value={sub.status} onChange={(e) => handleStatusChange(sub.id, e.target.value)}>
-                        {STATUS_OPTIONS.map((s) => (
-                          <option key={s.id} value={s.id}>
-                            {s.label}
-                          </option>
-                        ))}
-                      </select>
+                      <AdminDropdown ariaLabel={`Estado de ${u.email}`} value={sub.status} options={STATUS_OPTIONS} onChange={(status) => handleStatusChange(sub.id, status)} />
                     ) : (
                       <span className="ad-muted">—</span>
                     )}
                   </td>
                   <td>
-                    <select className={`ad-pill-select ad-pill-select--role-${u.role}`} value={u.role} onChange={(e) => handleRoleChange(u, e.target.value)}>
-                      <option value="user">Usuario</option>
-                      <option value="admin">Admin</option>
-                    </select>
+                    <AdminDropdown ariaLabel={`Rol de ${u.email}`} value={u.role} options={ROLE_OPTIONS} onChange={(role) => handleRoleChange(u, role)} />
                   </td>
                 </tr>
               );

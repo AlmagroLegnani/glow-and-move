@@ -37,6 +37,9 @@
 }
 
 .admin-tabs {
+  position: sticky;
+  top: 72px;
+  z-index: 30;
   display: inline-flex;
   flex-wrap: nowrap;
   gap: 0.25rem;
@@ -46,7 +49,7 @@
   border-radius: 100px;
   background: var(--surface);
   border: 1px solid color-mix(in srgb, var(--taupe) 25%, transparent);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 10px 24px -18px rgba(51, 41, 31, 0.5);
   overflow-x: auto;
   scrollbar-width: none;
 }
@@ -808,62 +811,193 @@
   color: var(--ink-soft);
 }
 
-/* Select con forma de pastilla, color según el valor */
-.ad-pill-select {
-  appearance: none;
-  -webkit-appearance: none;
-  padding: 0.4em 2em 0.4em 0.9em;
-  border-radius: 100px;
-  border: 1px solid transparent;
-  background-color: color-mix(in srgb, var(--taupe) 15%, var(--surface));
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%237a5c42' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0.7em center;
+/* ---------- Desplegable propio (AdminDropdown) ---------- */
+
+.ad-tone--neutral {
+  --tone-bg: color-mix(in srgb, var(--taupe) 15%, var(--surface));
+  --tone-fg: var(--ink-soft);
+  --tone-dot: var(--taupe);
+}
+
+.ad-tone--green {
+  --tone-bg: color-mix(in srgb, var(--sage) 26%, var(--surface));
+  --tone-fg: var(--sage-dark);
+  --tone-dot: var(--sage-dark);
+}
+
+.ad-tone--beige {
+  --tone-bg: color-mix(in srgb, var(--beige) 55%, var(--surface));
+  --tone-fg: var(--mocha);
+  --tone-dot: #c2a37c;
+}
+
+.ad-tone--dark {
+  --tone-bg: var(--mocha-deep);
+  --tone-fg: var(--cream);
+  --tone-dot: var(--mocha-deep);
+}
+
+.ad-tone--rose {
+  --tone-bg: color-mix(in srgb, var(--blush) 35%, var(--surface));
+  --tone-fg: #9a4a37;
+  --tone-dot: #c46a55;
+}
+
+.ad-tone--orange {
+  --tone-bg: color-mix(in srgb, #e0a56b 25%, var(--surface));
+  --tone-fg: #8a5520;
+  --tone-dot: #d08a45;
+}
+
+.ad-dd {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
   font-family: inherit;
+  cursor: pointer;
+  transition: box-shadow 0.18s ease, filter 0.18s ease, border-color 0.18s ease;
+}
+
+.ad-dd__label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ad-dd__chevron {
+  flex-shrink: 0;
+  width: 13px;
+  height: 13px;
+  opacity: 0.7;
+  transition: transform 0.2s ease;
+}
+
+.ad-dd.is-open .ad-dd__chevron {
+  transform: rotate(180deg);
+}
+
+.ad-dd__dot {
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--tone-dot);
+}
+
+/* Variante chip (tablas) */
+.ad-dd--pill {
+  min-width: 132px;
+  padding: 0.42em 0.8em;
+  border: 1px solid transparent;
+  border-radius: 100px;
+  background: var(--tone-bg);
+  color: var(--tone-fg);
   font-size: 0.78rem;
   font-weight: 800;
+}
+
+.ad-dd--pill .ad-dd__dot {
+  background: currentColor;
+  opacity: 0.85;
+}
+
+.ad-dd--pill:hover {
+  filter: brightness(0.97);
+}
+
+.ad-dd--pill:focus-visible,
+.ad-dd--pill.is-open {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--beige) 65%, transparent);
+}
+
+/* Variante campo (formularios) */
+.ad-dd--field {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.6rem 0.8rem;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--taupe) 30%, transparent);
+  background: color-mix(in srgb, var(--cream) 40%, var(--surface));
+  color: var(--ink);
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+
+.ad-dd--field:hover {
+  border-color: color-mix(in srgb, var(--taupe) 55%, transparent);
+}
+
+.ad-dd--field:focus-visible,
+.ad-dd--field.is-open {
+  outline: none;
+  border-color: var(--mocha);
+  background: var(--surface);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--beige) 50%, transparent);
+}
+
+.ad-day__add .ad-dd--field {
+  min-height: 40px;
+  padding: 0.45rem 0.65rem;
+  background: var(--surface);
+}
+
+/* Menú flotante */
+.ad-dd__menu {
+  position: fixed;
+  z-index: 200;
+  max-height: 280px;
+  margin: 0;
+  padding: 0.35rem;
+  overflow-y: auto;
+  list-style: none;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--taupe) 25%, transparent);
+  box-shadow: 0 20px 40px -16px rgba(51, 41, 31, 0.45), 0 2px 6px rgba(51, 41, 31, 0.08);
+  animation: ad-dd-in 0.14s ease-out;
+}
+
+@keyframes ad-dd-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+
+.ad-dd__option {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.7rem;
+  border-radius: 10px;
+  font-size: 0.86rem;
+  font-weight: 600;
   color: var(--ink);
   cursor: pointer;
 }
 
-.ad-pill-select:focus {
-  outline: none;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--beige) 60%, transparent);
+.ad-dd__option.is-active {
+  background: color-mix(in srgb, var(--beige) 38%, var(--surface));
 }
 
-.ad-pill-select--principiante,
-.ad-pill-select--active {
-  background-color: color-mix(in srgb, var(--sage) 25%, var(--surface));
-  color: var(--sage-dark);
+.ad-dd__option.is-selected {
+  font-weight: 800;
 }
 
-.ad-pill-select--intermedio,
-.ad-pill-select--trial {
-  background-color: color-mix(in srgb, var(--beige) 55%, var(--surface));
+.ad-dd__option-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.ad-dd__check {
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
   color: var(--mocha);
-}
-
-.ad-pill-select--experto,
-.ad-pill-select--role-admin {
-  background-color: var(--mocha-deep);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23f0e6da' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  color: var(--cream);
-}
-
-.ad-pill-select--past_due,
-.ad-pill-select--canceled {
-  background-color: color-mix(in srgb, var(--blush) 35%, var(--surface));
-  color: #9a4a37;
-}
-
-.ad-pill-select--pending_payment {
-  background-color: color-mix(in srgb, #e0a56b 25%, var(--surface));
-  color: #8a5520;
-}
-
-.ad-pill-select option {
-  background: var(--surface);
-  color: var(--ink);
 }
 
 /* ---------- Rutinas ---------- */
