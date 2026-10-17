@@ -4,6 +4,7 @@ import { api } from '../lib/api.js';
 import AccountShell from './AccountShell.jsx';
 import './Modal.css';
 import './BlocksModal.css';
+import './MiRutinaPage.css';
 
 export default function MiRutinaPage() {
   const { user, token, loading: authLoading } = useAuth();
@@ -130,9 +131,11 @@ export default function MiRutinaPage() {
     return (
       <AccountShell active="rutina">
         <h1>Mi rutina</h1>
-        <p className="profile__videos-hint">
-          La rutina por bloques está disponible a partir del plan Premium. <a href="/#planes">Ver planes</a>.
-        </p>
+        <RoutineEmpty
+          title="Tu rutina te está esperando"
+          text="La rutina por bloques está disponible a partir del plan Premium."
+          cta={{ href: '/#planes', label: 'Ver planes' }}
+        />
       </AccountShell>
     );
   }
@@ -151,161 +154,269 @@ export default function MiRutinaPage() {
   const canLog = !data.inactive;
 
   if (today.state !== 'active') {
-    const MESSAGE = {
-      year_complete: '¡Completaste los 4 bloques de este año! Andá a "Mi bitácora" para ver tu resumen y arrancar el próximo año.',
-      awaiting_payment: 'Terminaste tu bloque actual. Andá a "Mi bitácora" para pagar y seguir con el siguiente.',
-      no_routine: 'Este bloque todavía no tiene una rutina cargada. Escribinos y lo resolvemos.',
+    const EMPTY = {
+      year_complete: {
+        title: '¡Completaste los 4 bloques del año!',
+        text: 'Revisá tu resumen en Mi bitácora y arrancá el próximo año cuando quieras.',
+        cta: { href: '/mi-bitacora', label: 'Ir a Mi bitácora' },
+      },
+      awaiting_payment: {
+        title: 'Terminaste tu bloque',
+        text: 'Para seguir con el siguiente bloque, desbloquealo desde Mi bitácora.',
+        cta: { href: '/mi-bitacora', label: 'Ir a Mi bitácora' },
+      },
+      no_routine: {
+        title: 'Tu rutina se está armando',
+        text: 'Este bloque todavía no tiene una rutina cargada. Escribinos y lo resolvemos.',
+        cta: { href: '/#contacto', label: 'Escribinos' },
+      },
     };
+    const empty = EMPTY[today.state] || { title: 'Sin entrenamiento por ahora', text: 'No hay un entrenamiento activo en este momento.' };
     return (
       <AccountShell active="rutina">
         <h1>Mi rutina</h1>
-        <p className="profile__videos-hint">
-          {MESSAGE[today.state] || 'No hay un entrenamiento activo en este momento.'}{' '}
-          {today.state !== 'no_routine' && <a href="/mi-bitacora">Ir a Mi bitácora</a>}
-        </p>
+        <RoutineEmpty {...empty} />
       </AccountShell>
     );
   }
+
+  const weekPct = Math.round(((today.week - 1) / today.totalWeeks) * 100);
+  const totalSets = today.exercises.reduce((sum, ex) => sum + ex.suggestedSets, 0);
+  const logging = canLog && performedChoice === true;
 
   return (
     <AccountShell active="rutina">
       <h1>Mi rutina</h1>
 
-      {actionError && <p className="modal__error">{actionError}</p>}
-
-      <div className="bl-today">
-        <p className="bl-today__eyebrow">
-          Bloque {today.blockNumber} · Semana {today.week} de {today.totalWeeks}
-        </p>
-        <h3 className="bl-today__day">
-          Día {today.dayNumber} de {today.totalDays} — {today.routineName}
-          {today.personalized && <span className="bl-today__badge">Personalizada</span>}
-        </h3>
-      </div>
-
-      <div className="bl-table-wrap">
-        <table className="bl-table">
-          <thead>
-            <tr>
-              <th>Ejercicio</th>
-              <th>Ver ejercicio</th>
-              <th>Series recomendadas</th>
-              <th>Repeticiones recomendadas</th>
-              <th>Kilos recomendados</th>
-              <th>Descanso recomendado</th>
-            </tr>
-          </thead>
-          <tbody>
-            {today.exercises.map((ex) => (
-              <tr key={ex.videoId}>
-                <td>{ex.name}</td>
-                <td>
-                  {ex.hasVideoAccess ? (
-                    <a href={ex.videoUrl} target="_blank" rel="noreferrer">
-                      ▶ Ver ejercicio
-                    </a>
-                  ) : (
-                    <a href="/#planes" className="bl-video-locked">
-                      🔒 Mejorar plan
-                    </a>
-                  )}
-                </td>
-                <td>{ex.suggestedSets}</td>
-                <td>{ex.suggestedReps}</td>
-                <td>{ex.suggestedWeight > 0 ? `${ex.suggestedWeight}kg` : 'Peso corporal'}</td>
-                <td>{ex.suggestedRest || '—'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {canLog && performedChoice === true && (
-        <div className="rutina-log">
-          <p className="rutina-log__title">Cargá lo que hiciste realmente</p>
-          {today.exercises.map((ex) => (
-            <div key={ex.videoId} className="rutina-log__row">
-              <span className="rutina-log__name">{ex.name}</span>
-              <div className="rutina-log__fields">
-                <label>
-                  Tus series
-                  <input
-                    type="number"
-                    min="1"
-                    value={drafts[ex.videoId]?.sets ?? ''}
-                    disabled={busy}
-                    onChange={(e) => updateDraft(ex.videoId, 'sets', e.target.value)}
-                    aria-label={`Series reales de ${ex.name}`}
-                  />
-                </label>
-                <label>
-                  Tus repeticiones
-                  <input
-                    type="number"
-                    min="1"
-                    value={drafts[ex.videoId]?.reps ?? ''}
-                    disabled={busy}
-                    onChange={(e) => updateDraft(ex.videoId, 'reps', e.target.value)}
-                    aria-label={`Repeticiones reales de ${ex.name}`}
-                  />
-                </label>
-                <label>
-                  Tus kilos
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.5"
-                    value={drafts[ex.videoId]?.weight ?? ''}
-                    disabled={busy}
-                    onChange={(e) => updateDraft(ex.videoId, 'weight', e.target.value)}
-                    aria-label={`Peso real de ${ex.name}`}
-                  />
-                </label>
-                <label>
-                  Tu descanso
-                  <input
-                    type="text"
-                    placeholder="ej. 1:30"
-                    value={drafts[ex.videoId]?.rest ?? ''}
-                    disabled={busy}
-                    onChange={(e) => updateDraft(ex.videoId, 'rest', e.target.value)}
-                    aria-label={`Descanso real de ${ex.name}`}
-                  />
-                </label>
-              </div>
-            </div>
-          ))}
+      <section className="rt-hero">
+        <div className="rt-hero__main">
+          <span className="rt-hero__eyebrow">
+            Bloque {today.blockNumber} · Semana {today.week} de {today.totalWeeks}
+          </span>
+          <h2 className="rt-hero__title">
+            Día {today.dayNumber}
+            <span> de {today.totalDays}</span>
+          </h2>
+          <p className="rt-hero__routine">
+            {today.routineName}
+            {today.personalized && <span className="rt-badge">Personalizada</span>}
+          </p>
+          {today.objective && <p className="rt-hero__objective">{today.objective}</p>}
         </div>
-      )}
 
-      {canLog && performedChoice === null && (
-        <div className="bl-ask">
-          <p>¿Realizaste este entrenamiento?</p>
-          <div className="bl-ask__buttons">
-            <button type="button" className="btn btn-primary" disabled={busy} onClick={() => handleChoosePerformed(true)}>
-              Sí, lo hice
-            </button>
-            <button type="button" className="btn" disabled={busy} onClick={() => handleChoosePerformed(false)}>
-              No lo hice
-            </button>
+        <div className="rt-hero__side">
+          <span className="rt-hero__side-label">Esta semana</span>
+          <div className="rt-days" aria-label={`Día ${today.dayNumber} de ${today.totalDays} de esta semana`}>
+            {Array.from({ length: today.totalDays }, (_, i) => {
+              const n = i + 1;
+              const state = n < today.dayNumber ? 'done' : n === today.dayNumber ? 'current' : 'next';
+              return (
+                <span key={n} className={`rt-day rt-day--${state}`}>
+                  {state === 'done' ? (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="m5 12 5 5 9-10" />
+                    </svg>
+                  ) : (
+                    n
+                  )}
+                </span>
+              );
+            })}
+          </div>
+          <div className="rt-progress">
+            <div className="rt-progress__track">
+              <span style={{ width: `${Math.max(weekPct, 2)}%` }} />
+            </div>
+            <span className="rt-progress__label">{weekPct}% del bloque</span>
           </div>
         </div>
-      )}
+      </section>
 
-      {canLog && performedChoice === true && (
-        <div className="bl-ask">
-          <button type="button" className="btn btn-primary" disabled={busy} onClick={handleSaveDay}>
-            Guardar en mi bitácora
-          </button>
-          <button type="button" className="bl-ask__cancel" disabled={busy} onClick={() => setPerformedChoice(null)}>
-            Cancelar
-          </button>
+      <div className="rt-summary">
+        <span>
+          <strong>{today.exercises.length}</strong> {today.exercises.length === 1 ? 'ejercicio' : 'ejercicios'}
+        </span>
+        <span className="rt-summary__dot" aria-hidden="true" />
+        <span>
+          <strong>{totalSets}</strong> series en total
+        </span>
+      </div>
+
+      {actionError && <p className="modal__error">{actionError}</p>}
+
+      <ol className="rt-list">
+        {today.exercises.map((ex, idx) => (
+          <li key={ex.videoId} className={`rt-ex ${logging ? 'rt-ex--logging' : ''}`}>
+            <div className="rt-ex__head">
+              <span className="rt-ex__num">{String(idx + 1).padStart(2, '0')}</span>
+              <h3 className="rt-ex__name">{ex.name}</h3>
+              {ex.hasVideoAccess ? (
+                <a className="rt-ex__video" href={ex.videoUrl} target="_blank" rel="noreferrer">
+                  <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M8 5.5v13l11-6.5z" />
+                  </svg>
+                  Ver video
+                </a>
+              ) : (
+                <a className="rt-ex__video rt-ex__video--locked" href="/#planes">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <rect x="4" y="10" width="16" height="11" rx="3" />
+                    <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+                  </svg>
+                  Mejorar plan
+                </a>
+              )}
+            </div>
+
+            <dl className="rt-ex__stats">
+              <div>
+                <dt>Series</dt>
+                <dd>{ex.suggestedSets}</dd>
+              </div>
+              <div>
+                <dt>Reps</dt>
+                <dd>{ex.suggestedReps}</dd>
+              </div>
+              <div>
+                <dt>Peso</dt>
+                <dd>{ex.suggestedWeight > 0 ? `${ex.suggestedWeight} kg` : 'Corporal'}</dd>
+              </div>
+              <div>
+                <dt>Descanso</dt>
+                <dd>{ex.suggestedRest || '—'}</dd>
+              </div>
+            </dl>
+
+            {logging && (
+              <div className="rt-ex__log">
+                <span className="rt-ex__log-title">Lo que hiciste</span>
+                <div className="rt-ex__log-fields">
+                  <label>
+                    Series
+                    <input
+                      type="number"
+                      min="1"
+                      inputMode="numeric"
+                      value={drafts[ex.videoId]?.sets ?? ''}
+                      disabled={busy}
+                      onChange={(e) => updateDraft(ex.videoId, 'sets', e.target.value)}
+                      aria-label={`Series reales de ${ex.name}`}
+                    />
+                  </label>
+                  <label>
+                    Reps
+                    <input
+                      type="number"
+                      min="1"
+                      inputMode="numeric"
+                      value={drafts[ex.videoId]?.reps ?? ''}
+                      disabled={busy}
+                      onChange={(e) => updateDraft(ex.videoId, 'reps', e.target.value)}
+                      aria-label={`Repeticiones reales de ${ex.name}`}
+                    />
+                  </label>
+                  <label>
+                    Kilos
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      inputMode="decimal"
+                      value={drafts[ex.videoId]?.weight ?? ''}
+                      disabled={busy}
+                      onChange={(e) => updateDraft(ex.videoId, 'weight', e.target.value)}
+                      aria-label={`Peso real de ${ex.name}`}
+                    />
+                  </label>
+                  <label>
+                    Descanso
+                    <input
+                      type="text"
+                      placeholder="1:30"
+                      value={drafts[ex.videoId]?.rest ?? ''}
+                      disabled={busy}
+                      onChange={(e) => updateDraft(ex.videoId, 'rest', e.target.value)}
+                      aria-label={`Descanso real de ${ex.name}`}
+                    />
+                  </label>
+                </div>
+              </div>
+            )}
+          </li>
+        ))}
+      </ol>
+
+      {canLog ? (
+        <div className={`rt-action ${logging ? 'rt-action--save' : ''}`}>
+          {logging ? (
+            <>
+              <p>
+                <strong>Revisá tus números</strong>
+                <span>Los precargamos con lo sugerido: cambiá lo que hiciste distinto.</span>
+              </p>
+              <div className="rt-action__buttons">
+                <button type="button" className="rt-btn rt-btn--ghost" disabled={busy} onClick={() => setPerformedChoice(null)}>
+                  Cancelar
+                </button>
+                <button type="button" className="rt-btn rt-btn--primary" disabled={busy} onClick={handleSaveDay}>
+                  {busy ? 'Guardando...' : 'Guardar en mi bitácora'}
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p>
+                <strong>¿Hiciste este entrenamiento?</strong>
+                <span>Registralo para pasar al día siguiente.</span>
+              </p>
+              <div className="rt-action__buttons">
+                <button type="button" className="rt-btn rt-btn--ghost" disabled={busy} onClick={() => handleChoosePerformed(false)}>
+                  No lo hice
+                </button>
+                <button type="button" className="rt-btn rt-btn--primary" disabled={busy} onClick={() => handleChoosePerformed(true)}>
+                  Sí, lo hice
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      ) : (
+        <div className="rt-action rt-action--locked">
+          <span className="rt-action__lock" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="4" y="10" width="16" height="11" rx="3" />
+              <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+            </svg>
+          </span>
+          <p>
+            <strong>Registro en pausa</strong>
+            <span>Con el plan inactivo podés ver tu rutina, pero no registrar entrenamientos.</span>
+          </p>
         </div>
       )}
 
-      <p className="profile__videos-hint">
-        Lo que guardés acá queda en tu <a href="/mi-bitacora">bitácora</a> para comparar semana a semana.
+      <p className="rt-foot">
+        Lo que guardes queda en tu <a href="/mi-bitacora">bitácora</a> para comparar semana a semana.
       </p>
     </AccountShell>
+  );
+}
+
+function RoutineEmpty({ title, text, cta }) {
+  return (
+    <div className="rt-empty">
+      <span className="rt-empty__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M6.5 6.5v11M17.5 6.5v11M6.5 12h11M3.5 9v6M20.5 9v6" />
+        </svg>
+      </span>
+      <h2>{title}</h2>
+      <p>{text}</p>
+      {cta && (
+        <a className="rt-btn rt-btn--primary" href={cta.href}>
+          {cta.label}
+        </a>
+      )}
+    </div>
   );
 }
