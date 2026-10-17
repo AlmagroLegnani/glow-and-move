@@ -4,6 +4,8 @@ import { api } from '../lib/api.js';
 import AccountShell from './AccountShell.jsx';
 import './Modal.css';
 import './BlocksModal.css';
+import './MiRutinaPage.css';
+import './MiBitacoraPage.css';
 
 const BILLING_OPTIONS = [
   { id: 'trimestral', label: 'Trimestral' },
@@ -17,7 +19,7 @@ const CONTINUE_BILLING_OPTIONS = BILLING_OPTIONS.filter((opt) => opt.id !== 'anu
 
 const BLOCK_STATUS_LABEL = {
   active: 'En curso',
-  scheduled: 'Pago al día — se desbloquea solo',
+  scheduled: 'Pago, se desbloquea solo',
   locked: 'Bloqueado',
   completed: 'Completado',
 };
@@ -117,9 +119,13 @@ export default function MiBitacoraPage() {
     return (
       <AccountShell active="bitacora">
         <h1>Mi bitácora</h1>
-        <p className="profile__videos-hint">
-          La rutina por bloques está disponible a partir del plan Premium. <a href="/#planes">Ver planes</a>.
-        </p>
+        <div className="rt-empty">
+          <h2>Tu bitácora te está esperando</h2>
+          <p>La rutina por bloques y la bitácora están disponibles a partir del plan Premium.</p>
+          <a className="rt-btn rt-btn--primary" href="/#planes">
+            Ver planes
+          </a>
+        </div>
       </AccountShell>
     );
   }
@@ -134,6 +140,14 @@ export default function MiBitacoraPage() {
   }
 
   const { today, blocks } = data;
+  const currentBlock = blocks.find((b) => b.status === 'active') || blocks.find((b) => b.number === today.blockNumber);
+  const totals = (stats?.perBlock || []).reduce(
+    (acc, b) => ({ performed: acc.performed + b.performedCount, missed: acc.missed + b.missedCount }),
+    { performed: 0, missed: 0 }
+  );
+  const totalLogged = totals.performed + totals.missed;
+  const overallAdherence = totalLogged > 0 ? Math.round((totals.performed / totalLogged) * 100) : null;
+  const completedBlocks = blocks.filter((b) => b.status === 'completed').length;
 
   return (
     <AccountShell active="bitacora">
@@ -141,77 +155,141 @@ export default function MiBitacoraPage() {
 
       {actionError && <p className="modal__error">{actionError}</p>}
 
+      <div className="bt-kpis">
+        <div className="bt-kpi">
+          <span className="bt-kpi__label">Entrenamientos</span>
+          <span className="bt-kpi__value">{totals.performed}</span>
+          <span className="bt-kpi__hint">realizados</span>
+        </div>
+        <div className="bt-kpi">
+          <span className="bt-kpi__label">Adherencia</span>
+          <span className="bt-kpi__value">{overallAdherence !== null ? `${overallAdherence}%` : '—'}</span>
+          <span className="bt-kpi__hint">{totals.missed} salteados</span>
+        </div>
+        <div className="bt-kpi">
+          <span className="bt-kpi__label">Bloque actual</span>
+          <span className="bt-kpi__value">{currentBlock ? currentBlock.number : '—'}</span>
+          <span className="bt-kpi__hint">de {blocks.length || 4}</span>
+        </div>
+        <div className="bt-kpi">
+          <span className="bt-kpi__label">Completados</span>
+          <span className="bt-kpi__value">{completedBlocks}</span>
+          <span className="bt-kpi__hint">bloques</span>
+        </div>
+      </div>
+
       {!data.inactive && today.state === 'year_complete' && (
-        <div className="bl-yearend">
-          <h3>¡Completaste los 4 bloques de este año! 🎉</h3>
-          <p>Revisá tu progreso más abajo antes de arrancar el siguiente.</p>
-          <button type="button" className="btn btn-primary" disabled={busy} onClick={() => runAction(api.startBlockNewYear(token))}>
+        <div className="bt-callout bt-callout--celebrate">
+          <div>
+            <strong>¡Completaste los 4 bloques de este año! 🎉</strong>
+            <span>Revisá tu progreso más abajo antes de arrancar el siguiente.</span>
+          </div>
+          <button type="button" className="rt-btn rt-btn--primary" disabled={busy} onClick={() => runAction(api.startBlockNewYear(token))}>
             Empezar el próximo año
           </button>
         </div>
       )}
 
       {!data.inactive && today.state === 'awaiting_payment' && (
-        <div className="bl-paywall">
-          <p>
-            Terminaste el Bloque {today.blockNumber - 1}. ¿Querés seguir con el Bloque {today.blockNumber}?
-          </p>
-          <div className="bl-billing">
-            <span className="bl-billing__label">Forma de pago:</span>
-            {CONTINUE_BILLING_OPTIONS.map((opt) => (
-              <button
-                key={opt.id}
-                type="button"
-                disabled={busy}
-                className={`bl-billing__pill ${continueBilling === opt.id ? 'bl-billing__pill--active' : ''}`}
-                onClick={() => setContinueBilling(opt.id)}
-              >
-                {opt.label}
-              </button>
-            ))}
+        <div className="bt-callout bt-callout--pay">
+          <div>
+            <strong>
+              Terminaste el Bloque {today.blockNumber - 1}. ¿Seguimos con el Bloque {today.blockNumber}?
+            </strong>
+            <span>Elegí cómo querés pagar para desbloquearlo.</span>
           </div>
-          <div className="bl-paywall__actions">
+          <div className="bt-pay">
+            <div className="bt-pay__options" role="radiogroup" aria-label="Forma de pago">
+              {CONTINUE_BILLING_OPTIONS.map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={continueBilling === opt.id}
+                  disabled={busy}
+                  className={`bt-pay__opt ${continueBilling === opt.id ? 'bt-pay__opt--active' : ''}`}
+                  onClick={() => setContinueBilling(opt.id)}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
             <button
               type="button"
-              className="btn btn-primary"
+              className="rt-btn rt-btn--primary"
               disabled={busy}
               onClick={() => runAction(api.payBlock({ blockNumber: today.blockNumber, billingMode: continueBilling }, token))}
             >
-              Pagar y desbloquear Bloque {today.blockNumber}
+              Desbloquear Bloque {today.blockNumber}
             </button>
-            <a href="/#planes">Cambiar de experiencia</a>
           </div>
+          <a className="bt-callout__link" href="/#planes">
+            Cambiar de experiencia
+          </a>
         </div>
       )}
 
       {today.state === 'no_routine' && (
-        <p className="profile__videos-hint">Este bloque todavía no tiene una rutina cargada. Escribinos y lo resolvemos.</p>
+        <div className="bt-callout">
+          <div>
+            <strong>Tu rutina se está armando</strong>
+            <span>Este bloque todavía no tiene una rutina cargada. Escribinos y lo resolvemos.</span>
+          </div>
+        </div>
       )}
 
       {!data.inactive && today.state === 'active' && (
-        <p className="profile__videos-hint">
-          Tenés un entrenamiento pendiente hoy. Cargalo desde <a href="/mi-rutina">Mi rutina</a>.
-        </p>
+        <div className="bt-callout bt-callout--today">
+          <div>
+            <strong>Tenés un entrenamiento pendiente</strong>
+            <span>
+              Bloque {today.blockNumber} · Semana {today.week} · Día {today.dayNumber}
+            </span>
+          </div>
+          <a className="rt-btn rt-btn--primary" href="/mi-rutina">
+            Ir a Mi rutina
+          </a>
+        </div>
       )}
 
-      <ProgressView stats={stats} loading={statsLoading} userName={`${user.firstName} ${user.lastName}`} />
-
-      <details className="bl-track-details">
-        <summary>Ver los 4 bloques del año</summary>
-        <div className="bl-track">
+      <section className="bt-section">
+        <h2 className="bt-section__title">Tu año</h2>
+        <ol className="bt-timeline">
           {blocks.map((b) => (
-            <div key={b.number} className={`bl-track__item bl-track__item--${b.status} ${b.number === today.blockNumber ? 'bl-track__item--current' : ''}`}>
-              <span className="bl-track__icon" aria-hidden="true">
-                {b.status === 'completed' ? '✓' : b.status === 'locked' ? '🔒' : b.number}
+            <li key={b.number} className={`bt-step bt-step--${b.status}`}>
+              <span className="bt-step__dot" aria-hidden="true">
+                {b.status === 'completed' ? (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m5 12 5 5 9-10" />
+                  </svg>
+                ) : b.status === 'locked' ? (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="4" y="10" width="16" height="11" rx="3" />
+                    <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+                  </svg>
+                ) : (
+                  b.number
+                )}
               </span>
-              <span className="bl-track__title">{b.name}</span>
-              <span className="bl-track__months">{b.objective}</span>
-              <span className="bl-track__status">{BLOCK_STATUS_LABEL[b.status]}</span>
-              {b.paidUntil && <span className="bl-track__months">Pago vigente hasta {new Date(b.paidUntil).toLocaleDateString('es-UY')}</span>}
-            </div>
+              <div className="bt-step__body">
+                <span className="bt-step__name">{b.name}</span>
+                <span className={`bt-pill bt-pill--${b.status}`}>{BLOCK_STATUS_LABEL[b.status]}</span>
+                {b.objective && <span className="bt-step__objective">{b.objective}</span>}
+                {b.status === 'active' && (
+                  <span className="bt-step__meta">
+                    Semana {b.currentWeek} de {b.durationWeeks}
+                  </span>
+                )}
+                {b.paidUntil && b.status !== 'completed' && (
+                  <span className="bt-step__meta">Pago hasta {new Date(b.paidUntil).toLocaleDateString('es-UY')}</span>
+                )}
+              </div>
+            </li>
           ))}
-        </div>
-      </details>
+        </ol>
+      </section>
+
+      <ProgressView stats={stats} loading={statsLoading} userName={`${user.firstName} ${user.lastName}`} />
     </AccountShell>
   );
 }
@@ -294,78 +372,126 @@ function downloadBlockReport(block, userName) {
   URL.revokeObjectURL(url);
 }
 
+function signed(n, unit) {
+  const v = round1(n);
+  return `${v > 0 ? '+' : ''}${v}${unit}`;
+}
+
+function AdherenceRing({ pct }) {
+  return (
+    <span className="bt-ring" style={{ '--pct': pct }} aria-label={`${pct}% de adherencia`}>
+      <span>{pct}%</span>
+    </span>
+  );
+}
+
 function ProgressView({ stats, loading, userName }) {
   if (loading) return <p className="profile__videos-hint">Cargando progreso...</p>;
   if (!stats) return null;
 
   const blocksWithData = stats.perBlock.filter((b) => b.performedCount + b.missedCount > 0);
+  const comparisons = stats.comparison.filter((c) => c.points.length > 1);
+
+  if (blocksWithData.length === 0) {
+    return (
+      <div className="rt-empty">
+        <span className="rt-empty__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 19V5M4 19h16M8 15l3-4 3 2 5-6" />
+          </svg>
+        </span>
+        <h2>Tu progreso aparece acá</h2>
+        <p>Cada vez que registres un entrenamiento en Mi rutina, vas a ver tu adherencia y cómo rendiste frente a lo sugerido.</p>
+        <a className="rt-btn rt-btn--primary" href="/mi-rutina">
+          Ir a Mi rutina
+        </a>
+      </div>
+    );
+  }
 
   return (
-    <div className="bl-progress">
-      {blocksWithData.length === 0 && <p className="profile__videos-hint">Todavía no registraste entrenamientos.</p>}
+    <section className="bt-section">
+      <h2 className="bt-section__title">Tu progreso</h2>
 
-      {stats.perBlock.map((block) => (
-        <div key={block.blockNumber} className="bl-progress__block">
-          <h4>
-            {block.blockName} — {BLOCK_STATUS_LABEL[block.status]}
-          </h4>
-          {block.status === 'completed' && (
-            <button type="button" className="btn" onClick={() => downloadBlockReport(block, userName)}>
-              Descargar informe
-            </button>
-          )}
-          {block.adherencePct !== null ? (
-            <>
-              <div className="bl-progressbar">
-                <div className="bl-progressbar__fill" style={{ width: `${block.adherencePct}%` }} />
-                <span className="bl-progressbar__label">
-                  {block.adherencePct}% de adherencia — {block.performedCount} hechos, {block.missedCount} salteados
-                </span>
-              </div>
+      {blocksWithData.map((block) => (
+        <article key={block.blockNumber} className="bt-block">
+          <header className="bt-block__head">
+            <AdherenceRing pct={block.adherencePct} />
+            <div className="bt-block__title">
+              <h3>{block.blockName}</h3>
+              <span>
+                {block.performedCount} {block.performedCount === 1 ? 'hecho' : 'hechos'} · {block.missedCount}{' '}
+                {block.missedCount === 1 ? 'salteado' : 'salteados'}
+              </span>
+            </div>
+            <span className={`bt-pill bt-pill--${block.status}`}>{BLOCK_STATUS_LABEL[block.status]}</span>
+            {block.status === 'completed' && (
+              <button type="button" className="rt-btn rt-btn--ghost bt-block__report" onClick={() => downloadBlockReport(block, userName)}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M12 4v11M7 10l5 5 5-5M5 20h14" />
+                </svg>
+                Informe
+              </button>
+            )}
+          </header>
 
+          {block.exercises.length > 0 && (
+            <ul className="bt-ex-list">
               {block.exercises.map((ex) => (
-                <div key={ex.videoId} className="bl-progress__exercise">
-                  <span className="bl-progress__exercise-name">{ex.name}</span>
-                  <span className={`bl-progress__badge bl-progress__badge--${ex.performance}`}>{PERFORMANCE_LABEL[ex.performance]}</span>
-                  <span className="bl-progress__delta">
-                    {round1(ex.avgWeight)}kg × {Math.round(ex.avgReps)} reps (sugerido: {round1(ex.avgSuggestedWeight)}kg ×{' '}
-                    {Math.round(ex.avgSuggestedReps)} reps — {ex.weightDelta > 0 ? '+' : ''}
-                    {round1(ex.weightDelta)}kg, {ex.repsDelta > 0 ? '+' : ''}
-                    {round1(ex.repsDelta)} reps)
-                  </span>
-                </div>
+                <li key={ex.videoId} className="bt-ex">
+                  <div className="bt-ex__main">
+                    <span className="bt-ex__name">{ex.name}</span>
+                    <span className={`bt-perf bt-perf--${ex.performance}`}>{PERFORMANCE_LABEL[ex.performance]}</span>
+                  </div>
+                  <div className="bt-ex__nums">
+                    <span>
+                      <small>Real</small>
+                      {round1(ex.avgWeight)} kg × {Math.round(ex.avgReps)}
+                    </span>
+                    <span>
+                      <small>Sugerido</small>
+                      {round1(ex.avgSuggestedWeight)} kg × {Math.round(ex.avgSuggestedReps)}
+                    </span>
+                    <span className={`bt-delta bt-delta--${ex.performance}`}>
+                      {signed(ex.weightDelta, ' kg')} · {signed(ex.repsDelta, ' reps')}
+                    </span>
+                  </div>
+                </li>
               ))}
-            </>
-          ) : (
-            <p className="bl-history-hint">Todavía sin registros en este bloque.</p>
+            </ul>
           )}
-        </div>
+        </article>
       ))}
 
-      {stats.comparison.some((c) => c.points.length > 1) && (
-        <div className="bl-progress__block">
-          <h4>Comparación entre bloques</h4>
-          {stats.comparison
-            .filter((c) => c.points.length > 1)
-            .map((c) => {
+      {comparisons.length > 0 && (
+        <article className="bt-block">
+          <header className="bt-block__head">
+            <div className="bt-block__title">
+              <h3>Comparación entre bloques</h3>
+              <span>Peso promedio por ejercicio</span>
+            </div>
+          </header>
+          <div className="bt-compare">
+            {comparisons.map((c) => {
               const max = Math.max(...c.points.map((p) => p.avgWeight), 1);
               return (
-                <div key={c.name} className="bl-compare">
-                  <span className="bl-compare__name">{c.name}</span>
-                  <div className="bl-bars">
+                <div key={c.name} className="bt-compare__item">
+                  <span className="bt-compare__name">{c.name}</span>
+                  <div className="bt-bars">
                     {c.points.map((p) => (
-                      <div key={p.blockNumber} className="bl-bars__col">
-                        <div className="bl-bars__bar" style={{ height: `${(p.avgWeight / max) * 100}%` }} />
-                        <span className="bl-bars__value">{round1(p.avgWeight)}kg</span>
-                        <span className="bl-bars__label">B{p.blockNumber}</span>
+                      <div key={p.blockNumber} className="bt-bars__col">
+                        <span className="bt-bars__value">{round1(p.avgWeight)}kg</span>
+                        <div className="bt-bars__bar" style={{ height: `${Math.max((p.avgWeight / max) * 100, 4)}%` }} />
+                        <span className="bt-bars__label">B{p.blockNumber}</span>
                       </div>
                     ))}
                   </div>
                 </div>
               );
             })}
-        </div>
+          </div>
+        </article>
       )}
-    </div>
+    </section>
   );
 }
