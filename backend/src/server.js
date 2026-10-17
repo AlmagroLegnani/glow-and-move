@@ -20,7 +20,8 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 app.use(cors({ origin: process.env.FRONTEND_URL || '*' }));
-app.use(express.json());
+// 1mb para admitir el avatar (foto recortada en base64).
+app.use(express.json({ limit: '1mb' }));
 
 app.use('/api/health', healthRoutes);
 app.use('/api/workouts', workoutRoutes);

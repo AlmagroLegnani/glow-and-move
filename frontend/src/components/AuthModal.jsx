@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Modal from './Modal.jsx';
+import { AvatarPicker } from './AvatarPicker.jsx';
 import PasswordField from './PasswordField.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { api } from '../lib/api.js';
@@ -131,7 +132,7 @@ function ForgotPasswordForm({ onBackToLogin, onClose }) {
 
 export default function AuthModal({ onClose, onSuccess }) {
   const { login, register } = useAuth();
-  const [mode, setMode] = useState('login'); // login | register | forgot
+  const [mode, setMode] = useState('login'); // login | register | forgot | avatar
   const [form, setForm] = useState({
     email: '',
     password: '',
@@ -164,16 +165,40 @@ export default function AuthModal({ onClose, onSuccess }) {
     try {
       if (mode === 'login') {
         await login(form.email, form.password);
+        onSuccess?.();
+        onClose();
       } else {
         await register({ ...form, heightCm: Number(form.heightCm), weightKg: Number(form.weightKg) });
+        // Cuenta recién creada: ofrecemos elegir avatar antes de cerrar.
+        setMode('avatar');
       }
-      onSuccess?.();
-      onClose();
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
+  }
+
+  if (mode === 'avatar') {
+    return (
+      <Modal
+        title="Elegí tu avatar"
+        subtitle="Subí una foto, elegí un avatar o quedate con tu inicial. Lo podés cambiar cuando quieras."
+        variant="auth"
+        onClose={() => {
+          onSuccess?.();
+          onClose();
+        }}
+      >
+        <AvatarPicker
+          skipLabel="Ahora no"
+          onDone={() => {
+            onSuccess?.();
+            onClose();
+          }}
+        />
+      </Modal>
+    );
   }
 
   if (mode === 'forgot') {

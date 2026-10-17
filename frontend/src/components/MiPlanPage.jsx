@@ -3,6 +3,8 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { api } from '../lib/api.js';
 import { daysUntil, isSubscriptionExpired } from '../lib/subscription.js';
 import AccountShell from './AccountShell.jsx';
+import UserAvatar from './UserAvatar.jsx';
+import AvatarPickerModal from './AvatarPicker.jsx';
 import './Modal.css';
 import './PlanStatus.css';
 
@@ -338,6 +340,7 @@ function RenewalCard({ token }) {
 
 export default function MiPlanPage() {
   const { user, token, loading, logout } = useAuth();
+  const [avatarModalOpen, setAvatarModalOpen] = useState(false);
 
   function handleLogout() {
     logout();
@@ -366,14 +369,18 @@ export default function MiPlanPage() {
 
   const subscription = user.subscriptions?.[0];
   const isAdmin = user.role === 'admin';
-  const initial = (user.firstName || user.email || '?').charAt(0).toUpperCase();
 
   return (
     <AccountShell active="plan">
       <header className="acct-header">
-        <span className="acct-header__avatar" aria-hidden="true">
-          {initial}
-        </span>
+        <button type="button" className="acct-header__avatar-btn" onClick={() => setAvatarModalOpen(true)} aria-label="Cambiar avatar">
+          <UserAvatar user={user} size={56} className="acct-header__avatar" />
+          <span className="acct-header__avatar-edit" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 20h4L18.5 9.5a2.1 2.1 0 0 0-4-4L4 16z" />
+            </svg>
+          </span>
+        </button>
         <div>
           <h1>Mi plan</h1>
           <p className="account-page__email">{user.email}</p>
@@ -407,6 +414,8 @@ export default function MiPlanPage() {
           </span>
         </a>
       )}
+
+      {avatarModalOpen && <AvatarPickerModal onClose={() => setAvatarModalOpen(false)} />}
 
       <div className="acct-footer">
         <button type="button" className="acct-logout" onClick={handleLogout}>

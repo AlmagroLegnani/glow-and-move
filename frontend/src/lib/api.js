@@ -25,6 +25,7 @@ export const api = {
   me: (token) => request('/api/auth/me', { token }),
   updateMe: (body, token) => request('/api/auth/me', { method: 'PATCH', body, token }),
   logWeight: (body, token) => request('/api/auth/weight', { method: 'POST', body, token }),
+  updateAvatar: (body, token) => request('/api/auth/avatar', { method: 'PUT', body, token }),
   plans: () => request('/api/plans'),
   startTrial: (body) => request('/api/trial', { method: 'POST', body }),
   checkout: (body, token) => request('/api/subscriptions/checkout', { method: 'POST', body, token }),

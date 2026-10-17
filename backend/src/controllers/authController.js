@@ -174,4 +174,24 @@ async function logWeight(req, res) {
   res.json(publicUser(user));
 }
 
-module.exports = { register, login, me, updateMe, forgotPassword, resetPassword, logWeight };
+// Las fotos llegan ya recortadas y comprimidas por el navegador (~20-60 KB). El tope evita
+// que alguien guarde imágenes enormes en la base.
+const MAX_AVATAR_DATA_URL = 400 * 1024;
+const PRESET_AVATAR = /^preset:(lorelei|notionists):[a-z0-9-]{1,40}$/;
+const PHOTO_AVATAR = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/;
+
+async function updateAvatar(req, res) {
+  const { avatar } = req.body;
+  const valid =
+    avatar === null ||
+    (typeof avatar === 'string' &&
+      (PRESET_AVATAR.test(avatar) || (avatar.length <= MAX_AVATAR_DATA_URL && PHOTO_AVATAR.test(avatar))));
+  if (!valid) {
+    return res.status(400).json({ error: 'Avatar inválido. Probá con otra imagen (JPG o PNG).' });
+  }
+
+  const user = await prisma.user.update({ where: { id: req.userId }, data: { avatarUrl: avatar } });
+  res.json({ avatarUrl: user.avatarUrl });
+}
+
+module.exports = { register, login, me, updateMe, forgotPassword, resetPassword, logWeight, updateAvatar };

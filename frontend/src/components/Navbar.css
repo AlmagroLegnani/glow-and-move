@@ -39,6 +39,12 @@
   transform: scale(2);
 }
 
+/* El avatar del usuario no lleva el recorte/zoom de la mascota. */
+.navbar__logo .navbar__user-avatar img {
+  transform: none;
+  object-position: center;
+}
+
 .navbar__logo-menu {
   position: absolute;
   top: calc(100% + 0.6rem);

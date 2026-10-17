@@ -34,20 +34,43 @@
   padding-bottom: 0.4rem;
 }
 
+.acct-header__avatar-btn {
+  position: relative;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
 .acct-header__avatar {
+  box-shadow: 0 0 0 3px var(--surface), 0 0 0 4px color-mix(in srgb, var(--taupe) 30%, transparent);
+  transition: transform 0.2s ease;
+}
+
+.acct-header__avatar-btn:hover .acct-header__avatar {
+  transform: scale(1.04);
+}
+
+.acct-header__avatar-edit {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  width: 52px;
-  height: 52px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  background: linear-gradient(140deg, var(--beige), var(--blush));
-  color: var(--mocha-deep);
-  font-family: var(--font-serif);
-  font-size: 1.4rem;
-  font-weight: 600;
-  box-shadow: 0 0 0 3px var(--surface), 0 0 0 4px color-mix(in srgb, var(--taupe) 30%, transparent);
+  background: var(--mocha-deep);
+  color: var(--cream);
+  border: 2px solid var(--surface);
+}
+
+.acct-header__avatar-edit svg {
+  width: 12px;
+  height: 12px;
 }
 
 .acct-header h1 {

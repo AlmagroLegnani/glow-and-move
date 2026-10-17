@@ -6,6 +6,8 @@ import TrialModal from './TrialModal.jsx';
 import ProfileModal from './ProfileModal.jsx';
 import AccountNav from './AccountNav.jsx';
 import mascotLogo from '../assets/mascot/mascot.jpg';
+import UserAvatar from './UserAvatar.jsx';
+import AvatarPickerModal from './AvatarPicker.jsx';
 
 const TICKER_MESSAGES = [
   'Prueba gratis 7 días, plan Full sin anuncios',
@@ -44,6 +46,7 @@ export default function Navbar() {
   const [trialModalOpen, setTrialModalOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [logoMenuOpen, setLogoMenuOpen] = useState(false);
+  const [avatarModalOpen, setAvatarModalOpen] = useState(false);
   const logoMenuRef = useRef(null);
 
   useEffect(() => {
@@ -136,7 +139,8 @@ export default function Navbar() {
             aria-expanded={logoMenuOpen}
             onClick={() => setLogoMenuOpen((v) => !v)}
           >
-            <img src={mascotLogo} alt="" />
+            {/* Con sesión iniciada, el logo de la mascota se reemplaza por el avatar del usuario. */}
+            {user ? <UserAvatar user={user} size={38} className="navbar__user-avatar" /> : <img src={mascotLogo} alt="" />}
           </button>
 
           {logoMenuOpen && (
@@ -150,6 +154,17 @@ export default function Navbar() {
               >
                 Configurar perfil
               </button>
+              {user && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLogoMenuOpen(false);
+                    setAvatarModalOpen(true);
+                  }}
+                >
+                  Cambiar avatar
+                </button>
+              )}
               {user?.role === 'admin' && (
                 <a href="/admin" onClick={() => setLogoMenuOpen(false)}>
                   Panel de administración
@@ -213,6 +228,7 @@ export default function Navbar() {
       {authModalOpen && <AuthModal onClose={() => setAuthModalOpen(false)} />}
       {trialModalOpen && <TrialModal onClose={() => setTrialModalOpen(false)} />}
       {profileModalOpen && <ProfileModal onClose={() => setProfileModalOpen(false)} />}
+      {avatarModalOpen && <AvatarPickerModal onClose={() => setAvatarModalOpen(false)} />}
     </header>
   );
 }

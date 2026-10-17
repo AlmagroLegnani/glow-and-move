@@ -59,6 +59,12 @@ export function AuthProvider({ children }) {
     return data.user;
   }
 
+  // Aplica cambios parciales al usuario en memoria (ej. el avatar recién guardado) sin
+  // volver a pedir /me.
+  function updateUser(partial) {
+    setUser((prev) => (prev ? { ...prev, ...partial } : prev));
+  }
+
   function logout() {
     if (token) api.admin.releaseLock(token).catch(() => {});
     setUser(null);
@@ -68,7 +74,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, token, loading, login, register, startTrial, logout, refreshMe: () => refreshMe(token) }}
+      value={{ user, token, loading, login, register, startTrial, logout, updateUser, refreshMe: () => refreshMe(token) }}
     >
       {children}
     </AuthContext.Provider>

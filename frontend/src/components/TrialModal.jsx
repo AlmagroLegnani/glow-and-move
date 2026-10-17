@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Modal from './Modal.jsx';
+import { AvatarPicker } from './AvatarPicker.jsx';
 import PasswordField from './PasswordField.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 
@@ -48,9 +49,8 @@ export default function TrialModal({ onClose, onSuccess }) {
           ¡Listo! Arrancó tu semana de prueba con la experiencia Full, libre de anuncios. Te enviamos tu
           usuario y contraseña por WhatsApp y email.
         </p>
-        <button type="button" className="btn btn-primary" onClick={onClose}>
-          Cerrar
-        </button>
+        <p className="modal__subtitle">Para terminar, elegí tu avatar</p>
+        <AvatarPicker skipLabel="Ahora no" onDone={onClose} />
       </Modal>
     );
   }
