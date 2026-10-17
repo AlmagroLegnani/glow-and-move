@@ -46,29 +46,45 @@ export default function AdminPage() {
   }, [user, token]);
 
   if (loading) {
-    return <AdminShell>Cargando...</AdminShell>;
+    return (
+      <AdminShell>
+        <div className="admin-page__content">
+          <p className="profile__videos-hint">Cargando...</p>
+        </div>
+      </AdminShell>
+    );
   }
 
   if (!user || user.role !== 'admin') {
     return (
       <AdminShell>
-        <p>No tenés acceso a esta sección.</p>
-        <a className="btn btn-primary" href="/">
-          Volver al inicio
-        </a>
+        <div className="admin-page__content">
+          <p className="profile__videos-hint">No tenés acceso a esta sección.</p>
+          <a className="btn btn-primary" href="/" style={{ alignSelf: 'flex-start' }}>
+            Volver al inicio
+          </a>
+        </div>
       </AdminShell>
     );
   }
 
   if (lockState === 'checking') {
-    return <AdminShell>Cargando...</AdminShell>;
+    return (
+      <AdminShell>
+        <div className="admin-page__content">
+          <p className="profile__videos-hint">Cargando...</p>
+        </div>
+      </AdminShell>
+    );
   }
 
   if (lockState === 'locked') {
     return (
       <AdminShell>
-        <p className="modal__error">{lockMessage}</p>
-        <p>Solo un admin puede usar el panel a la vez, para que dos personas no editen lo mismo al mismo tiempo.</p>
+        <div className="admin-page__content">
+          <p className="modal__error">{lockMessage}</p>
+          <p className="profile__videos-hint">Solo un admin puede usar el panel a la vez, para que dos personas no editen lo mismo al mismo tiempo.</p>
+        </div>
       </AdminShell>
     );
   }
@@ -83,11 +99,13 @@ export default function AdminPage() {
         ))}
       </nav>
 
-      {tab === 'plans' && <PlansTab token={token} />}
-      {tab === 'blocks' && <BlocksTab token={token} />}
-      {tab === 'exercises' && <ExercisesTab token={token} />}
-      {tab === 'routines' && <RoutinesTab token={token} />}
-      {tab === 'users' && <UsersTab token={token} />}
+      <div className="admin-page__content">
+        {tab === 'plans' && <PlansTab token={token} />}
+        {tab === 'blocks' && <BlocksTab token={token} />}
+        {tab === 'exercises' && <ExercisesTab token={token} />}
+        {tab === 'routines' && <RoutinesTab token={token} />}
+        {tab === 'users' && <UsersTab token={token} />}
+      </div>
     </AdminShell>
   );
 }
@@ -95,13 +113,13 @@ export default function AdminPage() {
 function AdminShell({ children }) {
   return (
     <div className="admin-page">
-      <header className="admin-page__header">
+      <div className="admin-page__inner">
         <a href="/" className="admin-page__back">
           ← Volver al sitio
         </a>
-        <h1>Administración — Glow &amp; Move</h1>
-      </header>
-      <div className="admin-page__body">{children}</div>
+        <h1 className="admin-page__title">Administración — Glow &amp; Move</h1>
+        {children}
+      </div>
     </div>
   );
 }
@@ -128,7 +146,7 @@ function PlansTab({ token }) {
   const [savedId, setSavedId] = useState(null);
 
   if (error) return <p className="modal__error">{error}</p>;
-  if (!items) return <p>Cargando...</p>;
+  if (!items) return <p className="profile__videos-hint">Cargando...</p>;
 
   async function handleSave(plan, form) {
     setSaving(plan.id);
@@ -220,7 +238,7 @@ function BlocksTab({ token }) {
   const [savedId, setSavedId] = useState(null);
 
   if (error) return <p className="modal__error">{error}</p>;
-  if (!items) return <p>Cargando...</p>;
+  if (!items) return <p className="profile__videos-hint">Cargando...</p>;
 
   async function handleSave(block, form) {
     setSaving(block.id);
@@ -288,7 +306,7 @@ function ExercisesTab({ token }) {
   const [formError, setFormError] = useState('');
 
   if (error) return <p className="modal__error">{error}</p>;
-  if (!items) return <p>Cargando...</p>;
+  if (!items) return <p className="profile__videos-hint">Cargando...</p>;
 
   async function handleCreate(e) {
     e.preventDefault();
@@ -430,7 +448,7 @@ function RoutinesTab({ token }) {
   const [newRoutineUserId, setNewRoutineUserId] = useState('');
 
   if (blocksError) return <p className="modal__error">{blocksError}</p>;
-  if (!blocks || !videos) return <p>Cargando...</p>;
+  if (!blocks || !videos) return <p className="profile__videos-hint">Cargando...</p>;
 
   const activeBlockId = blockId || blocks[0]?.id;
   if (!blockId && blocks[0]) setBlockId(blocks[0].id);
@@ -607,7 +625,7 @@ function UsersTab({ token }) {
   const { items, error, reload } = useEntity(() => api.admin.listUsers(token));
 
   if (error) return <p className="modal__error">{error}</p>;
-  if (!items) return <p>Cargando...</p>;
+  if (!items) return <p className="profile__videos-hint">Cargando...</p>;
 
   async function handleRoleChange(userItem, role) {
     await api.admin.updateUserRole(userItem.id, { role }, token);
