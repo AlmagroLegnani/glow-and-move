@@ -1,29 +1,161 @@
 .account-page {
   min-height: 100vh;
   background: var(--cream);
-  padding-block: 2.5rem 4rem;
+  padding-bottom: 4rem;
 }
 
 .account-page__inner {
   max-width: 880px;
 }
 
-.account-page__home {
-  display: flex;
-  width: fit-content;
-  align-items: center;
-  gap: 0.4rem;
-  margin-bottom: 1.2rem;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--ink-soft);
-  text-decoration: none;
-  transition: color 0.18s ease, transform 0.18s ease;
+/* ---------- Barra superior de la cuenta ---------- */
+
+.account-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  padding-block: 1rem;
+  margin-bottom: 0.5rem;
+  transition: background 0.25s ease, box-shadow 0.25s ease, padding 0.25s ease;
 }
 
-.account-page__home:hover {
+.account-topbar--scrolled {
+  padding-block: 0.6rem;
+  background: color-mix(in srgb, var(--cream) 82%, transparent);
+  backdrop-filter: blur(14px) saturate(1.2);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--taupe) 25%, transparent), 0 12px 30px -24px rgba(51, 41, 31, 0.5);
+}
+
+.account-topbar__inner {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  max-width: 1040px;
+}
+
+.account-topbar__home {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  text-decoration: none;
   color: var(--ink);
-  transform: translateX(-2px);
+}
+
+.account-topbar__back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--taupe) 28%, transparent);
+  box-shadow: var(--shadow-sm);
+  color: var(--mocha-deep);
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.2s ease, color 0.2s ease;
+}
+
+.account-topbar__back svg {
+  width: 18px;
+  height: 18px;
+}
+
+.account-topbar__home:hover .account-topbar__back {
+  transform: translateX(-3px);
+  background: var(--mocha-deep);
+  color: var(--cream);
+}
+
+.account-topbar__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.account-topbar__logo {
+  display: inline-flex;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Mismo encuadre de cara que el logo del navbar */
+.account-topbar__logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center -25%;
+  transform: scale(2);
+}
+
+.account-topbar__brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.account-topbar__brand-text strong {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.account-topbar__brand-text small {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  transition: color 0.2s ease;
+}
+
+.account-topbar__home:hover small {
+  color: var(--mocha);
+}
+
+.account-topbar__nav {
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+.account-topbar__me {
+  display: inline-flex;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px color-mix(in srgb, var(--taupe) 35%, transparent);
+  transition: transform 0.2s ease;
+}
+
+.account-topbar__me:hover {
+  transform: scale(1.05);
+}
+
+@media (max-width: 860px) {
+  .account-topbar__inner {
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      'home me'
+      'nav nav';
+    row-gap: 0.8rem;
+  }
+
+  .account-topbar__home {
+    grid-area: home;
+  }
+
+  .account-topbar__me {
+    grid-area: me;
+  }
+
+  .account-topbar__nav {
+    grid-area: nav;
+    justify-content: flex-start;
+  }
 }
 
 /* Tabs de la cuenta como control segmentado (solo dentro de estas páginas;
