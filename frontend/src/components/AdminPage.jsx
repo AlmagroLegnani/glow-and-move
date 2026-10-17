@@ -115,7 +115,7 @@ export default function AdminPage() {
         ))}
       </nav>
 
-      <div className="admin-page__content">
+      <div className="ad-panel">
         {tab === 'plans' && <PlansTab token={token} />}
         {tab === 'blocks' && <BlocksTab token={token} />}
         {tab === 'exercises' && <ExercisesTab token={token} />}
@@ -156,6 +156,76 @@ function useEntity(loader, deps = []) {
   return { items, error, reload, setItems };
 }
 
+// ---------- Piezas compartidas ----------
+
+function SectionHeader({ title, description, count, action }) {
+  return (
+    <div className="ad-section-head">
+      <div>
+        <h2>
+          {title}
+          {count !== undefined && <span className="ad-count">{count}</span>}
+        </h2>
+        {description && <p>{description}</p>}
+      </div>
+      {action}
+    </div>
+  );
+}
+
+function Switch({ checked, onChange, label, hint }) {
+  return (
+    <label className="ad-switch">
+      <span className="ad-switch__text">
+        <span>{label}</span>
+        {hint && <small>{hint}</small>}
+      </span>
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+      <span className="ad-switch__track" aria-hidden="true">
+        <span className="ad-switch__thumb" />
+      </span>
+    </label>
+  );
+}
+
+// Pie de las tarjetas editables: el botón se habilita sólo si hay cambios sin guardar.
+function SaveFooter({ dirty, saving, saved, onSave }) {
+  return (
+    <div className="ad-card__footer">
+      <span className={`ad-status ${saved && !dirty ? 'ad-status--saved' : dirty ? 'ad-status--dirty' : ''}`}>
+        {saved && !dirty ? 'Cambios guardados' : dirty ? 'Cambios sin guardar' : 'Sin cambios'}
+      </span>
+      <button type="button" className="ad-btn ad-btn--primary" disabled={!dirty || saving} onClick={onSave}>
+        {saving ? 'Guardando...' : 'Guardar'}
+      </button>
+    </div>
+  );
+}
+
+function Icon({ d, size = 16 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d={d} />
+    </svg>
+  );
+}
+
+const ICONS = {
+  trash: 'M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3',
+  plus: 'M12 5v14M5 12h14',
+  x: 'M6 6l12 12M18 6 6 18',
+  play: 'M8 5.5v13l11-6.5z',
+  search: 'M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14zM20 20l-4-4',
+};
+
+function isDirty(form, initial) {
+  return JSON.stringify(form) !== JSON.stringify(initial);
+}
+
+function Loading() {
+  return <p className="profile__videos-hint">Cargando...</p>;
+}
+
 // ---------- Planes ----------
 
 function PlansTab({ token }) {
@@ -164,7 +234,7 @@ function PlansTab({ token }) {
   const [savedId, setSavedId] = useState(null);
 
   if (error) return <p className="modal__error">{error}</p>;
-  if (!items) return <p className="profile__videos-hint">Cargando...</p>;
+  if (!items) return <Loading />;
 
   async function handleSave(plan, form) {
     setSaving(plan.id);
@@ -192,59 +262,80 @@ function PlansTab({ token }) {
   }
 
   return (
-    <div className="admin-cards">
-      {items.map((plan) => (
-        <PlanCard key={plan.id} plan={plan} saving={saving === plan.id} saved={savedId === plan.id} onSave={handleSave} />
-      ))}
-    </div>
+    <>
+      <SectionHeader
+        title="Planes"
+        count={items.length}
+        description="Precio mensual y beneficios de cada experiencia. Los descuentos trimestral/semestral/anual se calculan solos."
+      />
+      <div className="ad-grid">
+        {items.map((plan) => (
+          <PlanCard key={plan.id} plan={plan} saving={saving === plan.id} saved={savedId === plan.id} onSave={handleSave} />
+        ))}
+      </div>
+    </>
   );
 }
 
-function PlanCard({ plan, saving, saved, onSave }) {
-  const [form, setForm] = useState({
+function planForm(plan) {
+  return {
     name: plan.name,
-    priceUsd: plan.priceUsd,
+    priceUsd: String(plan.priceUsd),
     hasAds: plan.hasAds,
     hasVideoAccess: plan.hasVideoAccess,
     hasPersonalizedRoutine: plan.hasPersonalizedRoutine,
     features: plan.features.join('\n'),
-  });
+  };
+}
+
+function PlanCard({ plan, saving, saved, onSave }) {
+  const [initial, setInitial] = useState(() => planForm(plan));
+  const [form, setForm] = useState(initial);
+  const set = (patch) => setForm((f) => ({ ...f, ...patch }));
+
+  useEffect(() => {
+    const next = planForm(plan);
+    setInitial(next);
+    setForm(next);
+  }, [plan]);
 
   return (
-    <div className="admin-card">
-      <div className="field">
-        <label>Nombre</label>
-        <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+    <article className="ad-card">
+      <div className="ad-card__head">
+        <span className="ad-tag">{plan.slug}</span>
+        {plan.slug === 'full' && <span className="ad-tag ad-tag--accent">Destacado</span>}
       </div>
-      <div className="field">
-        <label>Precio (USD)</label>
-        <input type="number" step="0.01" value={form.priceUsd} onChange={(e) => setForm({ ...form, priceUsd: e.target.value })} />
+
+      <input className="ad-title-input" value={form.name} onChange={(e) => set({ name: e.target.value })} aria-label="Nombre del plan" />
+
+      <div className="ad-field">
+        <label>Precio mensual</label>
+        <div className="ad-affix">
+          <span>U$S</span>
+          <input type="number" step="0.01" min="0" value={form.priceUsd} onChange={(e) => set({ priceUsd: e.target.value })} />
+          <span>/ mes</span>
+        </div>
       </div>
-      <label className="admin-check">
-        <input type="checkbox" checked={form.hasAds} onChange={(e) => setForm({ ...form, hasAds: e.target.checked })} />
-        Tiene anuncios
-      </label>
-      <label className="admin-check">
-        <input type="checkbox" checked={form.hasVideoAccess} onChange={(e) => setForm({ ...form, hasVideoAccess: e.target.checked })} />
-        Acceso a videos y rutina por bloques
-      </label>
-      <label className="admin-check">
-        <input
-          type="checkbox"
+
+      <div className="ad-switches">
+        <Switch label="Anuncios" hint="Muestra publicidad" checked={form.hasAds} onChange={(v) => set({ hasAds: v })} />
+        <Switch label="Videos" hint="Acceso a los videos de ejercicios" checked={form.hasVideoAccess} onChange={(v) => set({ hasVideoAccess: v })} />
+        <Switch
+          label="Rutina personalizada"
+          hint="El entrenador arma su rutina"
           checked={form.hasPersonalizedRoutine}
-          onChange={(e) => setForm({ ...form, hasPersonalizedRoutine: e.target.checked })}
+          onChange={(v) => set({ hasPersonalizedRoutine: v })}
         />
-        Rutina personalizada
-      </label>
-      <div className="field">
-        <label>Beneficios (uno por línea)</label>
-        <textarea rows={4} value={form.features} onChange={(e) => setForm({ ...form, features: e.target.value })} />
       </div>
-      <button type="button" className="btn btn-primary" disabled={saving} onClick={() => onSave(plan, form)}>
-        {saving ? 'Guardando...' : 'Guardar'}
-      </button>
-      {saved && <span className="admin-saved">Guardado ✓</span>}
-    </div>
+
+      <div className="ad-field">
+        <label>Beneficios</label>
+        <textarea rows={4} value={form.features} onChange={(e) => set({ features: e.target.value })} />
+        <small>Uno por línea. Se muestran en la tarjeta del plan.</small>
+      </div>
+
+      <SaveFooter dirty={isDirty(form, initial)} saving={saving} saved={saved} onSave={() => onSave(plan, form)} />
+    </article>
   );
 }
 
@@ -256,7 +347,7 @@ function BlocksTab({ token }) {
   const [savedId, setSavedId] = useState(null);
 
   if (error) return <p className="modal__error">{error}</p>;
-  if (!items) return <p className="profile__videos-hint">Cargando...</p>;
+  if (!items) return <Loading />;
 
   async function handleSave(block, form) {
     setSaving(block.id);
@@ -273,58 +364,101 @@ function BlocksTab({ token }) {
   }
 
   return (
-    <div className="admin-cards">
-      {items.map((block) => (
-        <BlockCard key={block.id} block={block} saving={saving === block.id} saved={savedId === block.id} onSave={handleSave} />
-      ))}
-    </div>
+    <>
+      <SectionHeader
+        title="Bloques del programa"
+        count={items.length}
+        description="Las etapas del año. El objetivo es lo que ve el usuario en Mi rutina y Mi bitácora."
+      />
+      <div className="ad-stack">
+        {items.map((block) => (
+          <BlockCard key={block.id} block={block} saving={saving === block.id} saved={savedId === block.id} onSave={handleSave} />
+        ))}
+      </div>
+    </>
   );
 }
 
-function BlockCard({ block, saving, saved, onSave }) {
-  const [form, setForm] = useState({
+function blockForm(block) {
+  return {
     name: block.name,
     objective: block.objective,
     description: block.description || '',
-    durationWeeks: block.durationWeeks,
-  });
+    durationWeeks: String(block.durationWeeks),
+  };
+}
+
+function BlockCard({ block, saving, saved, onSave }) {
+  const [initial, setInitial] = useState(() => blockForm(block));
+  const [form, setForm] = useState(initial);
+  const set = (patch) => setForm((f) => ({ ...f, ...patch }));
+
+  useEffect(() => {
+    const next = blockForm(block);
+    setInitial(next);
+    setForm(next);
+  }, [block]);
 
   return (
-    <div className="admin-card">
-      <div className="field">
-        <label>Nombre</label>
-        <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+    <article className="ad-card ad-card--row">
+      <span className="ad-number" aria-hidden="true">
+        {String(block.number).padStart(2, '0')}
+      </span>
+      <div className="ad-card__body">
+        <div className="ad-row">
+          <div className="ad-field ad-field--grow">
+            <label>Nombre</label>
+            <input value={form.name} onChange={(e) => set({ name: e.target.value })} />
+          </div>
+          <div className="ad-field ad-field--narrow">
+            <label>Duración</label>
+            <div className="ad-affix">
+              <input type="number" min="1" value={form.durationWeeks} onChange={(e) => set({ durationWeeks: e.target.value })} />
+              <span>semanas</span>
+            </div>
+          </div>
+        </div>
+        <div className="ad-row">
+          <div className="ad-field ad-field--grow">
+            <label>
+              Objetivo <span className="ad-label-hint">visible para el usuario</span>
+            </label>
+            <textarea rows={2} value={form.objective} onChange={(e) => set({ objective: e.target.value })} />
+          </div>
+          <div className="ad-field ad-field--grow">
+            <label>
+              Descripción <span className="ad-label-hint">interna</span>
+            </label>
+            <textarea rows={2} value={form.description} onChange={(e) => set({ description: e.target.value })} />
+          </div>
+        </div>
+        <SaveFooter dirty={isDirty(form, initial)} saving={saving} saved={saved} onSave={() => onSave(block, form)} />
       </div>
-      <div className="field">
-        <label>Objetivo (se muestra al usuario)</label>
-        <textarea rows={2} value={form.objective} onChange={(e) => setForm({ ...form, objective: e.target.value })} />
-      </div>
-      <div className="field">
-        <label>Descripción</label>
-        <textarea rows={2} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-      </div>
-      <div className="field">
-        <label>Duración (semanas)</label>
-        <input type="number" min="1" value={form.durationWeeks} onChange={(e) => setForm({ ...form, durationWeeks: e.target.value })} />
-      </div>
-      <button type="button" className="btn btn-primary" disabled={saving} onClick={() => onSave(block, form)}>
-        {saving ? 'Guardando...' : 'Guardar'}
-      </button>
-      {saved && <span className="admin-saved">Guardado ✓</span>}
-    </div>
+    </article>
   );
 }
 
 // ---------- Ejercicios ----------
 
+const LEVELS = [
+  { id: 'principiante', label: 'Principiante' },
+  { id: 'intermedio', label: 'Intermedio' },
+  { id: 'experto', label: 'Experto' },
+];
+
+const EMPTY_EXERCISE = { title: '', videoUrl: '', description: '', defaultSets: 4, defaultReps: 10, defaultWeight: 0, level: 'principiante' };
+
 function ExercisesTab({ token }) {
   const { items, error, reload } = useEntity(() => api.admin.listVideos(token));
-  const [form, setForm] = useState({ title: '', videoUrl: '', description: '', defaultSets: 4, defaultReps: 10, defaultWeight: 0, level: 'principiante' });
+  const [form, setForm] = useState(EMPTY_EXERCISE);
   const [creating, setCreating] = useState(false);
   const [formError, setFormError] = useState('');
+  const [showForm, setShowForm] = useState(false);
+  const [query, setQuery] = useState('');
+  const [levelFilter, setLevelFilter] = useState('all');
 
   if (error) return <p className="modal__error">{error}</p>;
-  if (!items) return <p className="profile__videos-hint">Cargando...</p>;
+  if (!items) return <Loading />;
 
   async function handleCreate(e) {
     e.preventDefault();
@@ -339,7 +473,8 @@ function ExercisesTab({ token }) {
         { ...form, defaultSets: Number(form.defaultSets), defaultReps: Number(form.defaultReps), defaultWeight: Number(form.defaultWeight) },
         token
       );
-      setForm({ title: '', videoUrl: '', description: '', defaultSets: 4, defaultReps: 10, defaultWeight: 0, level: 'principiante' });
+      setForm(EMPTY_EXERCISE);
+      setShowForm(false);
       reload();
     } catch (err) {
       setFormError(err.message);
@@ -367,91 +502,147 @@ function ExercisesTab({ token }) {
     }
   }
 
+  const q = query.trim().toLowerCase();
+  const filtered = items.filter((v) => (levelFilter === 'all' || v.level === levelFilter) && (!q || v.title.toLowerCase().includes(q)));
+
   return (
-    <div>
-      <div className="admin-table-wrap">
-        <table className="admin-table">
+    <>
+      <SectionHeader
+        title="Ejercicios"
+        count={items.length}
+        description="Catálogo que usan las rutinas y la sección Mis videos."
+        action={
+          <button type="button" className="ad-btn ad-btn--primary" onClick={() => setShowForm((v) => !v)}>
+            <Icon d={showForm ? ICONS.x : ICONS.plus} />
+            {showForm ? 'Cerrar' : 'Nuevo ejercicio'}
+          </button>
+        }
+      />
+
+      {showForm && (
+        <form className="ad-card ad-card--form" onSubmit={handleCreate}>
+          <h3 className="ad-card__title">Nuevo ejercicio</h3>
+          <div className="ad-row">
+            <div className="ad-field ad-field--grow">
+              <label>Nombre</label>
+              <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Ej: Sentadilla búlgara" />
+            </div>
+            <div className="ad-field ad-field--grow">
+              <label>Link de video</label>
+              <input value={form.videoUrl} onChange={(e) => setForm({ ...form, videoUrl: e.target.value })} placeholder="https://youtube.com/..." />
+            </div>
+          </div>
+          <div className="ad-field">
+            <label>Descripción</label>
+            <input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Tips de técnica (opcional)" />
+          </div>
+          <div className="ad-row">
+            <div className="ad-field">
+              <label>Series</label>
+              <input type="number" value={form.defaultSets} onChange={(e) => setForm({ ...form, defaultSets: e.target.value })} />
+            </div>
+            <div className="ad-field">
+              <label>Reps</label>
+              <input type="number" value={form.defaultReps} onChange={(e) => setForm({ ...form, defaultReps: e.target.value })} />
+            </div>
+            <div className="ad-field">
+              <label>Peso (kg)</label>
+              <input type="number" step="0.5" value={form.defaultWeight} onChange={(e) => setForm({ ...form, defaultWeight: e.target.value })} />
+            </div>
+            <div className="ad-field">
+              <label>Nivel</label>
+              <select value={form.level} onChange={(e) => setForm({ ...form, level: e.target.value })}>
+                {LEVELS.map((l) => (
+                  <option key={l.id} value={l.id}>
+                    {l.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          {formError && <p className="modal__error">{formError}</p>}
+          <div className="ad-card__footer">
+            <span />
+            <button type="submit" className="ad-btn ad-btn--primary" disabled={creating}>
+              {creating ? 'Creando...' : 'Crear ejercicio'}
+            </button>
+          </div>
+        </form>
+      )}
+
+      <div className="ad-toolbar">
+        <label className="ad-search">
+          <Icon d={ICONS.search} />
+          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar ejercicio" aria-label="Buscar ejercicio" />
+        </label>
+        <div className="ad-chips" role="group" aria-label="Filtrar por nivel">
+          {[{ id: 'all', label: 'Todos' }, ...LEVELS].map((l) => (
+            <button
+              key={l.id}
+              type="button"
+              className={`ad-chip ${levelFilter === l.id ? 'ad-chip--active' : ''}`}
+              onClick={() => setLevelFilter(l.id)}
+            >
+              {l.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="ad-table-card">
+        <table className="ad-table">
           <thead>
             <tr>
-              <th>Nombre</th>
-              <th>Video</th>
-              <th>Series/Reps/Peso sugeridos</th>
+              <th>Ejercicio</th>
+              <th>Sugerido</th>
               <th>Nivel</th>
-              <th></th>
+              <th aria-label="Acciones" />
             </tr>
           </thead>
           <tbody>
-            {items.map((v) => (
+            {filtered.map((v) => (
               <tr key={v.id}>
-                <td>{v.title}</td>
                 <td>
-                  <a href={v.videoUrl} target="_blank" rel="noreferrer">
-                    Ver
-                  </a>
+                  <div className="ad-cell-main">
+                    <a className="ad-play" href={v.videoUrl} target="_blank" rel="noreferrer" aria-label={`Ver video de ${v.title}`}>
+                      <Icon d={ICONS.play} size={12} />
+                    </a>
+                    <div>
+                      <strong>{v.title}</strong>
+                      {v.description && <small>{v.description}</small>}
+                    </div>
+                  </div>
+                </td>
+                <td className="ad-nowrap">
+                  {v.defaultSets ?? '—'} × {v.defaultReps ?? '—'} · {Number(v.defaultWeight ?? 0)} kg
                 </td>
                 <td>
-                  {v.defaultSets ?? '—'} × {v.defaultReps ?? '—'} × {v.defaultWeight ?? '0'}kg
-                </td>
-                <td>
-                  <select value={v.level} onChange={(e) => handleLevelChange(v.id, e.target.value)}>
-                    <option value="principiante">Principiante</option>
-                    <option value="intermedio">Intermedio</option>
-                    <option value="experto">Experto</option>
+                  <select className={`ad-pill-select ad-pill-select--${v.level}`} value={v.level} onChange={(e) => handleLevelChange(v.id, e.target.value)}>
+                    {LEVELS.map((l) => (
+                      <option key={l.id} value={l.id}>
+                        {l.label}
+                      </option>
+                    ))}
                   </select>
                 </td>
-                <td>
-                  <button type="button" className="admin-link-btn" onClick={() => handleDelete(v.id)}>
-                    Eliminar
+                <td className="ad-actions">
+                  <button type="button" className="ad-icon-btn ad-icon-btn--danger" onClick={() => handleDelete(v.id)} aria-label={`Eliminar ${v.title}`}>
+                    <Icon d={ICONS.trash} />
                   </button>
                 </td>
               </tr>
             ))}
+            {filtered.length === 0 && (
+              <tr>
+                <td colSpan={4} className="ad-empty-row">
+                  No hay ejercicios que coincidan.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
-
-      <h3 className="admin-subtitle">Agregar ejercicio</h3>
-      <form className="admin-form" onSubmit={handleCreate}>
-        <div className="field">
-          <label>Nombre</label>
-          <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-        </div>
-        <div className="field">
-          <label>Link de video</label>
-          <input value={form.videoUrl} onChange={(e) => setForm({ ...form, videoUrl: e.target.value })} />
-        </div>
-        <div className="field">
-          <label>Descripción</label>
-          <input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
-        </div>
-        <div className="admin-form__row">
-          <div className="field">
-            <label>Series por defecto</label>
-            <input type="number" value={form.defaultSets} onChange={(e) => setForm({ ...form, defaultSets: e.target.value })} />
-          </div>
-          <div className="field">
-            <label>Reps por defecto</label>
-            <input type="number" value={form.defaultReps} onChange={(e) => setForm({ ...form, defaultReps: e.target.value })} />
-          </div>
-          <div className="field">
-            <label>Peso por defecto (kg)</label>
-            <input type="number" step="0.5" value={form.defaultWeight} onChange={(e) => setForm({ ...form, defaultWeight: e.target.value })} />
-          </div>
-          <div className="field">
-            <label>Nivel</label>
-            <select value={form.level} onChange={(e) => setForm({ ...form, level: e.target.value })}>
-              <option value="principiante">Principiante</option>
-              <option value="intermedio">Intermedio</option>
-              <option value="experto">Experto</option>
-            </select>
-          </div>
-        </div>
-        {formError && <p className="modal__error">{formError}</p>}
-        <button type="submit" className="btn btn-primary" disabled={creating}>
-          {creating ? 'Creando...' : 'Crear ejercicio'}
-        </button>
-      </form>
-    </div>
+    </>
   );
 }
 
@@ -466,12 +657,14 @@ function RoutinesTab({ token }) {
   const [newRoutineUserId, setNewRoutineUserId] = useState('');
 
   if (blocksError) return <p className="modal__error">{blocksError}</p>;
-  if (!blocks || !videos) return <p className="profile__videos-hint">Cargando...</p>;
+  if (!blocks || !videos) return <Loading />;
 
   const activeBlockId = blockId || blocks[0]?.id;
   if (!blockId && blocks[0]) setBlockId(blocks[0].id);
+  const activeBlock = blocks.find((b) => b.id === activeBlockId);
 
-  async function handleCreateRoutine() {
+  async function handleCreateRoutine(e) {
+    e.preventDefault();
     if (!newRoutineName) return;
     try {
       await api.admin.createRoutine(
@@ -487,42 +680,65 @@ function RoutinesTab({ token }) {
   }
 
   return (
-    <div>
-      <div className="field">
-        <label>Bloque</label>
-        <select value={activeBlockId || ''} onChange={(e) => setBlockId(Number(e.target.value))}>
-          {blocks.map((b) => (
-            <option key={b.id} value={b.id}>
-              {b.name}
-            </option>
-          ))}
-        </select>
+    <>
+      <SectionHeader title="Rutinas" description="Días y ejercicios de cada bloque. Una rutina genérica para todos, y personalizadas para usuarios del plan Full." />
+
+      <div className="ad-chips ad-chips--blocks" role="tablist" aria-label="Bloque">
+        {blocks.map((b) => (
+          <button
+            key={b.id}
+            type="button"
+            role="tab"
+            aria-selected={b.id === activeBlockId}
+            className={`ad-chip ${b.id === activeBlockId ? 'ad-chip--active' : ''}`}
+            onClick={() => setBlockId(b.id)}
+          >
+            {b.name}
+          </button>
+        ))}
       </div>
+      {activeBlock?.objective && <p className="ad-block-objective">{activeBlock.objective}</p>}
 
       {routinesError && <p className="modal__error">{routinesError}</p>}
-      {routines &&
-        routines.map((routine) => <RoutineCard key={routine.id} routine={routine} videos={videos} token={token} onChange={reload} />)}
 
-      <h3 className="admin-subtitle">Nueva rutina en este bloque</h3>
-      <div className="admin-form__row">
-        <div className="field">
-          <label>Nombre</label>
-          <input value={newRoutineName} onChange={(e) => setNewRoutineName(e.target.value)} placeholder="Rutina base" />
-        </div>
-        <div className="field">
-          <label>ID de usuario (vacío = genérica)</label>
-          <input value={newRoutineUserId} onChange={(e) => setNewRoutineUserId(e.target.value)} placeholder="Ej: 12 — ver en Usuarios" />
-        </div>
+      <div className="ad-stack">
+        {routines && routines.length === 0 && (
+          <div className="ad-empty">
+            <strong>Este bloque todavía no tiene rutinas</strong>
+            <span>Creá la rutina genérica abajo y después agregale días y ejercicios.</span>
+          </div>
+        )}
+        {routines && routines.map((routine) => <RoutineCard key={routine.id} routine={routine} videos={videos} token={token} onChange={reload} />)}
+
+        <form className="ad-card ad-card--form" onSubmit={handleCreateRoutine}>
+          <h3 className="ad-card__title">Nueva rutina en {activeBlock?.name}</h3>
+          <div className="ad-row">
+            <div className="ad-field ad-field--grow">
+              <label>Nombre</label>
+              <input value={newRoutineName} onChange={(e) => setNewRoutineName(e.target.value)} placeholder="Rutina base" />
+            </div>
+            <div className="ad-field ad-field--grow">
+              <label>
+                Usuario <span className="ad-label-hint">vacío = genérica para todos</span>
+              </label>
+              <input value={newRoutineUserId} onChange={(e) => setNewRoutineUserId(e.target.value)} placeholder="ID del usuario, ej: 12" />
+            </div>
+          </div>
+          <div className="ad-card__footer">
+            <span />
+            <button type="submit" className="ad-btn ad-btn--primary" disabled={!newRoutineName}>
+              <Icon d={ICONS.plus} />
+              Crear rutina
+            </button>
+          </div>
+        </form>
       </div>
-      <button type="button" className="btn btn-primary" onClick={handleCreateRoutine}>
-        Crear rutina
-      </button>
-    </div>
+    </>
   );
 }
 
 function RoutineCard({ routine, videos, token, onChange }) {
-  const [newDay, setNewDay] = useState('');
+  const [newDay, setNewDay] = useState(String((routine.days.at(-1)?.dayNumber || 0) + 1));
 
   async function handleDeleteRoutine() {
     if (!confirm(`¿Eliminar "${routine.name}" y todos sus días?`)) return;
@@ -534,32 +750,44 @@ function RoutineCard({ routine, videos, token, onChange }) {
     const dayNumber = Number(newDay);
     if (!dayNumber) return;
     await api.admin.createRoutineDay(routine.id, { dayNumber, sortOrder: dayNumber }, token);
-    setNewDay('');
+    setNewDay(String(dayNumber + 1));
     onChange();
   }
 
   return (
-    <div className="admin-card admin-card--routine">
-      <div className="admin-card__header">
-        <strong>
-          {routine.name} {routine.userId ? `— personalizada (usuario #${routine.userId})` : '— genérica'}
-        </strong>
-        <button type="button" className="admin-link-btn" onClick={handleDeleteRoutine}>
-          Eliminar rutina
+    <article className="ad-card">
+      <div className="ad-card__head ad-card__head--between">
+        <div className="ad-card__head">
+          <h3 className="ad-card__title">{routine.name}</h3>
+          {routine.userId ? (
+            <span className="ad-tag ad-tag--accent">Personalizada · usuario #{routine.userId}</span>
+          ) : (
+            <span className="ad-tag">Genérica</span>
+          )}
+        </div>
+        <button type="button" className="ad-icon-btn ad-icon-btn--danger" onClick={handleDeleteRoutine} aria-label={`Eliminar ${routine.name}`}>
+          <Icon d={ICONS.trash} />
         </button>
       </div>
 
-      {routine.days.map((day) => (
-        <RoutineDayRow key={day.id} day={day} videos={videos} token={token} onChange={onChange} />
-      ))}
+      <div className="ad-days">
+        {routine.days.map((day) => (
+          <RoutineDayRow key={day.id} day={day} videos={videos} token={token} onChange={onChange} />
+        ))}
+      </div>
 
-      <div className="admin-form__row admin-form__row--tight">
-        <input type="number" min="1" placeholder="N° de día" value={newDay} onChange={(e) => setNewDay(e.target.value)} />
-        <button type="button" className="btn" onClick={handleAddDay}>
+      <div className="ad-add-day">
+        <span>Agregar</span>
+        <div className="ad-affix ad-affix--sm">
+          <span>Día</span>
+          <input type="number" min="1" value={newDay} onChange={(e) => setNewDay(e.target.value)} aria-label="Número de día" />
+        </div>
+        <button type="button" className="ad-btn" onClick={handleAddDay}>
+          <Icon d={ICONS.plus} />
           Agregar día
         </button>
       </div>
-    </div>
+    </article>
   );
 }
 
@@ -599,51 +827,90 @@ function RoutineDayRow({ day, videos, token, onChange }) {
   }
 
   return (
-    <div className="admin-day">
-      <div className="admin-day__header">
-        <span>Día {day.dayNumber}</span>
-        <button type="button" className="admin-link-btn" onClick={handleDeleteDay}>
-          Eliminar día
+    <section className="ad-day">
+      <div className="ad-day__head">
+        <span className="ad-day__badge">Día {day.dayNumber}</span>
+        <span className="ad-day__meta">
+          {day.exercises.length} {day.exercises.length === 1 ? 'ejercicio' : 'ejercicios'}
+        </span>
+        <button type="button" className="ad-icon-btn ad-icon-btn--danger" onClick={handleDeleteDay} aria-label={`Eliminar Día ${day.dayNumber}`}>
+          <Icon d={ICONS.trash} size={14} />
         </button>
       </div>
-      <ul className="admin-day__exercises">
-        {day.exercises.map((ex) => (
-          <li key={ex.id}>
-            {ex.video.title} — {ex.suggestedSets}×{ex.suggestedReps} × {Number(ex.suggestedWeight)}kg
-            {ex.suggestedRest ? ` — descanso ${ex.suggestedRest}` : ''}
-            <button type="button" className="admin-link-btn" onClick={() => handleDeleteExercise(ex.id)}>
-              quitar
-            </button>
-          </li>
-        ))}
-      </ul>
-      <div className="admin-form__row admin-form__row--tight">
-        <select value={videoId} onChange={(e) => setVideoId(e.target.value)}>
-          {videos.map((v) => (
-            <option key={v.id} value={v.id}>
-              {v.title}
-            </option>
+
+      {day.exercises.length > 0 && (
+        <ol className="ad-day__list">
+          {day.exercises.map((ex, i) => (
+            <li key={ex.id}>
+              <span className="ad-day__num">{i + 1}</span>
+              <span className="ad-day__name">{ex.video.title}</span>
+              <span className="ad-day__chips">
+                <span>
+                  {ex.suggestedSets}×{ex.suggestedReps}
+                </span>
+                <span>{Number(ex.suggestedWeight) > 0 ? `${Number(ex.suggestedWeight)} kg` : 'Corporal'}</span>
+                {ex.suggestedRest && <span>{ex.suggestedRest}</span>}
+              </span>
+              <button type="button" className="ad-icon-btn" onClick={() => handleDeleteExercise(ex.id)} aria-label={`Quitar ${ex.video.title}`}>
+                <Icon d={ICONS.x} size={14} />
+              </button>
+            </li>
           ))}
-        </select>
-        <input type="number" value={sets} onChange={(e) => setSets(e.target.value)} title="Series" />
-        <input type="number" value={reps} onChange={(e) => setReps(e.target.value)} title="Reps" />
-        <input type="number" step="0.5" value={weight} onChange={(e) => setWeight(e.target.value)} title="Peso" />
-        <input type="text" placeholder="Descanso, ej. 1:30" value={rest} onChange={(e) => setRest(e.target.value)} title="Descanso" />
-        <button type="button" className="btn" onClick={handleAddExercise}>
-          Agregar ejercicio
+        </ol>
+      )}
+
+      <div className="ad-day__add">
+        <div className="ad-field ad-field--grow">
+          <label>Ejercicio</label>
+          <select value={videoId} onChange={(e) => setVideoId(e.target.value)}>
+            {videos.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.title}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="ad-field ad-field--xs">
+          <label>Series</label>
+          <input type="number" value={sets} onChange={(e) => setSets(e.target.value)} />
+        </div>
+        <div className="ad-field ad-field--xs">
+          <label>Reps</label>
+          <input type="number" value={reps} onChange={(e) => setReps(e.target.value)} />
+        </div>
+        <div className="ad-field ad-field--xs">
+          <label>Kg</label>
+          <input type="number" step="0.5" value={weight} onChange={(e) => setWeight(e.target.value)} />
+        </div>
+        <div className="ad-field ad-field--xs">
+          <label>Descanso</label>
+          <input type="text" placeholder="1:30" value={rest} onChange={(e) => setRest(e.target.value)} />
+        </div>
+        <button type="button" className="ad-btn ad-btn--primary" onClick={handleAddExercise}>
+          <Icon d={ICONS.plus} />
+          Agregar
         </button>
       </div>
-    </div>
+    </section>
   );
 }
 
 // ---------- Usuarios ----------
 
+const STATUS_OPTIONS = [
+  { id: 'trial', label: 'Prueba' },
+  { id: 'pending_payment', label: 'Pago pendiente' },
+  { id: 'active', label: 'Activo' },
+  { id: 'past_due', label: 'Inactivo' },
+  { id: 'canceled', label: 'Cancelado' },
+];
+
 function UsersTab({ token }) {
   const { items, error, reload } = useEntity(() => api.admin.listUsers(token));
+  const [query, setQuery] = useState('');
 
   if (error) return <p className="modal__error">{error}</p>;
-  if (!items) return <p className="profile__videos-hint">Cargando...</p>;
+  if (!items) return <Loading />;
 
   async function handleRoleChange(userItem, role) {
     await api.admin.updateUserRole(userItem.id, { role }, token);
@@ -655,54 +922,81 @@ function UsersTab({ token }) {
     reload();
   }
 
+  const q = query.trim().toLowerCase();
+  const filtered = items.filter((u) => !q || `${u.firstName} ${u.lastName} ${u.email} ${u.id}`.toLowerCase().includes(q));
+
   return (
-    <div className="admin-table-wrap">
-      <table className="admin-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Email</th>
-            <th>Plan</th>
-            <th>Estado</th>
-            <th>Rol</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((u) => {
-            const sub = u.subscriptions?.[0];
-            return (
-              <tr key={u.id}>
-                <td>{u.id}</td>
-                <td>
-                  {u.firstName} {u.lastName}
-                </td>
-                <td>{u.email}</td>
-                <td>{sub?.plan?.name || '—'}</td>
-                <td>
-                  {sub ? (
-                    <select value={sub.status} onChange={(e) => handleStatusChange(sub.id, e.target.value)}>
-                      {['trial', 'pending_payment', 'active', 'past_due', 'canceled'].map((s) => (
-                        <option key={s} value={s}>
-                          {s}
-                        </option>
-                      ))}
+    <>
+      <SectionHeader title="Usuarios" count={items.length} description="Cambiá el estado de la suscripción o el rol de cada persona." />
+
+      <div className="ad-toolbar">
+        <label className="ad-search">
+          <Icon d={ICONS.search} />
+          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar por nombre, email o ID" aria-label="Buscar usuario" />
+        </label>
+      </div>
+
+      <div className="ad-table-card">
+        <table className="ad-table">
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Plan</th>
+              <th>Estado</th>
+              <th>Rol</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((u) => {
+              const sub = u.subscriptions?.[0];
+              return (
+                <tr key={u.id}>
+                  <td>
+                    <div className="ad-cell-main">
+                      <span className="ad-avatar" aria-hidden="true">
+                        {(u.firstName || u.email || '?').charAt(0).toUpperCase()}
+                      </span>
+                      <div>
+                        <strong>
+                          {u.firstName} {u.lastName} <span className="ad-id">#{u.id}</span>
+                        </strong>
+                        <small>{u.email}</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td>{sub?.plan?.name || <span className="ad-muted">Sin plan</span>}</td>
+                  <td>
+                    {sub ? (
+                      <select className={`ad-pill-select ad-pill-select--${sub.status}`} value={sub.status} onChange={(e) => handleStatusChange(sub.id, e.target.value)}>
+                        {STATUS_OPTIONS.map((s) => (
+                          <option key={s.id} value={s.id}>
+                            {s.label}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span className="ad-muted">—</span>
+                    )}
+                  </td>
+                  <td>
+                    <select className={`ad-pill-select ad-pill-select--role-${u.role}`} value={u.role} onChange={(e) => handleRoleChange(u, e.target.value)}>
+                      <option value="user">Usuario</option>
+                      <option value="admin">Admin</option>
                     </select>
-                  ) : (
-                    '—'
-                  )}
-                </td>
-                <td>
-                  <select value={u.role} onChange={(e) => handleRoleChange(u, e.target.value)}>
-                    <option value="user">user</option>
-                    <option value="admin">admin</option>
-                  </select>
+                  </td>
+                </tr>
+              );
+            })}
+            {filtered.length === 0 && (
+              <tr>
+                <td colSpan={4} className="ad-empty-row">
+                  No hay usuarios que coincidan.
                 </td>
               </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }
