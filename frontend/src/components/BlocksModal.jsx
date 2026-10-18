@@ -4,32 +4,18 @@ import InactivePlanBanner from './InactivePlanBanner.jsx';
 import './BlocksModal.css';
 import { useAuth } from '../context/AuthContext.jsx';
 import { api } from '../lib/api.js';
+import { useI18n } from '../i18n/I18nContext.jsx';
 
-const BILLING_OPTIONS = [
-  { id: 'trimestral', label: 'Trimestral' },
-  { id: 'semestral', label: 'Semestral' },
-  { id: 'anual', label: 'Anual' },
-];
+const BILLING_OPTIONS = ['trimestral', 'semestral', 'anual'];
 
 // Una vez que ya completaste algún bloque, "Anual" deja de poder elegirse (esa tarifa es
 // solo para quien paga todo el año por adelantado desde el arranque).
-const CONTINUE_BILLING_OPTIONS = BILLING_OPTIONS.filter((opt) => opt.id !== 'anual');
+const CONTINUE_BILLING_OPTIONS = BILLING_OPTIONS.filter((mode) => mode !== 'anual');
 
-const BLOCK_STATUS_LABEL = {
-  active: 'En curso',
-  scheduled: 'Pago al día — se desbloquea solo',
-  locked: 'Bloqueado',
-  completed: 'Completado',
-};
-
-const PERFORMANCE_LABEL = {
-  superior: 'Por encima de lo sugerido',
-  esperado: 'Como lo sugerido',
-  inferior: 'Por debajo de lo sugerido',
-};
 
 export default function BlocksModal({ onClose, onBack }) {
   const { token } = useAuth();
+  const { t, locale } = useI18n();
   const [status, setStatus] = useState('loading'); // loading | locked | error | ready
   const [data, setData] = useState(null);
   const [fetchError, setFetchError] = useState('');
@@ -139,7 +125,7 @@ export default function BlocksModal({ onClose, onBack }) {
       (e) => !Number.isFinite(e.actualReps) || e.actualReps <= 0 || !Number.isFinite(e.actualWeight) || e.actualWeight < 0
     );
     if (invalid) {
-      setActionError('Completá repeticiones y peso reales de todos los ejercicios antes de guardar.');
+      setActionError(t('routine.invalidLogShort'));
       return;
     }
     submitDay(true, exercisesPayload);
@@ -160,25 +146,25 @@ export default function BlocksModal({ onClose, onBack }) {
 
   if (status === 'loading') {
     return (
-      <Modal title="Mi rutina" onClose={onClose} size="lg">
+      <Modal title={t('account.tabs.rutina')} onClose={onClose} size="lg">
         <button type="button" className="modal__back" onClick={onBack}>
-          ← Volver a mi perfil
+          {t('profile.backToProfile')}
         </button>
-        <p className="profile__videos-hint">Cargando...</p>
+        <p className="profile__videos-hint">{t('common.loading')}</p>
       </Modal>
     );
   }
 
   if (status === 'locked') {
     return (
-      <Modal title="Mi rutina" onClose={onClose} size="lg">
+      <Modal title={t('account.tabs.rutina')} onClose={onClose} size="lg">
         <button type="button" className="modal__back" onClick={onBack}>
-          ← Volver a mi perfil
+          {t('profile.backToProfile')}
         </button>
         <p className="profile__videos-hint">
-          La rutina por bloques está disponible a partir del plan Premium.{' '}
+          {t('routine.lockedText')}{' '}
           <a href="#planes" onClick={onClose}>
-            Ver planes
+            {t('routine.seePlans')}
           </a>
           .
         </p>
@@ -188,9 +174,9 @@ export default function BlocksModal({ onClose, onBack }) {
 
   if (status === 'error') {
     return (
-      <Modal title="Mi rutina" onClose={onClose} size="lg">
+      <Modal title={t('account.tabs.rutina')} onClose={onClose} size="lg">
         <button type="button" className="modal__back" onClick={onBack}>
-          ← Volver a mi perfil
+          {t('profile.backToProfile')}
         </button>
         <p className="modal__error">{fetchError}</p>
       </Modal>
@@ -200,9 +186,9 @@ export default function BlocksModal({ onClose, onBack }) {
   const { today, blocks } = data;
 
   return (
-    <Modal title="Mi rutina" onClose={onClose} size="lg">
+    <Modal title={t('account.tabs.rutina')} onClose={onClose} size="lg">
       <button type="button" className="modal__back" onClick={onBack}>
-        ← Volver a mi perfil
+        {t('profile.backToProfile')}
       </button>
 
       <InactivePlanBanner />
@@ -212,11 +198,11 @@ export default function BlocksModal({ onClose, onBack }) {
       {notice && (
         <div className="bl-notice">
           <span>
-            {notice.type === 'block_unlocked' && `¡Bloque ${notice.blockNumber} desbloqueado! Ya está en tu rutina (te avisamos por email).`}
-            {notice.type === 'awaiting_payment' && `Terminaste el bloque. Pagá el Bloque ${notice.blockNumber} para seguir.`}
-            {notice.type === 'year_complete' && '¡Completaste los 4 bloques del año!'}
+            {notice.type === 'block_unlocked' && t('routine.noticeUnlocked', { n: notice.blockNumber })}
+            {notice.type === 'awaiting_payment' && t('routine.noticeAwaiting', { n: notice.blockNumber })}
+            {notice.type === 'year_complete' && t('routine.noticeYear')}
           </span>
-          <button type="button" onClick={() => setNotice(null)} aria-label="Cerrar aviso">
+          <button type="button" onClick={() => setNotice(null)} aria-label={t('routine.closeNotice')}>
             ×
           </button>
         </div>
@@ -224,10 +210,10 @@ export default function BlocksModal({ onClose, onBack }) {
 
       <div className="bl-tabs">
         <button type="button" className={`bl-tabs__btn ${view === 'today' ? 'bl-tabs__btn--active' : ''}`} onClick={() => setView('today')}>
-          Hoy
+          {t('routine.today')}
         </button>
         <button type="button" className={`bl-tabs__btn ${view === 'progress' ? 'bl-tabs__btn--active' : ''}`} onClick={openProgress}>
-          Mi progreso
+          {t('routine.myProgress')}
         </button>
       </div>
 
@@ -237,10 +223,10 @@ export default function BlocksModal({ onClose, onBack }) {
         <>
           {!data.inactive && today.state === 'year_complete' && (
             <div className="bl-yearend">
-              <h3>¡Completaste los 4 bloques de este año! 🎉</h3>
-              <p>Revisá tu progreso del año en la pestaña "Mi progreso" antes de arrancar el siguiente.</p>
+              <h3>{t('routine.yearEndTitle')}</h3>
+              <p>{t('routine.yearEndModalText')}</p>
               <button type="button" className="btn btn-primary" disabled={busy} onClick={() => runAction(api.startBlockNewYear(token))}>
-                Empezar el próximo año
+                {t('routine.startNextYear')}
               </button>
             </div>
           )}
@@ -248,19 +234,19 @@ export default function BlocksModal({ onClose, onBack }) {
           {!data.inactive && today.state === 'awaiting_payment' && (
             <div className="bl-paywall">
               <p>
-                Terminaste el Bloque {today.blockNumber - 1}. ¿Querés seguir con el Bloque {today.blockNumber}?
+                {t('routine.paywallQuestion', { prev: today.blockNumber - 1, next: today.blockNumber })}
               </p>
               <div className="bl-billing">
-                <span className="bl-billing__label">Forma de pago:</span>
-                {CONTINUE_BILLING_OPTIONS.map((opt) => (
+                <span className="bl-billing__label">{t('routine.billingLabel')}</span>
+                {CONTINUE_BILLING_OPTIONS.map((mode) => (
                   <button
-                    key={opt.id}
+                    key={mode}
                     type="button"
                     disabled={busy}
-                    className={`bl-billing__pill ${continueBilling === opt.id ? 'bl-billing__pill--active' : ''}`}
-                    onClick={() => setContinueBilling(opt.id)}
+                    className={`bl-billing__pill ${continueBilling === mode ? 'bl-billing__pill--active' : ''}`}
+                    onClick={() => setContinueBilling(mode)}
                   >
-                    {opt.label}
+                    {t(`plans.billing.${mode}`)}
                   </button>
                 ))}
               </div>
@@ -271,29 +257,29 @@ export default function BlocksModal({ onClose, onBack }) {
                   disabled={busy}
                   onClick={() => runAction(api.payBlock({ blockNumber: today.blockNumber, billingMode: continueBilling }, token))}
                 >
-                  Pagar y desbloquear Bloque {today.blockNumber}
+                  {t('routine.payUnlock', { n: today.blockNumber })}
                 </button>
                 <a href="#planes" onClick={onClose}>
-                  Cambiar de experiencia
+                  {t('routine.changeExperience')}
                 </a>
               </div>
             </div>
           )}
 
           {today.state === 'no_routine' && (
-            <p className="profile__videos-hint">Este bloque todavía no tiene una rutina cargada. Escribinos y lo resolvemos.</p>
+            <p className="profile__videos-hint">{t('routine.empty.no_routine.text')}</p>
           )}
 
           {today.state === 'active' && (
             <>
               <div className="bl-today">
                 <p className="bl-today__eyebrow">
-                  Bloque {today.blockNumber} · Semana {today.week} de {today.totalWeeks}
+                  {t('routine.blockWeek', { block: today.blockNumber, week: today.week, total: today.totalWeeks })}
                 </p>
                 <p className="bl-today__objective">{today.objective}</p>
                 <h3 className="bl-today__day">
-                  Día {today.dayNumber} de {today.totalDays} — {today.routineName}
-                  {today.personalized && <span className="bl-today__badge">Personalizada</span>}
+                  {t('routine.dayOf', { n: today.dayNumber, total: today.totalDays, name: today.routineName })}
+                  {today.personalized && <span className="bl-today__badge">{t('routine.personalized')}</span>}
                 </h3>
               </div>
 
@@ -301,10 +287,10 @@ export default function BlocksModal({ onClose, onBack }) {
                 <table className="bl-table">
                   <thead>
                     <tr>
-                      <th>Ejercicio</th>
-                      <th>Video</th>
-                      <th>Sugerido</th>
-                      {performedChoice === true && <th>Real</th>}
+                      <th>{t('routine.colExercise')}</th>
+                      <th>{t('routine.colVideo')}</th>
+                      <th>{t('routine.colSuggested')}</th>
+                      {performedChoice === true && <th>{t('routine.colActual')}</th>}
                     </tr>
                   </thead>
                   <tbody>
@@ -314,17 +300,17 @@ export default function BlocksModal({ onClose, onBack }) {
                         <td>
                           {ex.hasVideoAccess ? (
                             <a href={ex.videoUrl} target="_blank" rel="noreferrer">
-                              ▶ Ver video
+                              ▶ {t('routine.watchVideo')}
                             </a>
                           ) : (
                             <a href="#planes" className="bl-video-locked" onClick={onClose}>
-                              🔒 Mejorar plan
+                              🔒 {t('routine.upgrade')}
                             </a>
                           )}
                         </td>
                         <td>
-                          {ex.suggestedSets} series × {ex.suggestedReps} reps
-                          {ex.suggestedWeight > 0 ? ` × ${ex.suggestedWeight}kg` : ' (peso corporal)'}
+                          {t('routine.suggestedLine', { sets: ex.suggestedSets, reps: ex.suggestedReps })}
+                          {ex.suggestedWeight > 0 ? ` × ${ex.suggestedWeight}kg` : t('routine.bodyweightParen')}
                         </td>
                         {performedChoice === true && (
                           <td>
@@ -336,7 +322,7 @@ export default function BlocksModal({ onClose, onBack }) {
                                 value={drafts[ex.videoId]?.reps ?? ''}
                                 disabled={busy}
                                 onChange={(e) => updateDraft(ex.videoId, 'reps', e.target.value)}
-                                aria-label={`Repeticiones reales de ${ex.name}`}
+                                aria-label={t('routine.ariaReps', { name: ex.name })}
                               />
                               <input
                                 type="number"
@@ -346,7 +332,7 @@ export default function BlocksModal({ onClose, onBack }) {
                                 value={drafts[ex.videoId]?.weight ?? ''}
                                 disabled={busy}
                                 onChange={(e) => updateDraft(ex.videoId, 'weight', e.target.value)}
-                                aria-label={`Peso real de ${ex.name}`}
+                                aria-label={t('routine.ariaWeight', { name: ex.name })}
                               />
                             </div>
                           </td>
@@ -359,13 +345,13 @@ export default function BlocksModal({ onClose, onBack }) {
 
               {!data.inactive && performedChoice === null && (
                 <div className="bl-ask">
-                  <p>¿Realizaste este entrenamiento?</p>
+                  <p>{t('routine.askTitle')}</p>
                   <div className="bl-ask__buttons">
                     <button type="button" className="btn btn-primary" disabled={busy} onClick={() => handleChoosePerformed(true)}>
-                      Sí, lo hice
+                      {t('routine.yes')}
                     </button>
                     <button type="button" className="btn" disabled={busy} onClick={() => handleChoosePerformed(false)}>
-                      No lo hice
+                      {t('routine.no')}
                     </button>
                   </div>
                 </div>
@@ -374,10 +360,10 @@ export default function BlocksModal({ onClose, onBack }) {
               {performedChoice === true && (
                 <div className="bl-ask">
                   <button type="button" className="btn btn-primary" disabled={busy} onClick={handleSaveDay}>
-                    Guardar entrenamiento
+                    {t('routine.saveWorkout')}
                   </button>
                   <button type="button" className="bl-ask__cancel" disabled={busy} onClick={() => setPerformedChoice(null)}>
-                    Cancelar
+                    {t('routine.cancel')}
                   </button>
                 </div>
               )}
@@ -385,7 +371,7 @@ export default function BlocksModal({ onClose, onBack }) {
           )}
 
           <details className="bl-track-details">
-            <summary>Ver los 4 bloques del año</summary>
+            <summary>{t('routine.seeYear')}</summary>
             <div className="bl-track">
               {blocks.map((b) => (
                 <div key={b.number} className={`bl-track__item bl-track__item--${b.status} ${b.number === today.blockNumber ? 'bl-track__item--current' : ''}`}>
@@ -394,8 +380,8 @@ export default function BlocksModal({ onClose, onBack }) {
                   </span>
                   <span className="bl-track__title">{b.name}</span>
                   <span className="bl-track__months">{b.objective}</span>
-                  <span className="bl-track__status">{BLOCK_STATUS_LABEL[b.status]}</span>
-                  {b.paidUntil && <span className="bl-track__months">Pago vigente hasta {new Date(b.paidUntil).toLocaleDateString('es-UY')}</span>}
+                  <span className="bl-track__status">{t(`routine.blockStatus.${b.status}`)}</span>
+                  {b.paidUntil && <span className="bl-track__months">{t('routine.paidUntil', { date: new Date(b.paidUntil).toLocaleDateString(locale) })}</span>}
                 </div>
               ))}
             </div>
@@ -411,35 +397,36 @@ function round1(n) {
 }
 
 function ProgressView({ stats, loading }) {
-  if (loading) return <p className="profile__videos-hint">Cargando progreso...</p>;
+  const { t } = useI18n();
+  if (loading) return <p className="profile__videos-hint">{t('routine.loadingProgress')}</p>;
   if (!stats) return null;
 
   const blocksWithData = stats.perBlock.filter((b) => b.performedCount + b.missedCount > 0);
 
   return (
     <div className="bl-progress">
-      {blocksWithData.length === 0 && <p className="profile__videos-hint">Todavía no registraste entrenamientos.</p>}
+      {blocksWithData.length === 0 && <p className="profile__videos-hint">{t('routine.noLogs')}</p>}
 
       {stats.perBlock.map((block) => (
         <div key={block.blockNumber} className="bl-progress__block">
           <h4>
-            {block.blockName} — {BLOCK_STATUS_LABEL[block.status]}
+            {block.blockName} — {t(`routine.blockStatus.${block.status}`)}
           </h4>
           {block.adherencePct !== null ? (
             <>
               <div className="bl-progressbar">
                 <div className="bl-progressbar__fill" style={{ width: `${block.adherencePct}%` }} />
                 <span className="bl-progressbar__label">
-                  {block.adherencePct}% de adherencia — {block.performedCount} hechos, {block.missedCount} salteados
+                  {t('routine.adherenceLine', { pct: block.adherencePct, done: block.performedCount, missed: block.missedCount })}
                 </span>
               </div>
 
               {block.exercises.map((ex) => (
                 <div key={ex.videoId} className="bl-progress__exercise">
                   <span className="bl-progress__exercise-name">{ex.name}</span>
-                  <span className={`bl-progress__badge bl-progress__badge--${ex.performance}`}>{PERFORMANCE_LABEL[ex.performance]}</span>
+                  <span className={`bl-progress__badge bl-progress__badge--${ex.performance}`}>{t(`routine.performance.${ex.performance}`)}</span>
                   <span className="bl-progress__delta">
-                    {round1(ex.avgWeight)}kg × {Math.round(ex.avgReps)} reps (sugerido: {round1(ex.avgSuggestedWeight)}kg ×{' '}
+                    {round1(ex.avgWeight)}kg × {Math.round(ex.avgReps)} reps ({t('routine.suggestedShort')}: {round1(ex.avgSuggestedWeight)}kg ×{' '}
                     {Math.round(ex.avgSuggestedReps)} reps — {ex.weightDelta > 0 ? '+' : ''}
                     {round1(ex.weightDelta)}kg, {ex.repsDelta > 0 ? '+' : ''}
                     {round1(ex.repsDelta)} reps)
@@ -448,14 +435,14 @@ function ProgressView({ stats, loading }) {
               ))}
             </>
           ) : (
-            <p className="bl-history-hint">Todavía sin registros en este bloque.</p>
+            <p className="bl-history-hint">{t('routine.noLogsBlock')}</p>
           )}
         </div>
       ))}
 
       {stats.comparison.some((c) => c.points.length > 1) && (
         <div className="bl-progress__block">
-          <h4>Comparación entre bloques</h4>
+          <h4>{t('routine.compareTitle')}</h4>
           {stats.comparison
             .filter((c) => c.points.length > 1)
             .map((c) => {

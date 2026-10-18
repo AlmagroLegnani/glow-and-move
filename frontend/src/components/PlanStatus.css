@@ -452,7 +452,9 @@
   font-weight: 800;
 }
 
+/* Deja lugar a la etiqueta de descuento (en inglés/portugués el texto es más largo). */
 .renew-option__label {
+  padding-right: 3.2rem;
   font-size: 0.72rem;
   font-weight: 800;
   text-transform: uppercase;

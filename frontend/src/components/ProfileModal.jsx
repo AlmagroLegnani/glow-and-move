@@ -6,25 +6,20 @@ import WeightUpdateForm from './WeightUpdateForm.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { api } from '../lib/api.js';
 import { isSubscriptionExpired } from '../lib/subscription.js';
+import { useI18n } from '../i18n/I18nContext.jsx';
 
-const STATUS_LABEL = {
-  trial: 'Prueba gratis',
-  pending_payment: 'Pago pendiente',
-  active: 'Activo',
-  past_due: 'Pago vencido',
-  canceled: 'Cancelado',
-};
-
-function videosSummary(videosState) {
-  if (videosState.loading) return 'Cargando...';
-  if (videosState.error) return 'No se pudieron cargar';
-  if (videosState.videos.length === 0) return 'Todavía no hay ejercicios cargados';
-  if (!videosState.hasVideoAccess) return `${videosState.videos.length} ejercicios — videos desde el plan Premium`;
-  return `${videosState.videos.length} video${videosState.videos.length === 1 ? '' : 's'} disponible${videosState.videos.length === 1 ? '' : 's'}`;
+function videosSummary(videosState, t) {
+  const count = videosState.videos.length;
+  if (videosState.loading) return t('common.loading');
+  if (videosState.error) return t('profile.videosError');
+  if (count === 0) return t('videos.none');
+  if (!videosState.hasVideoAccess) return t('profile.videosNoAccess', { count });
+  return count === 1 ? t('profile.videosOne') : t('profile.videosMany', { count });
 }
 
 export default function ProfileModal({ onClose }) {
   const { user, token, logout, refreshMe } = useAuth();
+  const { t, locale } = useI18n();
   const subscription = user?.subscriptions?.[0];
   const isAdmin = user?.role === 'admin';
 
@@ -86,28 +81,29 @@ export default function ProfileModal({ onClose }) {
   }
 
   return (
-    <Modal title="Mi perfil" onClose={onClose}>
+    <Modal title={t('account.tabs.profile')} onClose={onClose}>
       <div>
         <p style={{ fontSize: '0.85rem', color: 'var(--ink-soft)' }}>{user?.email}</p>
         {subscription ? (
           <p style={{ fontSize: '0.9rem', marginTop: '0.3rem' }}>
-            Plan actual: <strong>{subscription.plan?.name}</strong> — {isSubscriptionExpired(subscription) ? 'Vencido' : STATUS_LABEL[subscription.status] || subscription.status}
+            {t('profile.currentPlan')} <strong>{subscription.plan?.name}</strong> —{' '}
+            {isSubscriptionExpired(subscription) ? t('profile.expired') : t(`myPlan.status.${subscription.status}`)}
             {subscription.isTrial && subscription.trialEndsAt && (
-              <> (termina el {new Date(subscription.trialEndsAt).toLocaleDateString('es-UY')})</>
+              <> {t('profile.trialEnds', { date: new Date(subscription.trialEndsAt).toLocaleDateString(locale) })}</>
             )}
           </p>
         ) : (
-          <p style={{ fontSize: '0.9rem', marginTop: '0.3rem' }}>Todavía no tenés un plan activo.</p>
+          <p style={{ fontSize: '0.9rem', marginTop: '0.3rem' }}>{t('myPlan.noPlan')}</p>
         )}
         <a href="#planes" className="modal__switch" style={{ display: 'inline-block', marginTop: '0.4rem' }} onClick={onClose}>
-          <button type="button">Cambiar de plan</button>
+          <button type="button">{t('profile.changePlan')}</button>
         </a>
       </div>
 
       <button type="button" className="profile__teaser" onClick={() => setShowVideos(true)}>
         <span className="profile__teaser-text">
-          <span className="profile__teaser-title">Mis videos</span>
-          <span className="profile__teaser-sub">{videosSummary(videosState)}</span>
+          <span className="profile__teaser-title">{t('account.tabs.videos')}</span>
+          <span className="profile__teaser-sub">{videosSummary(videosState, t)}</span>
         </span>
         <span className="profile__teaser-arrow" aria-hidden="true">
           →
@@ -116,8 +112,8 @@ export default function ProfileModal({ onClose }) {
 
       <button type="button" className="profile__teaser" onClick={() => setShowBlocks(true)}>
         <span className="profile__teaser-text">
-          <span className="profile__teaser-title">Mi rutina</span>
-          <span className="profile__teaser-sub">Bloques, bitácora y progreso</span>
+          <span className="profile__teaser-title">{t('account.tabs.rutina')}</span>
+          <span className="profile__teaser-sub">{t('profile.routineSub')}</span>
         </span>
         <span className="profile__teaser-arrow" aria-hidden="true">
           →
@@ -127,8 +123,8 @@ export default function ProfileModal({ onClose }) {
       {isAdmin && (
         <a className="profile__teaser" href="/admin" onClick={onClose}>
           <span className="profile__teaser-text">
-            <span className="profile__teaser-title">Administración</span>
-            <span className="profile__teaser-sub">Planes, bloques, ejercicios y usuarios</span>
+            <span className="profile__teaser-title">{t('account.tabs.admin')}</span>
+            <span className="profile__teaser-sub">{t('profile.adminSub')}</span>
           </span>
           <span className="profile__teaser-arrow" aria-hidden="true">
             →
@@ -141,45 +137,45 @@ export default function ProfileModal({ onClose }) {
       <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <div className="modal__row">
           <div className="field">
-            <label htmlFor="pfirstName">Nombre</label>
+            <label htmlFor="pfirstName">{t('common.firstName')}</label>
             <input id="pfirstName" name="firstName" value={form.firstName} onChange={handleChange} />
           </div>
           <div className="field">
-            <label htmlFor="plastName">Apellido</label>
+            <label htmlFor="plastName">{t('common.lastName')}</label>
             <input id="plastName" name="lastName" value={form.lastName} onChange={handleChange} />
           </div>
         </div>
 
         <div className="field">
-          <label htmlFor="pdocumentId">CI / DNI / Pasaporte</label>
+          <label htmlFor="pdocumentId">{t('profile.document')}</label>
           <input id="pdocumentId" name="documentId" value={form.documentId} onChange={handleChange} />
         </div>
 
         <div className="modal__row">
           <div className="field">
-            <label htmlFor="pnationality">Nacionalidad</label>
+            <label htmlFor="pnationality">{t('common.nationality')}</label>
             <input id="pnationality" name="nationality" value={form.nationality} onChange={handleChange} />
           </div>
           <div className="field">
-            <label htmlFor="pphone">WhatsApp</label>
+            <label htmlFor="pphone">{t('common.whatsapp')}</label>
             <input id="pphone" name="phone" value={form.phone} onChange={handleChange} />
           </div>
         </div>
 
         <div className="field">
-          <label htmlFor="pcity">Ciudad</label>
+          <label htmlFor="pcity">{t('profile.city')}</label>
           <input id="pcity" name="city" value={form.city} onChange={handleChange} />
         </div>
 
         {error && <p className="modal__error">{error}</p>}
-        {saved && <p className="modal__success">Datos actualizados.</p>}
+        {saved && <p className="modal__success">{t('profile.saved')}</p>}
 
         <button type="submit" className="btn btn-primary" disabled={saving}>
-          {saving ? 'Guardando...' : 'Guardar cambios'}
+          {saving ? t('common.saving') : t('profile.save')}
         </button>
 
         <button type="button" className="btn" onClick={handleLogout}>
-          Cerrar sesión
+          {t('myPlan.logout')}
         </button>
       </form>
     </Modal>

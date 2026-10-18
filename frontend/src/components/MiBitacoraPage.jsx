@@ -6,32 +6,18 @@ import './Modal.css';
 import './BlocksModal.css';
 import './MiRutinaPage.css';
 import './MiBitacoraPage.css';
+import { useI18n } from '../i18n/I18nContext.jsx';
 
-const BILLING_OPTIONS = [
-  { id: 'trimestral', label: 'Trimestral' },
-  { id: 'semestral', label: 'Semestral' },
-  { id: 'anual', label: 'Anual' },
-];
+const BILLING_OPTIONS = ['trimestral', 'semestral', 'anual'];
 
 // Una vez que ya completaste algún bloque, "Anual" deja de poder elegirse (esa tarifa es
 // solo para quien paga todo el año por adelantado desde el arranque).
-const CONTINUE_BILLING_OPTIONS = BILLING_OPTIONS.filter((opt) => opt.id !== 'anual');
+const CONTINUE_BILLING_OPTIONS = BILLING_OPTIONS.filter((mode) => mode !== 'anual');
 
-const BLOCK_STATUS_LABEL = {
-  active: 'En curso',
-  scheduled: 'Pago, se desbloquea solo',
-  locked: 'Bloqueado',
-  completed: 'Completado',
-};
-
-const PERFORMANCE_LABEL = {
-  superior: 'Por encima de lo sugerido',
-  esperado: 'Como lo sugerido',
-  inferior: 'Por debajo de lo sugerido',
-};
 
 export default function MiBitacoraPage() {
   const { user, token, loading: authLoading } = useAuth();
+  const { t, locale } = useI18n();
   const [status, setStatus] = useState('loading'); // loading | locked | error | ready
   const [data, setData] = useState(null);
   const [fetchError, setFetchError] = useState('');
@@ -97,8 +83,8 @@ export default function MiBitacoraPage() {
   if (authLoading || status === 'loading') {
     return (
       <AccountShell active="bitacora">
-        <h1>Mi bitácora</h1>
-        <p className="profile__videos-hint">Cargando...</p>
+        <h1>{t('account.tabs.bitacora')}</h1>
+        <p className="profile__videos-hint">{t('common.loading')}</p>
       </AccountShell>
     );
   }
@@ -106,10 +92,10 @@ export default function MiBitacoraPage() {
   if (!user) {
     return (
       <AccountShell active="bitacora">
-        <h1>Mi bitácora</h1>
-        <p className="profile__videos-hint">Iniciá sesión para ver tu bitácora.</p>
+        <h1>{t('account.tabs.bitacora')}</h1>
+        <p className="profile__videos-hint">{t('log.loginToSee')}</p>
         <a className="btn btn-primary" href="/">
-          Volver al inicio
+          {t('common.backHome')}
         </a>
       </AccountShell>
     );
@@ -118,12 +104,12 @@ export default function MiBitacoraPage() {
   if (status === 'locked') {
     return (
       <AccountShell active="bitacora">
-        <h1>Mi bitácora</h1>
+        <h1>{t('account.tabs.bitacora')}</h1>
         <div className="rt-empty">
-          <h2>Tu bitácora te está esperando</h2>
-          <p>La rutina por bloques y la bitácora están disponibles a partir del plan Premium.</p>
+          <h2>{t('log.lockedTitle')}</h2>
+          <p>{t('log.lockedText')}</p>
           <a className="rt-btn rt-btn--primary" href="/#planes">
-            Ver planes
+            {t('routine.seePlans')}
           </a>
         </div>
       </AccountShell>
@@ -133,7 +119,7 @@ export default function MiBitacoraPage() {
   if (status === 'error') {
     return (
       <AccountShell active="bitacora">
-        <h1>Mi bitácora</h1>
+        <h1>{t('account.tabs.bitacora')}</h1>
         <p className="modal__error">{fetchError}</p>
       </AccountShell>
     );
@@ -151,41 +137,41 @@ export default function MiBitacoraPage() {
 
   return (
     <AccountShell active="bitacora">
-      <h1>Mi bitácora</h1>
+      <h1>{t('account.tabs.bitacora')}</h1>
 
       {actionError && <p className="modal__error">{actionError}</p>}
 
       <div className="bt-kpis">
         <div className="bt-kpi">
-          <span className="bt-kpi__label">Entrenamientos</span>
+          <span className="bt-kpi__label">{t('log.kpiTrainings')}</span>
           <span className="bt-kpi__value">{totals.performed}</span>
-          <span className="bt-kpi__hint">realizados</span>
+          <span className="bt-kpi__hint">{t('log.kpiDone')}</span>
         </div>
         <div className="bt-kpi">
-          <span className="bt-kpi__label">Adherencia</span>
+          <span className="bt-kpi__label">{t('log.kpiAdherence')}</span>
           <span className="bt-kpi__value">{overallAdherence !== null ? `${overallAdherence}%` : '—'}</span>
-          <span className="bt-kpi__hint">{totals.missed} salteados</span>
+          <span className="bt-kpi__hint">{t('log.kpiSkipped', { n: totals.missed })}</span>
         </div>
         <div className="bt-kpi">
-          <span className="bt-kpi__label">Bloque actual</span>
+          <span className="bt-kpi__label">{t('log.kpiCurrentBlock')}</span>
           <span className="bt-kpi__value">{currentBlock ? currentBlock.number : '—'}</span>
-          <span className="bt-kpi__hint">de {blocks.length || 4}</span>
+          <span className="bt-kpi__hint">{t('log.kpiOf', { n: blocks.length || 4 })}</span>
         </div>
         <div className="bt-kpi">
-          <span className="bt-kpi__label">Completados</span>
+          <span className="bt-kpi__label">{t('log.kpiCompleted')}</span>
           <span className="bt-kpi__value">{completedBlocks}</span>
-          <span className="bt-kpi__hint">bloques</span>
+          <span className="bt-kpi__hint">{t('log.kpiBlocks')}</span>
         </div>
       </div>
 
       {!data.inactive && today.state === 'year_complete' && (
         <div className="bt-callout bt-callout--celebrate">
           <div>
-            <strong>¡Completaste los 4 bloques de este año! 🎉</strong>
-            <span>Revisá tu progreso más abajo antes de arrancar el siguiente.</span>
+            <strong>{t('routine.yearEndTitle')}</strong>
+            <span>{t('log.yearEndText')}</span>
           </div>
           <button type="button" className="rt-btn rt-btn--primary" disabled={busy} onClick={() => runAction(api.startBlockNewYear(token))}>
-            Empezar el próximo año
+            {t('routine.startNextYear')}
           </button>
         </div>
       )}
@@ -193,24 +179,22 @@ export default function MiBitacoraPage() {
       {!data.inactive && today.state === 'awaiting_payment' && (
         <div className="bt-callout bt-callout--pay">
           <div>
-            <strong>
-              Terminaste el Bloque {today.blockNumber - 1}. ¿Seguimos con el Bloque {today.blockNumber}?
-            </strong>
-            <span>Elegí cómo querés pagar para desbloquearlo.</span>
+            <strong>{t('log.payTitle', { prev: today.blockNumber - 1, next: today.blockNumber })}</strong>
+            <span>{t('log.payText')}</span>
           </div>
           <div className="bt-pay">
-            <div className="bt-pay__options" role="radiogroup" aria-label="Forma de pago">
-              {CONTINUE_BILLING_OPTIONS.map((opt) => (
+            <div className="bt-pay__options" role="radiogroup" aria-label={t('log.paymentModeAria')}>
+              {CONTINUE_BILLING_OPTIONS.map((mode) => (
                 <button
-                  key={opt.id}
+                  key={mode}
                   type="button"
                   role="radio"
-                  aria-checked={continueBilling === opt.id}
+                  aria-checked={continueBilling === mode}
                   disabled={busy}
-                  className={`bt-pay__opt ${continueBilling === opt.id ? 'bt-pay__opt--active' : ''}`}
-                  onClick={() => setContinueBilling(opt.id)}
+                  className={`bt-pay__opt ${continueBilling === mode ? 'bt-pay__opt--active' : ''}`}
+                  onClick={() => setContinueBilling(mode)}
                 >
-                  {opt.label}
+                  {t(`plans.billing.${mode}`)}
                 </button>
               ))}
             </div>
@@ -220,11 +204,11 @@ export default function MiBitacoraPage() {
               disabled={busy}
               onClick={() => runAction(api.payBlock({ blockNumber: today.blockNumber, billingMode: continueBilling }, token))}
             >
-              Desbloquear Bloque {today.blockNumber}
+              {t('log.payCta', { n: today.blockNumber })}
             </button>
           </div>
           <a className="bt-callout__link" href="/#planes">
-            Cambiar de experiencia
+            {t('routine.changeExperience')}
           </a>
         </div>
       )}
@@ -232,8 +216,8 @@ export default function MiBitacoraPage() {
       {today.state === 'no_routine' && (
         <div className="bt-callout">
           <div>
-            <strong>Tu rutina se está armando</strong>
-            <span>Este bloque todavía no tiene una rutina cargada. Escribinos y lo resolvemos.</span>
+            <strong>{t('routine.empty.no_routine.title')}</strong>
+            <span>{t('routine.empty.no_routine.text')}</span>
           </div>
         </div>
       )}
@@ -241,19 +225,17 @@ export default function MiBitacoraPage() {
       {!data.inactive && today.state === 'active' && (
         <div className="bt-callout bt-callout--today">
           <div>
-            <strong>Tenés un entrenamiento pendiente</strong>
-            <span>
-              Bloque {today.blockNumber} · Semana {today.week} · Día {today.dayNumber}
-            </span>
+            <strong>{t('log.pendingTitle')}</strong>
+            <span>{t('log.pendingMeta', { block: today.blockNumber, week: today.week, day: today.dayNumber })}</span>
           </div>
           <a className="rt-btn rt-btn--primary" href="/mi-rutina">
-            Ir a Mi rutina
+            {t('log.goToRoutine')}
           </a>
         </div>
       )}
 
       <section className="bt-section">
-        <h2 className="bt-section__title">Tu año</h2>
+        <h2 className="bt-section__title">{t('log.yourYear')}</h2>
         <ol className="bt-timeline">
           {blocks.map((b) => (
             <li key={b.number} className={`bt-step bt-step--${b.status}`}>
@@ -273,15 +255,13 @@ export default function MiBitacoraPage() {
               </span>
               <div className="bt-step__body">
                 <span className="bt-step__name">{b.name}</span>
-                <span className={`bt-pill bt-pill--${b.status}`}>{BLOCK_STATUS_LABEL[b.status]}</span>
+                <span className={`bt-pill bt-pill--${b.status}`}>{t(`routine.blockStatus.${b.status}`)}</span>
                 {b.objective && <span className="bt-step__objective">{b.objective}</span>}
                 {b.status === 'active' && (
-                  <span className="bt-step__meta">
-                    Semana {b.currentWeek} de {b.durationWeeks}
-                  </span>
+                  <span className="bt-step__meta">{t('log.weekOf', { week: b.currentWeek, total: b.durationWeeks })}</span>
                 )}
                 {b.paidUntil && b.status !== 'completed' && (
-                  <span className="bt-step__meta">Pago hasta {new Date(b.paidUntil).toLocaleDateString('es-UY')}</span>
+                  <span className="bt-step__meta">{t('log.paidUntil', { date: new Date(b.paidUntil).toLocaleDateString(locale) })}</span>
                 )}
               </div>
             </li>
@@ -298,13 +278,14 @@ function round1(n) {
   return Math.round(n * 10) / 10;
 }
 
-function buildReportHtml(block, userName) {
+function buildReportHtml(block, userName, t, locale) {
+  const r = (key, vars) => t(`log.reportDoc.${key}`, vars);
   const rows = block.exercises
     .map(
       (ex) => `
         <tr>
           <td>${ex.name}</td>
-          <td>${PERFORMANCE_LABEL[ex.performance]}</td>
+          <td>${t(`routine.performance.${ex.performance}`)}</td>
           <td>${round1(ex.avgWeight)}kg × ${Math.round(ex.avgReps)} reps</td>
           <td>${round1(ex.avgSuggestedWeight)}kg × ${Math.round(ex.avgSuggestedReps)} reps</td>
           <td>${ex.weightDelta > 0 ? '+' : ''}${round1(ex.weightDelta)}kg, ${ex.repsDelta > 0 ? '+' : ''}${round1(ex.repsDelta)} reps</td>
@@ -312,19 +293,19 @@ function buildReportHtml(block, userName) {
     )
     .join('');
 
+  const weightChange = block.weightDeltaKg > 0 ? r('gain') : block.weightDeltaKg < 0 ? r('loss') : r('same');
   const weightSection =
     block.startWeightKg !== null && block.endWeightKg !== null
-      ? `<p><strong>Peso al empezar el bloque:</strong> ${block.startWeightKg}kg<br/>
-         <strong>Peso al terminar el bloque:</strong> ${block.endWeightKg}kg<br/>
-         <strong>Diferencia:</strong> ${block.weightDeltaKg > 0 ? '+' : ''}${block.weightDeltaKg}kg
-         (${block.weightDeltaKg > 0 ? 'aumento' : block.weightDeltaKg < 0 ? 'baja' : 'sin cambios'} de peso)</p>`
-      : `<p><em>No hay suficientes registros de peso cargados desde "Mi plan" para calcular la diferencia de este bloque.</em></p>`;
+      ? `<p><strong>${r('startWeight')}</strong> ${block.startWeightKg}kg<br/>
+         <strong>${r('endWeight')}</strong> ${block.endWeightKg}kg<br/>
+         <strong>${r('difference')}</strong> ${block.weightDeltaKg > 0 ? '+' : ''}${block.weightDeltaKg}kg (${weightChange})</p>`
+      : `<p><em>${r('noWeight')}</em></p>`;
 
   return `<!DOCTYPE html>
-<html lang="es">
+<html lang="${locale.slice(0, 2)}">
 <head>
 <meta charset="UTF-8" />
-<title>Informe — ${block.blockName}</title>
+<title>${r('title', { block: block.blockName })}</title>
 <style>
   body { font-family: Arial, sans-serif; color: #33291f; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
   h1 { font-size: 1.3rem; }
@@ -335,37 +316,37 @@ function buildReportHtml(block, userName) {
 </style>
 </head>
 <body>
-  <h1>Informe de progreso — ${block.blockName}</h1>
-  <p><strong>Alumno/a:</strong> ${userName}</p>
-  <p><strong>Objetivo de este bloque:</strong> ${block.objective || '—'}</p>
-  <p><strong>Objetivo del próximo bloque:</strong> ${block.nextObjective || '—'}</p>
+  <h1>${r('title', { block: block.blockName })}</h1>
+  <p><strong>${r('student')}</strong> ${userName}</p>
+  <p><strong>${r('objective')}</strong> ${block.objective || '—'}</p>
+  <p><strong>${r('nextObjective')}</strong> ${block.nextObjective || '—'}</p>
 
-  <h2>Frecuencia de entrenamiento</h2>
-  <p>${block.performedCount} entrenamientos realizados, ${block.missedCount} salteados — ${block.adherencePct}% de adherencia.</p>
+  <h2>${r('frequency')}</h2>
+  <p>${r('frequencyText', { done: block.performedCount, missed: block.missedCount, pct: block.adherencePct })}</p>
 
-  <h2>Peso corporal</h2>
+  <h2>${r('bodyweight')}</h2>
   ${weightSection}
 
-  <h2>Superación personal por ejercicio</h2>
+  <h2>${r('perExercise')}</h2>
   <table>
     <thead>
-      <tr><th>Ejercicio</th><th>Resultado</th><th>Promedio real</th><th>Promedio sugerido</th><th>Diferencia</th></tr>
+      <tr><th>${r('colExercise')}</th><th>${r('colResult')}</th><th>${r('colReal')}</th><th>${r('colSuggested')}</th><th>${r('colDiff')}</th></tr>
     </thead>
-    <tbody>${rows || '<tr><td colspan="5">Sin registros en este bloque.</td></tr>'}</tbody>
+    <tbody>${rows || `<tr><td colspan="5">${r('noRows')}</td></tr>`}</tbody>
   </table>
 
-  <p style="margin-top:2rem;font-size:0.75rem;color:#6b5f52;">Generado desde Glow &amp; Move — ${new Date().toLocaleDateString('es-UY')}</p>
+  <p style="margin-top:2rem;font-size:0.75rem;color:#6b5f52;">${r('generated', { date: new Date().toLocaleDateString(locale) })}</p>
 </body>
 </html>`;
 }
 
-function downloadBlockReport(block, userName) {
-  const html = buildReportHtml(block, userName);
+function downloadBlockReport(block, userName, t, locale) {
+  const html = buildReportHtml(block, userName, t, locale);
   const blob = new Blob([html], { type: 'text/html' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `informe-${block.blockName.replace(/\s+/g, '-').toLowerCase()}.html`;
+  a.download = `${t('log.reportDoc.fileName')}-${block.blockName.replace(/\s+/g, '-').toLowerCase()}.html`;
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -378,15 +359,17 @@ function signed(n, unit) {
 }
 
 function AdherenceRing({ pct }) {
+  const { t } = useI18n();
   return (
-    <span className="bt-ring" style={{ '--pct': pct }} aria-label={`${pct}% de adherencia`}>
+    <span className="bt-ring" style={{ '--pct': pct }} aria-label={t('log.adherenceAria', { pct })}>
       <span>{pct}%</span>
     </span>
   );
 }
 
 function ProgressView({ stats, loading, userName }) {
-  if (loading) return <p className="profile__videos-hint">Cargando progreso...</p>;
+  const { t, locale } = useI18n();
+  if (loading) return <p className="profile__videos-hint">{t('routine.loadingProgress')}</p>;
   if (!stats) return null;
 
   const blocksWithData = stats.perBlock.filter((b) => b.performedCount + b.missedCount > 0);
@@ -400,10 +383,10 @@ function ProgressView({ stats, loading, userName }) {
             <path d="M4 19V5M4 19h16M8 15l3-4 3 2 5-6" />
           </svg>
         </span>
-        <h2>Tu progreso aparece acá</h2>
-        <p>Cada vez que registres un entrenamiento en Mi rutina, vas a ver tu adherencia y cómo rendiste frente a lo sugerido.</p>
+        <h2>{t('log.emptyTitle')}</h2>
+        <p>{t('log.emptyText')}</p>
         <a className="rt-btn rt-btn--primary" href="/mi-rutina">
-          Ir a Mi rutina
+          {t('log.goToRoutine')}
         </a>
       </div>
     );
@@ -411,7 +394,7 @@ function ProgressView({ stats, loading, userName }) {
 
   return (
     <section className="bt-section">
-      <h2 className="bt-section__title">Tu progreso</h2>
+      <h2 className="bt-section__title">{t('log.progressTitle')}</h2>
 
       {blocksWithData.map((block) => (
         <article key={block.blockNumber} className="bt-block">
@@ -420,17 +403,17 @@ function ProgressView({ stats, loading, userName }) {
             <div className="bt-block__title">
               <h3>{block.blockName}</h3>
               <span>
-                {block.performedCount} {block.performedCount === 1 ? 'hecho' : 'hechos'} · {block.missedCount}{' '}
-                {block.missedCount === 1 ? 'salteado' : 'salteados'}
+                {block.performedCount} {block.performedCount === 1 ? t('log.doneOne') : t('log.doneMany')} · {block.missedCount}{' '}
+                {block.missedCount === 1 ? t('log.skippedOne') : t('log.skippedMany')}
               </span>
             </div>
-            <span className={`bt-pill bt-pill--${block.status}`}>{BLOCK_STATUS_LABEL[block.status]}</span>
+            <span className={`bt-pill bt-pill--${block.status}`}>{t(`routine.blockStatus.${block.status}`)}</span>
             {block.status === 'completed' && (
-              <button type="button" className="rt-btn rt-btn--ghost bt-block__report" onClick={() => downloadBlockReport(block, userName)}>
+              <button type="button" className="rt-btn rt-btn--ghost bt-block__report" onClick={() => downloadBlockReport(block, userName, t, locale)}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M12 4v11M7 10l5 5 5-5M5 20h14" />
                 </svg>
-                Informe
+                {t('log.report')}
               </button>
             )}
           </header>
@@ -441,15 +424,15 @@ function ProgressView({ stats, loading, userName }) {
                 <li key={ex.videoId} className="bt-ex">
                   <div className="bt-ex__main">
                     <span className="bt-ex__name">{ex.name}</span>
-                    <span className={`bt-perf bt-perf--${ex.performance}`}>{PERFORMANCE_LABEL[ex.performance]}</span>
+                    <span className={`bt-perf bt-perf--${ex.performance}`}>{t(`routine.performance.${ex.performance}`)}</span>
                   </div>
                   <div className="bt-ex__nums">
                     <span>
-                      <small>Real</small>
+                      <small>{t('log.real')}</small>
                       {round1(ex.avgWeight)} kg × {Math.round(ex.avgReps)}
                     </span>
                     <span>
-                      <small>Sugerido</small>
+                      <small>{t('log.suggested')}</small>
                       {round1(ex.avgSuggestedWeight)} kg × {Math.round(ex.avgSuggestedReps)}
                     </span>
                     <span className={`bt-delta bt-delta--${ex.performance}`}>
@@ -467,8 +450,8 @@ function ProgressView({ stats, loading, userName }) {
         <article className="bt-block">
           <header className="bt-block__head">
             <div className="bt-block__title">
-              <h3>Comparación entre bloques</h3>
-              <span>Peso promedio por ejercicio</span>
+              <h3>{t('routine.compareTitle')}</h3>
+              <span>{t('log.compareSub')}</span>
             </div>
           </header>
           <div className="bt-compare">

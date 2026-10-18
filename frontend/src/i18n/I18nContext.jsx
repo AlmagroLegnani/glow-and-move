@@ -2,8 +2,16 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import es from './es.js';
 import en from './en.js';
 import pt from './pt.js';
+import accountEs from './account.es.js';
+import accountEn from './account.en.js';
+import accountPt from './account.pt.js';
 
-const DICTIONARIES = { es, en, pt };
+// Textos del sitio público + páginas de cuenta (en archivos separados para que no crezcan tanto).
+const DICTIONARIES = {
+  es: { ...es, ...accountEs },
+  en: { ...en, ...accountEn },
+  pt: { ...pt, ...accountPt },
+};
 export const LANGUAGES = [
   { code: 'es', label: 'ES', name: 'Español', locale: 'es-UY' },
   { code: 'en', label: 'EN', name: 'English', locale: 'en-US' },

@@ -4,21 +4,14 @@ import { api } from '../lib/api.js';
 import { youtubeThumbnail } from '../lib/youtube.js';
 import AccountShell from './AccountShell.jsx';
 import './Modal.css';
+import { useI18n } from '../i18n/I18nContext.jsx';
 
-const MUSCLE_GROUP_LABEL = {
-  tren_superior: 'Tren superior',
-  tren_inferior: 'Tren inferior',
-};
-
-const LEVELS = [
-  { id: 'principiante', label: 'Principiante', hint: 'Bloques 1 y 2' },
-  { id: 'intermedio', label: 'Intermedio', hint: 'Bloques 3 y 4' },
-  { id: 'experto', label: 'Experto', hint: 'Plan Full' },
-];
+const LEVELS = ['principiante', 'intermedio', 'experto'];
 
 function VideoCard({ video }) {
+  const { t } = useI18n();
   const thumb = video.videoUrl ? youtubeThumbnail(video.videoUrl) : null;
-  const muscleLabel = MUSCLE_GROUP_LABEL[video.muscleGroup];
+  const muscleLabel = video.muscleGroup ? t(`videos.muscle.${video.muscleGroup}`) : null;
   const locked = !video.videoUrl;
   return (
     <li>
@@ -26,7 +19,7 @@ function VideoCard({ video }) {
         <span className="video-card__thumb">
           {thumb && <img src={thumb} alt="" loading="lazy" />}
           {!locked ? (
-            <a href={video.videoUrl} target="_blank" rel="noreferrer" className="video-card__play" aria-label={`Ver video de ${video.title}`}>
+            <a href={video.videoUrl} target="_blank" rel="noreferrer" className="video-card__play" aria-label={t('videos.watchAria', { title: video.title })}>
               <svg viewBox="0 0 24 24" fill="currentColor">
                 <path d="M8 5v14l11-7z" />
               </svg>
@@ -43,7 +36,7 @@ function VideoCard({ video }) {
           {video.description && <span className="video-card__desc">{video.description}</span>}
           {locked && (
             <span className="video-card__upgrade">
-              Este contenido está disponible en una experiencia superior. <a href="/#planes">Actualizar experiencia</a>.
+              {t('videos.lockedText')} <a href="/#planes">{t('videos.upgrade')}</a>.
             </span>
           )}
         </span>
@@ -53,6 +46,7 @@ function VideoCard({ video }) {
 }
 
 function ComingSoonCard() {
+  const { t } = useI18n();
   return (
     <li>
       <div className="video-card video-card--locked video-card--soon">
@@ -62,9 +56,9 @@ function ComingSoonCard() {
           </span>
         </span>
         <span className="video-card__info">
-          <span className="video-card__title">Próximamente</span>
+          <span className="video-card__title">{t('videos.soon')}</span>
           <span className="video-card__upgrade">
-            Todavía no hay ejercicios cargados en este nivel. <a href="/#planes">Ver planes</a>.
+            {t('videos.soonText')} <a href="/#planes">{t('videos.seePlans')}</a>.
           </span>
         </span>
       </div>
@@ -74,6 +68,7 @@ function ComingSoonCard() {
 
 export default function MisVideosPage() {
   const { user, token, loading } = useAuth();
+  const { t } = useI18n();
   const [videosState, setVideosState] = useState({ loading: true, hasVideoAccess: false, hasFullAccess: false, videos: [], error: '' });
 
   useEffect(() => {
@@ -95,7 +90,7 @@ export default function MisVideosPage() {
   if (loading) {
     return (
       <AccountShell active="videos">
-        <p className="profile__videos-hint">Cargando...</p>
+        <p className="profile__videos-hint">{t('common.loading')}</p>
       </AccountShell>
     );
   }
@@ -103,10 +98,10 @@ export default function MisVideosPage() {
   if (!user) {
     return (
       <AccountShell active="videos">
-        <h1>Mis videos</h1>
-        <p className="profile__videos-hint">Iniciá sesión para ver tus videos.</p>
+        <h1>{t('account.tabs.videos')}</h1>
+        <p className="profile__videos-hint">{t('videos.loginToSee')}</p>
         <a className="btn btn-primary" href="/">
-          Volver al inicio
+          {t('common.backHome')}
         </a>
       </AccountShell>
     );
@@ -114,21 +109,21 @@ export default function MisVideosPage() {
 
   return (
     <AccountShell active="videos">
-      <h1>Mis videos</h1>
+      <h1>{t('account.tabs.videos')}</h1>
 
-      {videosState.loading && <p className="profile__videos-hint">Cargando...</p>}
+      {videosState.loading && <p className="profile__videos-hint">{t('common.loading')}</p>}
       {!videosState.loading && videosState.error && <p className="modal__error">{videosState.error}</p>}
 
       {!videosState.loading &&
         !videosState.error &&
         LEVELS.map((level) => {
-          const videosForLevel = videosState.videos.filter((v) => v.level === level.id);
-          const sectionUnlocked = level.id === 'experto' ? videosState.hasFullAccess : videosState.hasVideoAccess;
+          const videosForLevel = videosState.videos.filter((v) => v.level === level);
+          const sectionUnlocked = level === 'experto' ? videosState.hasFullAccess : videosState.hasVideoAccess;
           return (
-            <div key={level.id} className="video-level-section">
+            <div key={level} className="video-level-section">
               <h2 className="video-level-section__title">
                 {!sectionUnlocked && <span aria-hidden="true">🔒 </span>}
-                {level.label} <span className="video-level-section__hint">({level.hint})</span>
+                {t(`videos.levels.${level}.label`)} <span className="video-level-section__hint">({t(`videos.levels.${level}.hint`)})</span>
               </h2>
               <ul className="video-grid">
                 {videosForLevel.length > 0 ? videosForLevel.map((video) => <VideoCard key={video.id} video={video} />) : <ComingSoonCard />}

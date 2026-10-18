@@ -5,9 +5,11 @@ import AccountShell from './AccountShell.jsx';
 import './Modal.css';
 import './BlocksModal.css';
 import './MiRutinaPage.css';
+import { useI18n } from '../i18n/I18nContext.jsx';
 
 export default function MiRutinaPage() {
   const { user, token, loading: authLoading } = useAuth();
+  const { t } = useI18n();
   const [status, setStatus] = useState('loading'); // loading | locked | error | ready
   const [data, setData] = useState(null);
   const [fetchError, setFetchError] = useState('');
@@ -100,7 +102,7 @@ export default function MiRutinaPage() {
         e.actualWeight < 0
     );
     if (invalid) {
-      setActionError('Completá series, repeticiones y peso reales de todos los ejercicios antes de guardar.');
+      setActionError(t('routine.invalidLog'));
       return;
     }
     submitDay(true, exercisesPayload);
@@ -109,8 +111,8 @@ export default function MiRutinaPage() {
   if (authLoading || status === 'loading') {
     return (
       <AccountShell active="rutina">
-        <h1>Mi rutina</h1>
-        <p className="profile__videos-hint">Cargando...</p>
+        <h1>{t('account.tabs.rutina')}</h1>
+        <p className="profile__videos-hint">{t('common.loading')}</p>
       </AccountShell>
     );
   }
@@ -118,10 +120,10 @@ export default function MiRutinaPage() {
   if (!user) {
     return (
       <AccountShell active="rutina">
-        <h1>Mi rutina</h1>
-        <p className="profile__videos-hint">Iniciá sesión para ver tu rutina.</p>
+        <h1>{t('account.tabs.rutina')}</h1>
+        <p className="profile__videos-hint">{t('routine.loginToSee')}</p>
         <a className="btn btn-primary" href="/">
-          Volver al inicio
+          {t('common.backHome')}
         </a>
       </AccountShell>
     );
@@ -130,11 +132,11 @@ export default function MiRutinaPage() {
   if (status === 'locked') {
     return (
       <AccountShell active="rutina">
-        <h1>Mi rutina</h1>
+        <h1>{t('account.tabs.rutina')}</h1>
         <RoutineEmpty
-          title="Tu rutina te está esperando"
-          text="La rutina por bloques está disponible a partir del plan Premium."
-          cta={{ href: '/#planes', label: 'Ver planes' }}
+          title={t('routine.lockedTitle')}
+          text={t('routine.lockedText')}
+          cta={{ href: '/#planes', label: t('routine.seePlans') }}
         />
       </AccountShell>
     );
@@ -143,7 +145,7 @@ export default function MiRutinaPage() {
   if (status === 'error') {
     return (
       <AccountShell active="rutina">
-        <h1>Mi rutina</h1>
+        <h1>{t('account.tabs.rutina')}</h1>
         <p className="modal__error">{fetchError}</p>
       </AccountShell>
     );
@@ -154,27 +156,16 @@ export default function MiRutinaPage() {
   const canLog = !data.inactive;
 
   if (today.state !== 'active') {
-    const EMPTY = {
-      year_complete: {
-        title: '¡Completaste los 4 bloques del año!',
-        text: 'Revisá tu resumen en Mi bitácora y arrancá el próximo año cuando quieras.',
-        cta: { href: '/mi-bitacora', label: 'Ir a Mi bitácora' },
-      },
-      awaiting_payment: {
-        title: 'Terminaste tu bloque',
-        text: 'Para seguir con el siguiente bloque, desbloquealo desde Mi bitácora.',
-        cta: { href: '/mi-bitacora', label: 'Ir a Mi bitácora' },
-      },
-      no_routine: {
-        title: 'Tu rutina se está armando',
-        text: 'Este bloque todavía no tiene una rutina cargada. Escribinos y lo resolvemos.',
-        cta: { href: '/#contacto', label: 'Escribinos' },
-      },
+    const CTA = {
+      year_complete: { href: '/mi-bitacora', label: t('routine.goToLog') },
+      awaiting_payment: { href: '/mi-bitacora', label: t('routine.goToLog') },
+      no_routine: { href: '/#contacto', label: t('routine.writeUs') },
     };
-    const empty = EMPTY[today.state] || { title: 'Sin entrenamiento por ahora', text: 'No hay un entrenamiento activo en este momento.' };
+    const key = CTA[today.state] ? today.state : 'none';
+    const empty = { title: t(`routine.empty.${key}.title`), text: t(`routine.empty.${key}.text`), cta: CTA[today.state] };
     return (
       <AccountShell active="rutina">
-        <h1>Mi rutina</h1>
+        <h1>{t('account.tabs.rutina')}</h1>
         <RoutineEmpty {...empty} />
       </AccountShell>
     );
@@ -186,27 +177,27 @@ export default function MiRutinaPage() {
 
   return (
     <AccountShell active="rutina">
-      <h1>Mi rutina</h1>
+      <h1>{t('account.tabs.rutina')}</h1>
 
       <section className="rt-hero">
         <div className="rt-hero__main">
           <span className="rt-hero__eyebrow">
-            Bloque {today.blockNumber} · Semana {today.week} de {today.totalWeeks}
+            {t('routine.blockWeek', { block: today.blockNumber, week: today.week, total: today.totalWeeks })}
           </span>
           <h2 className="rt-hero__title">
-            Día {today.dayNumber}
-            <span> de {today.totalDays}</span>
+            {t('routine.day', { n: today.dayNumber })}
+            <span> {t('routine.ofTotal', { total: today.totalDays })}</span>
           </h2>
           <p className="rt-hero__routine">
             {today.routineName}
-            {today.personalized && <span className="rt-badge">Personalizada</span>}
+            {today.personalized && <span className="rt-badge">{t('routine.personalized')}</span>}
           </p>
           {today.objective && <p className="rt-hero__objective">{today.objective}</p>}
         </div>
 
         <div className="rt-hero__side">
-          <span className="rt-hero__side-label">Esta semana</span>
-          <div className="rt-days" aria-label={`Día ${today.dayNumber} de ${today.totalDays} de esta semana`}>
+          <span className="rt-hero__side-label">{t('routine.thisWeek')}</span>
+          <div className="rt-days" aria-label={t('routine.dayAria', { n: today.dayNumber, total: today.totalDays })}>
             {Array.from({ length: today.totalDays }, (_, i) => {
               const n = i + 1;
               const state = n < today.dayNumber ? 'done' : n === today.dayNumber ? 'current' : 'next';
@@ -227,18 +218,18 @@ export default function MiRutinaPage() {
             <div className="rt-progress__track">
               <span style={{ width: `${Math.max(weekPct, 2)}%` }} />
             </div>
-            <span className="rt-progress__label">{weekPct}% del bloque</span>
+            <span className="rt-progress__label">{t('routine.blockPct', { pct: weekPct })}</span>
           </div>
         </div>
       </section>
 
       <div className="rt-summary">
         <span>
-          <strong>{today.exercises.length}</strong> {today.exercises.length === 1 ? 'ejercicio' : 'ejercicios'}
+          <strong>{today.exercises.length}</strong> {today.exercises.length === 1 ? t('routine.exerciseOne') : t('routine.exerciseMany')}
         </span>
         <span className="rt-summary__dot" aria-hidden="true" />
         <span>
-          <strong>{totalSets}</strong> series en total
+          <strong>{totalSets}</strong> {t('routine.setsTotal')}
         </span>
       </div>
 
@@ -255,7 +246,7 @@ export default function MiRutinaPage() {
                   <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                     <path d="M8 5.5v13l11-6.5z" />
                   </svg>
-                  Ver video
+                  {t('routine.watchVideo')}
                 </a>
               ) : (
                 <a className="rt-ex__video rt-ex__video--locked" href="/#planes">
@@ -263,36 +254,36 @@ export default function MiRutinaPage() {
                     <rect x="4" y="10" width="16" height="11" rx="3" />
                     <path d="M8 10V7a4 4 0 0 1 8 0v3" />
                   </svg>
-                  Mejorar plan
+                  {t('routine.upgrade')}
                 </a>
               )}
             </div>
 
             <dl className="rt-ex__stats">
               <div>
-                <dt>Series</dt>
+                <dt>{t('routine.sets')}</dt>
                 <dd>{ex.suggestedSets}</dd>
               </div>
               <div>
-                <dt>Reps</dt>
+                <dt>{t('routine.reps')}</dt>
                 <dd>{ex.suggestedReps}</dd>
               </div>
               <div>
-                <dt>Peso</dt>
-                <dd>{ex.suggestedWeight > 0 ? `${ex.suggestedWeight} kg` : 'Corporal'}</dd>
+                <dt>{t('routine.weight')}</dt>
+                <dd>{ex.suggestedWeight > 0 ? `${ex.suggestedWeight} kg` : t('routine.bodyweight')}</dd>
               </div>
               <div>
-                <dt>Descanso</dt>
+                <dt>{t('routine.rest')}</dt>
                 <dd>{ex.suggestedRest || '—'}</dd>
               </div>
             </dl>
 
             {logging && (
               <div className="rt-ex__log">
-                <span className="rt-ex__log-title">Lo que hiciste</span>
+                <span className="rt-ex__log-title">{t('routine.whatYouDid')}</span>
                 <div className="rt-ex__log-fields">
                   <label>
-                    Series
+                    {t('routine.sets')}
                     <input
                       type="number"
                       min="1"
@@ -300,11 +291,11 @@ export default function MiRutinaPage() {
                       value={drafts[ex.videoId]?.sets ?? ''}
                       disabled={busy}
                       onChange={(e) => updateDraft(ex.videoId, 'sets', e.target.value)}
-                      aria-label={`Series reales de ${ex.name}`}
+                      aria-label={t('routine.ariaSets', { name: ex.name })}
                     />
                   </label>
                   <label>
-                    Reps
+                    {t('routine.reps')}
                     <input
                       type="number"
                       min="1"
@@ -312,11 +303,11 @@ export default function MiRutinaPage() {
                       value={drafts[ex.videoId]?.reps ?? ''}
                       disabled={busy}
                       onChange={(e) => updateDraft(ex.videoId, 'reps', e.target.value)}
-                      aria-label={`Repeticiones reales de ${ex.name}`}
+                      aria-label={t('routine.ariaReps', { name: ex.name })}
                     />
                   </label>
                   <label>
-                    Kilos
+                    {t('routine.kilos')}
                     <input
                       type="number"
                       min="0"
@@ -325,18 +316,18 @@ export default function MiRutinaPage() {
                       value={drafts[ex.videoId]?.weight ?? ''}
                       disabled={busy}
                       onChange={(e) => updateDraft(ex.videoId, 'weight', e.target.value)}
-                      aria-label={`Peso real de ${ex.name}`}
+                      aria-label={t('routine.ariaWeight', { name: ex.name })}
                     />
                   </label>
                   <label>
-                    Descanso
+                    {t('routine.rest')}
                     <input
                       type="text"
                       placeholder="1:30"
                       value={drafts[ex.videoId]?.rest ?? ''}
                       disabled={busy}
                       onChange={(e) => updateDraft(ex.videoId, 'rest', e.target.value)}
-                      aria-label={`Descanso real de ${ex.name}`}
+                      aria-label={t('routine.ariaRest', { name: ex.name })}
                     />
                   </label>
                 </div>
@@ -351,30 +342,30 @@ export default function MiRutinaPage() {
           {logging ? (
             <>
               <p>
-                <strong>Revisá tus números</strong>
-                <span>Los precargamos con lo sugerido: cambiá lo que hiciste distinto.</span>
+                <strong>{t('routine.reviewTitle')}</strong>
+                <span>{t('routine.reviewText')}</span>
               </p>
               <div className="rt-action__buttons">
                 <button type="button" className="rt-btn rt-btn--ghost" disabled={busy} onClick={() => setPerformedChoice(null)}>
-                  Cancelar
+                  {t('routine.cancel')}
                 </button>
                 <button type="button" className="rt-btn rt-btn--primary" disabled={busy} onClick={handleSaveDay}>
-                  {busy ? 'Guardando...' : 'Guardar en mi bitácora'}
+                  {busy ? t('common.saving') : t('routine.saveToLog')}
                 </button>
               </div>
             </>
           ) : (
             <>
               <p>
-                <strong>¿Hiciste este entrenamiento?</strong>
-                <span>Registralo para pasar al día siguiente.</span>
+                <strong>{t('routine.askTitle')}</strong>
+                <span>{t('routine.askText')}</span>
               </p>
               <div className="rt-action__buttons">
                 <button type="button" className="rt-btn rt-btn--ghost" disabled={busy} onClick={() => handleChoosePerformed(false)}>
-                  No lo hice
+                  {t('routine.no')}
                 </button>
                 <button type="button" className="rt-btn rt-btn--primary" disabled={busy} onClick={() => handleChoosePerformed(true)}>
-                  Sí, lo hice
+                  {t('routine.yes')}
                 </button>
               </div>
             </>
@@ -389,14 +380,14 @@ export default function MiRutinaPage() {
             </svg>
           </span>
           <p>
-            <strong>Registro en pausa</strong>
-            <span>Con el plan inactivo podés ver tu rutina, pero no registrar entrenamientos.</span>
+            <strong>{t('routine.pausedTitle')}</strong>
+            <span>{t('routine.pausedText')}</span>
           </p>
         </div>
       )}
 
       <p className="rt-foot">
-        Lo que guardes queda en tu <a href="/mi-bitacora">bitácora</a> para comparar semana a semana.
+        {t('routine.footBefore')} <a href="/mi-bitacora">{t('routine.footLink')}</a> {t('routine.footAfter')}
       </p>
     </AccountShell>
   );

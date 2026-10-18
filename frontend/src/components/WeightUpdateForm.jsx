@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { api } from '../lib/api.js';
+import { useI18n } from '../i18n/I18nContext.jsx';
 
 export default function WeightUpdateForm({ token, refreshMe }) {
+  const { t } = useI18n();
   const [value, setValue] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -26,7 +28,7 @@ export default function WeightUpdateForm({ token, refreshMe }) {
   return (
     <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '0.6rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
       <div className="field" style={{ maxWidth: '160px' }}>
-        <label htmlFor="newWeight">Actualizar peso (kg)</label>
+        <label htmlFor="newWeight">{t('profile.weightLabel')}</label>
         <input
           id="newWeight"
           type="number"
@@ -41,10 +43,10 @@ export default function WeightUpdateForm({ token, refreshMe }) {
         />
       </div>
       <button type="submit" className="btn" disabled={saving}>
-        {saving ? 'Guardando...' : 'Actualizar'}
+        {saving ? t('common.saving') : t('profile.weightUpdate')}
       </button>
       {error && <p className="modal__error">{error}</p>}
-      {saved && <p className="modal__success">Peso actualizado.</p>}
+      {saved && <p className="modal__success">{t('profile.weightSaved')}</p>}
     </form>
   );
 }
