@@ -8,38 +8,29 @@ import AccountNav from './AccountNav.jsx';
 import mascotLogo from '../assets/mascot/mascot.jpg';
 import UserAvatar from './UserAvatar.jsx';
 import AvatarPickerModal from './AvatarPicker.jsx';
+import { useI18n, LANGUAGES } from '../i18n/I18nContext.jsx';
 
-const TICKER_MESSAGES = [
-  'Prueba gratis 7 días, plan Full sin anuncios',
-  'Rutinas nuevas cada semana',
-  'Entrená donde estés, a tu ritmo',
-];
-
-const LANGUAGES = [
-  { code: 'ES', label: 'Español' },
-  { code: 'EN', label: 'English' },
-  { code: 'PT', label: 'Português' },
-];
-
+// El texto de cada ítem sale de i18n (nav.menu.<letra>).
 const MENU_ITEMS = [
-  { letter: 'a', label: 'Iniciar sesión', action: 'auth' },
-  { letter: 'b', label: 'Prueba gratis sin anuncios', action: 'trial' },
-  { letter: 'c', label: 'Planes', href: '#planes' },
-  { letter: 'd', label: 'Términos y condiciones', href: '#' },
-  { letter: 'e', label: 'Convenios', href: '#' },
-  { letter: 'f', label: 'Otros servicios y videos de bienestar', href: '#' },
-  { letter: 'g', label: 'Gym Shop online', href: '#' },
-  { letter: 'h', label: 'Contacto', href: '#contacto' },
-  { letter: 'i', label: 'Ayuda — Asistente IA', href: '#' },
+  { letter: 'a', action: 'auth' },
+  { letter: 'b', action: 'trial' },
+  { letter: 'c', href: '#planes' },
+  { letter: 'd', href: '#' },
+  { letter: 'e', href: '#' },
+  { letter: 'f', href: '#' },
+  { letter: 'g', href: '#' },
+  { letter: 'h', href: '#contacto' },
+  { letter: 'i', href: '#' },
 ];
 
 const BUILT_HREFS = new Set(['#planes', '#contacto']);
 
 export default function Navbar() {
   const { user, loading } = useAuth();
+  const { t, lang, setLang } = useI18n();
+  const tickerMessages = t('nav.ticker');
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [lang, setLang] = useState('ES');
   const [tickerIndex, setTickerIndex] = useState(0);
   const [toast, setToast] = useState('');
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -58,7 +49,7 @@ export default function Navbar() {
 
   useEffect(() => {
     const id = setInterval(() => {
-      setTickerIndex((i) => (i + 1) % TICKER_MESSAGES.length);
+      setTickerIndex((i) => (i + 1) % 3);
     }, 4000);
     return () => clearInterval(id);
   }, []);
@@ -81,7 +72,7 @@ export default function Navbar() {
   }, [logoMenuOpen]);
 
   function showComingSoon(label) {
-    setToast(`${label}: disponible próximamente`);
+    setToast(t('common.comingSoon', { label }));
   }
 
   function handleProfileClick() {
@@ -110,23 +101,16 @@ export default function Navbar() {
     }
     if (!BUILT_HREFS.has(item.href)) {
       e.preventDefault();
-      showComingSoon(item.label);
+      showComingSoon(t(`nav.menu.${item.letter}`));
     }
   }
 
-  function handleLangSelect(code) {
-    if (code === 'ES') {
-      setLang(code);
-    } else {
-      showComingSoon(`Traducción a ${code}`);
-    }
-  }
 
   return (
     <header className={`navbar ${scrolled ? 'navbar--scrolled' : ''}`}>
       <div className="navbar__ticker" aria-live="polite">
         <span key={tickerIndex} className="navbar__ticker-text">
-          {TICKER_MESSAGES[tickerIndex]}
+          {tickerMessages[tickerIndex % tickerMessages.length]}
         </span>
       </div>
 
@@ -135,7 +119,7 @@ export default function Navbar() {
           <button
             type="button"
             className="navbar__logo"
-            aria-label="Menú de cuenta"
+            aria-label={t('nav.accountMenu')}
             aria-expanded={logoMenuOpen}
             onClick={() => setLogoMenuOpen((v) => !v)}
           >
@@ -152,7 +136,7 @@ export default function Navbar() {
                   handleProfileClick();
                 }}
               >
-                Configurar perfil
+                {t('nav.configureProfile')}
               </button>
               {user && (
                 <button
@@ -162,12 +146,12 @@ export default function Navbar() {
                     setAvatarModalOpen(true);
                   }}
                 >
-                  Cambiar avatar
+                  {t('nav.changeAvatar')}
                 </button>
               )}
               {user?.role === 'admin' && (
                 <a href="/admin" onClick={() => setLogoMenuOpen(false)}>
-                  Panel de administración
+                  {t('nav.adminPanel')}
                 </a>
               )}
             </div>
@@ -179,7 +163,7 @@ export default function Navbar() {
             <circle cx="12" cy="8" r="3.4" />
             <path d="M4.5 20c1.4-3.6 4.4-5.5 7.5-5.5s6.1 1.9 7.5 5.5" strokeLinecap="round" />
           </svg>
-          <span>{user ? user.firstName : 'Mi perfil'}</span>
+          <span>{user ? user.firstName : t('nav.myProfile')}</span>
         </button>
 
         {user && (
@@ -188,22 +172,25 @@ export default function Navbar() {
           </div>
         )}
 
-        <div className="navbar__lang" role="group" aria-label="Traducir página">
+        <div className="navbar__lang" role="group" aria-label={t('nav.translate')}>
           {LANGUAGES.map((l) => (
             <button
               key={l.code}
               type="button"
               className={l.code === lang ? 'is-active' : ''}
-              onClick={() => handleLangSelect(l.code)}
+              aria-pressed={l.code === lang}
+              lang={l.code}
+              title={l.name}
+              onClick={() => setLang(l.code)}
             >
-              {l.code}
+              {l.label}
             </button>
           ))}
         </div>
 
         <button
           className={`navbar__toggle ${menuOpen ? 'is-open' : ''}`}
-          aria-label="Abrir menú"
+          aria-label={t('nav.openMenu')}
           aria-expanded={menuOpen}
           onClick={() => setMenuOpen((v) => !v)}
         >
@@ -217,11 +204,11 @@ export default function Navbar() {
         {MENU_ITEMS.map((item) => (
           <a key={item.letter} href={item.href || '#'} onClick={(e) => handleMenuItemClick(e, item)}>
             <span className="navbar__menu-letter">{item.letter}</span>
-            {item.label}
+            {t(`nav.menu.${item.letter}`)}
           </a>
         ))}
       </nav>
-      {menuOpen && <button className="navbar__scrim" aria-label="Cerrar menú" onClick={() => setMenuOpen(false)} />}
+      {menuOpen && <button className="navbar__scrim" aria-label={t('nav.closeMenu')} onClick={() => setMenuOpen(false)} />}
 
       {toast && <div className="navbar__toast">{toast}</div>}
 

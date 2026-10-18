@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useI18n } from '../i18n/I18nContext.jsx';
 
 export default function PasswordField({
   id,
@@ -13,6 +14,7 @@ export default function PasswordField({
   placeholder,
 }) {
   const [visible, setVisible] = useState(false);
+  const { t } = useI18n();
 
   return (
     <div className="field">
@@ -34,7 +36,7 @@ export default function PasswordField({
           type="button"
           className="password-field__toggle"
           onClick={() => setVisible((v) => !v)}
-          aria-label={visible ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+          aria-label={visible ? t('password.hide') : t('password.show')}
           tabIndex={-1}
         >
           {visible ? (

@@ -4,6 +4,7 @@ import { AvatarPicker } from './AvatarPicker.jsx';
 import PasswordField from './PasswordField.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { api } from '../lib/api.js';
+import { useI18n } from '../i18n/I18nContext.jsx';
 import mascotImg from '../assets/mascot/mascot.jpg';
 
 const authMedia = (
@@ -48,6 +49,7 @@ function SubmitLabel({ loading, loadingText, children }) {
 }
 
 function ForgotPasswordForm({ onBackToLogin, onClose }) {
+  const { t } = useI18n();
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
@@ -69,13 +71,12 @@ function ForgotPasswordForm({ onBackToLogin, onClose }) {
 
   if (sent) {
     return (
-      <Modal title="Revisá tu email" variant="auth" media={authMedia} onClose={onClose}>
+      <Modal title={t('auth.checkEmailTitle')} variant="auth" media={authMedia} onClose={onClose}>
         <p className="modal__success">
-          Si <strong>{email}</strong> está registrado, te enviamos un email con un link para elegir una
-          contraseña nueva.
+          {t('auth.checkEmailBefore')} <strong>{email}</strong> {t('auth.checkEmailAfter')}
         </p>
         <button type="button" className="btn btn-primary" onClick={onBackToLogin}>
-          <SubmitLabel>Volver a iniciar sesión</SubmitLabel>
+          <SubmitLabel>{t('auth.backToLogin')}</SubmitLabel>
         </button>
       </Modal>
     );
@@ -83,15 +84,15 @@ function ForgotPasswordForm({ onBackToLogin, onClose }) {
 
   return (
     <Modal
-      title="Recuperar contraseña"
-      subtitle="Ingresá el email de tu cuenta y te mandamos un link para restablecerla."
+      title={t('auth.forgotTitle')}
+      subtitle={t('auth.forgotSubtitle')}
       variant="auth"
       media={authMedia}
       onClose={onClose}
     >
       <form onSubmit={handleSubmit} className="auth__form">
         <div className="field">
-          <label htmlFor="forgotEmail">Email</label>
+          <label htmlFor="forgotEmail">{t('common.email')}</label>
           <div className="input-icon">
             {MailIcon}
             <input
@@ -100,7 +101,7 @@ function ForgotPasswordForm({ onBackToLogin, onClose }) {
               type="email"
               required
               autoComplete="email"
-              placeholder="tu@email.com"
+              placeholder={t('common.emailPlaceholder')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
@@ -114,15 +115,15 @@ function ForgotPasswordForm({ onBackToLogin, onClose }) {
         )}
 
         <button type="submit" className="btn btn-primary" disabled={loading}>
-          <SubmitLabel loading={loading} loadingText="Enviando...">
-            Enviar link
+          <SubmitLabel loading={loading} loadingText={t('auth.sending')}>
+            {t('auth.sendLink')}
           </SubmitLabel>
         </button>
 
         <p className="modal__switch">
-          ¿Te acordaste?{' '}
+          {t('auth.rememberedIt')}{' '}
           <button type="button" onClick={onBackToLogin}>
-            Volver a iniciar sesión
+            {t('auth.backToLogin')}
           </button>
         </p>
       </form>
@@ -132,6 +133,7 @@ function ForgotPasswordForm({ onBackToLogin, onClose }) {
 
 export default function AuthModal({ onClose, onSuccess }) {
   const { login, register } = useAuth();
+  const { t } = useI18n();
   const [mode, setMode] = useState('login'); // login | register | forgot | avatar
   const [form, setForm] = useState({
     email: '',
@@ -157,7 +159,7 @@ export default function AuthModal({ onClose, onSuccess }) {
     setError('');
 
     if (mode === 'register' && form.password !== form.confirmPassword) {
-      setError('Las contraseñas no coinciden');
+      setError(t('common.passwordsMismatch'));
       return;
     }
 
@@ -182,8 +184,8 @@ export default function AuthModal({ onClose, onSuccess }) {
   if (mode === 'avatar') {
     return (
       <Modal
-        title="Elegí tu avatar"
-        subtitle="Subí una foto, elegí un avatar o quedate con tu inicial. Lo podés cambiar cuando quieras."
+        title={t('auth.avatarTitle')}
+        subtitle={t('auth.avatarSubtitle')}
         variant="auth"
         onClose={() => {
           onSuccess?.();
@@ -191,7 +193,7 @@ export default function AuthModal({ onClose, onSuccess }) {
         }}
       >
         <AvatarPicker
-          skipLabel="Ahora no"
+          skipLabel={t('common.notNow')}
           onDone={() => {
             onSuccess?.();
             onClose();
@@ -207,11 +209,9 @@ export default function AuthModal({ onClose, onSuccess }) {
 
   return (
     <Modal
-      title={mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}
+      title={mode === 'login' ? t('auth.loginTitle') : t('auth.registerTitle')}
       subtitle={
-        mode === 'login'
-          ? 'Qué bueno verte de nuevo. Ingresá para seguir con tus rutinas.'
-          : 'Sumate a Glow & Move y empezá a entrenar a tu ritmo.'
+        mode === 'login' ? t('auth.loginSubtitle') : t('auth.registerSubtitle')
       }
       variant="auth"
       media={authMedia}
@@ -221,18 +221,18 @@ export default function AuthModal({ onClose, onSuccess }) {
         {mode === 'register' && (
           <div className="modal__row">
             <div className="field">
-              <label htmlFor="firstName">Nombre</label>
+              <label htmlFor="firstName">{t('common.firstName')}</label>
               <input id="firstName" name="firstName" required value={form.firstName} onChange={handleChange} />
             </div>
             <div className="field">
-              <label htmlFor="lastName">Apellido</label>
+              <label htmlFor="lastName">{t('common.lastName')}</label>
               <input id="lastName" name="lastName" required value={form.lastName} onChange={handleChange} />
             </div>
           </div>
         )}
 
         <div className="field">
-          <label htmlFor="email">Email</label>
+          <label htmlFor="email">{t('common.email')}</label>
           <div className="input-icon">
             {MailIcon}
             <input
@@ -241,7 +241,7 @@ export default function AuthModal({ onClose, onSuccess }) {
               type="email"
               required
               autoComplete="email"
-              placeholder="tu@email.com"
+              placeholder={t('common.emailPlaceholder')}
               value={form.email}
               onChange={handleChange}
             />
@@ -251,7 +251,7 @@ export default function AuthModal({ onClose, onSuccess }) {
         <PasswordField
           id="password"
           name="password"
-          label="Contraseña"
+          label={t('common.password')}
           required
           minLength={6}
           value={form.password}
@@ -265,7 +265,7 @@ export default function AuthModal({ onClose, onSuccess }) {
           <PasswordField
             id="confirmPassword"
             name="confirmPassword"
-            label="Confirmar contraseña"
+            label={t('common.confirmPassword')}
             required
             minLength={6}
             value={form.confirmPassword}
@@ -279,7 +279,7 @@ export default function AuthModal({ onClose, onSuccess }) {
         {mode === 'login' && (
           <p className="auth__forgot">
             <button type="button" onClick={() => setMode('forgot')}>
-              ¿Olvidaste tu contraseña?
+              {t('auth.forgot')}
             </button>
           </p>
         )}
@@ -287,11 +287,11 @@ export default function AuthModal({ onClose, onSuccess }) {
         {mode === 'register' && (
           <div className="modal__row">
             <div className="field">
-              <label htmlFor="nationality">Nacionalidad</label>
+              <label htmlFor="nationality">{t('common.nationality')}</label>
               <input id="nationality" name="nationality" value={form.nationality} onChange={handleChange} />
             </div>
             <div className="field">
-              <label htmlFor="phone">WhatsApp</label>
+              <label htmlFor="phone">{t('common.whatsapp')}</label>
               <input id="phone" name="phone" value={form.phone} onChange={handleChange} />
             </div>
           </div>
@@ -300,7 +300,7 @@ export default function AuthModal({ onClose, onSuccess }) {
         {mode === 'register' && (
           <div className="modal__row">
             <div className="field">
-              <label htmlFor="weightKg">Peso estimado (kg)</label>
+              <label htmlFor="weightKg">{t('common.weightEst')}</label>
               <input
                 id="weightKg"
                 name="weightKg"
@@ -313,7 +313,7 @@ export default function AuthModal({ onClose, onSuccess }) {
               />
             </div>
             <div className="field">
-              <label htmlFor="heightCm">Altura estimada (cm)</label>
+              <label htmlFor="heightCm">{t('common.heightEst')}</label>
               <input
                 id="heightCm"
                 name="heightCm"
@@ -335,15 +335,15 @@ export default function AuthModal({ onClose, onSuccess }) {
         )}
 
         <button type="submit" className="btn btn-primary" disabled={loading}>
-          <SubmitLabel loading={loading} loadingText="Un momento...">
-            {mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'}
+          <SubmitLabel loading={loading} loadingText={t('common.oneMoment')}>
+            {mode === 'login' ? t('auth.submitLogin') : t('auth.submitRegister')}
           </SubmitLabel>
         </button>
 
         <p className="modal__switch">
-          {mode === 'login' ? '¿No tenés cuenta?' : '¿Ya tenés cuenta?'}{' '}
+          {mode === 'login' ? t('auth.noAccount') : t('auth.haveAccount')}{' '}
           <button type="button" onClick={() => setMode(mode === 'login' ? 'register' : 'login')}>
-            {mode === 'login' ? 'Registrate' : 'Iniciá sesión'}
+            {mode === 'login' ? t('auth.register') : t('auth.login')}
           </button>
         </p>
       </form>

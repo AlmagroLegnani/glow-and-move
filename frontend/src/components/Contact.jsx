@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { useReveal } from '../hooks/useReveal';
 import contactPhoto from '../assets/photos/contact.jpg';
 import './Contact.css';
+import { useI18n } from '../i18n/I18nContext.jsx';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
 
 export default function Contact() {
   const revealRef = useReveal();
+  const { t } = useI18n();
   const [form, setForm] = useState({ name: '', email: '', message: '' });
   const [status, setStatus] = useState('idle'); // idle | sending | sent | error
 
@@ -36,20 +38,19 @@ export default function Contact() {
     <section id="contacto" className="contact">
       <div className="container contact__grid reveal" ref={revealRef}>
         <div className="contact__media">
-          <img src={contactPhoto} alt="Charlemos sobre tu entrenamiento" className="contact__photo" />
+          <img src={contactPhoto} alt={t('contact.photoAlt')} className="contact__photo" />
         </div>
 
         <div className="contact__panel">
-          <span className="eyebrow">Contacto</span>
-          <h2 className="contact__title">Hablemos de tu próxima rutina</h2>
+          <span className="eyebrow">{t('contact.eyebrow')}</span>
+          <h2 className="contact__title">{t('contact.title')}</h2>
           <p className="contact__text">
-            Contanos tu objetivo y te ayudamos a armar un plan a tu medida.
-            Respondemos en menos de 24hs.
+            {t('contact.text')}
           </p>
 
           <form className="contact__form" onSubmit={handleSubmit}>
             <div className="contact__field">
-              <label htmlFor="name">Nombre</label>
+              <label htmlFor="name">{t('contact.name')}</label>
               <input
                 id="name"
                 name="name"
@@ -57,12 +58,12 @@ export default function Contact() {
                 required
                 value={form.name}
                 onChange={handleChange}
-                placeholder="¿Cómo te llamás?"
+                placeholder={t('contact.namePlaceholder')}
               />
             </div>
 
             <div className="contact__field">
-              <label htmlFor="email">Email</label>
+              <label htmlFor="email">{t('common.email')}</label>
               <input
                 id="email"
                 name="email"
@@ -70,12 +71,12 @@ export default function Contact() {
                 required
                 value={form.email}
                 onChange={handleChange}
-                placeholder="vos@email.com"
+                placeholder={t('contact.emailPlaceholder')}
               />
             </div>
 
             <div className="contact__field">
-              <label htmlFor="message">Mensaje</label>
+              <label htmlFor="message">{t('contact.message')}</label>
               <textarea
                 id="message"
                 name="message"
@@ -83,16 +84,16 @@ export default function Contact() {
                 required
                 value={form.message}
                 onChange={handleChange}
-                placeholder="Contanos qué estás buscando..."
+                placeholder={t('contact.messagePlaceholder')}
               />
             </div>
 
             <button type="submit" className="btn btn-primary contact__submit" disabled={status === 'sending'}>
-              {status === 'sending' ? 'Enviando...' : 'Enviar mensaje'}
+              {status === 'sending' ? t('contact.sending') : t('contact.send')}
             </button>
 
-            {status === 'sent' && <p className="contact__feedback contact__feedback--ok">¡Listo! Te contactamos pronto.</p>}
-            {status === 'error' && <p className="contact__feedback contact__feedback--error">Algo falló. Probá de nuevo.</p>}
+            {status === 'sent' && <p className="contact__feedback contact__feedback--ok">{t('contact.sent')}</p>}
+            {status === 'error' && <p className="contact__feedback contact__feedback--error">{t('contact.error')}</p>}
           </form>
         </div>
       </div>

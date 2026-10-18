@@ -69,11 +69,12 @@ export function userInitial(user) {
 // Recorta la foto al centro en un cuadrado de 256px y la comprime a JPEG, para que el
 // avatar pese ~20-60 KB y se pueda guardar directo en la base.
 export async function photoToAvatarDataUrl(file, size = 256) {
+  // Los errores llevan un `code` para que la UI muestre el mensaje en el idioma elegido.
   if (!file.type.startsWith('image/')) {
-    throw new Error('Elegí un archivo de imagen (JPG o PNG).');
+    throw Object.assign(new Error('Elegí un archivo de imagen (JPG o PNG).'), { code: 'type' });
   }
   if (file.size > 15 * 1024 * 1024) {
-    throw new Error('La imagen es muy pesada. Probá con una de menos de 15 MB.');
+    throw Object.assign(new Error('La imagen es muy pesada. Probá con una de menos de 15 MB.'), { code: 'size' });
   }
 
   const url = URL.createObjectURL(file);
@@ -81,7 +82,8 @@ export async function photoToAvatarDataUrl(file, size = 256) {
     const img = await new Promise((resolve, reject) => {
       const el = new Image();
       el.onload = () => resolve(el);
-      el.onerror = () => reject(new Error('No pudimos leer esa imagen. Probá con un JPG o PNG.'));
+      el.onerror = () =>
+        reject(Object.assign(new Error('No pudimos leer esa imagen. Probá con un JPG o PNG.'), { code: 'read' }));
       el.src = url;
     });
 

@@ -8,21 +8,19 @@ import photoBasico from '../assets/photos/about-2.jpg';
 import photoPremium from '../assets/photos/story.jpg';
 import photoFull from '../assets/photos/hero.jpg';
 import './Plans.css';
+import { useI18n } from '../i18n/I18nContext.jsx';
 
 // La foto de cada tarjeta no está en la DB (Plan no tiene ese campo) — se asigna acá por
 // slug. Todo lo demás (nombre, precio, features, anuncios) sale de la API.
 const PHOTO_BY_SLUG = { basico: photoBasico, premium: photoPremium, full: photoFull };
 
-const BILLING_OPTIONS = [
-  { id: 'trimestral', label: 'Trimestral', hint: '3 meses' },
-  { id: 'semestral', label: 'Semestral', hint: '6 meses' },
-  { id: 'anual', label: 'Anual', hint: '12 meses' },
-];
+const BILLING_OPTIONS = ['trimestral', 'semestral', 'anual'];
 
 export default function Plans() {
   const revealIntro = useReveal();
   const revealCards = useReveal();
   const { user, token } = useAuth();
+  const { t } = useI18n();
   const [plans, setPlans] = useState([]);
   const [plansError, setPlansError] = useState('');
   const [toast, setToast] = useState('');
@@ -87,18 +85,18 @@ export default function Plans() {
     if (!price) {
       return (
         <p className="plans__price">
-          U$S {Number(plan.priceUsd).toFixed(2)} <span>/ mes</span>
+          U$S {Number(plan.priceUsd).toFixed(2)} <span>{t('plans.perMonth')}</span>
         </p>
       );
     }
     return (
       <div className="plans__pricing">
         <p className="plans__price">
-          U$S {price.monthly.toFixed(2)} <span>/ mes</span>
+          U$S {price.monthly.toFixed(2)} <span>{t('plans.perMonth')}</span>
         </p>
         <p className="plans__price-total">
           {price.discountPct > 0 && <s>U$S {(Number(plan.priceUsd) * price.months).toFixed(2)}</s>} U$S{' '}
-          {price.total.toFixed(2)} cada {price.months} meses
+          {price.total.toFixed(2)} {t('plans.everyMonths', { months: price.months })}
         </p>
       </div>
     );
@@ -108,14 +106,14 @@ export default function Plans() {
     if (plan.slug === currentPlanSlug && isSubscriptionInactive(currentSubscription) && currentSubscription.status !== 'trial') {
       return (
         <a className="btn btn-primary plans__buy" href="/mi-plan#renovar">
-          Renovar plan
+          {t('plans.renew')}
         </a>
       );
     }
     if (plan.slug === currentPlanSlug) {
       return (
         <button type="button" className="btn plans__buy plans__buy--owned" disabled>
-          Plan actual
+          {t('plans.current')}
         </button>
       );
     }
@@ -126,7 +124,7 @@ export default function Plans() {
         onClick={() => handleBuy(plan)}
         disabled={loadingPlan === plan.slug}
       >
-        {loadingPlan === plan.slug ? 'Redirigiendo...' : 'Comprar plan'}
+        {loadingPlan === plan.slug ? t('plans.redirecting') : t('plans.buy')}
       </button>
     );
   }
@@ -134,21 +132,21 @@ export default function Plans() {
   return (
     <section id="planes" className="plans">
       <div className="container plans__intro reveal" ref={revealIntro}>
-        <span className="eyebrow">Planes</span>
-        <h2 className="plans__title">Elegí tu experiencia Glow &amp; Move</h2>
-        <div className="plans__billing" role="radiogroup" aria-label="Forma de pago">
-          {BILLING_OPTIONS.map((opt) => {
-            const discount = plans[0]?.pricing?.[opt.id]?.discountPct;
+        <span className="eyebrow">{t('plans.eyebrow')}</span>
+        <h2 className="plans__title">{t('plans.title')}</h2>
+        <div className="plans__billing" role="radiogroup" aria-label={t('plans.billingLabel')}>
+          {BILLING_OPTIONS.map((mode) => {
+            const discount = plans[0]?.pricing?.[mode]?.discountPct;
             return (
               <button
-                key={opt.id}
+                key={mode}
                 type="button"
                 role="radio"
-                aria-checked={billingMode === opt.id}
-                className={`plans__billing-opt ${billingMode === opt.id ? 'plans__billing-opt--active' : ''}`}
-                onClick={() => setBillingMode(opt.id)}
+                aria-checked={billingMode === mode}
+                className={`plans__billing-opt ${billingMode === mode ? 'plans__billing-opt--active' : ''}`}
+                onClick={() => setBillingMode(mode)}
               >
-                {opt.label}
+                {t(`plans.billing.${mode}`)}
                 {discount > 0 && <span className="plans__billing-save">-{discount}%</span>}
               </button>
             );
@@ -170,7 +168,7 @@ export default function Plans() {
               <h3>{plan.name}</h3>
               {renderPrice(plan)}
               <p className={`plans__ads ${plan.hasAds ? 'plans__ads--yes' : 'plans__ads--no'}`}>
-                {plan.hasAds ? 'Contiene anuncios' : 'Libre de anuncios'}
+                {plan.hasAds ? t('plans.hasAds') : t('plans.noAds')}
               </p>
               <ul className="plans__features">
                 {plan.features.map((feature) => (
@@ -186,12 +184,12 @@ export default function Plans() {
       {featuredPlan && (
         <div className="container plans__featured-wrap reveal">
           <article className="plans__featured">
-            <span className="plans__badge">Más elegido</span>
+            <span className="plans__badge">{t('plans.featured')}</span>
             <img src={PHOTO_BY_SLUG[featuredPlan.slug]} alt={featuredPlan.name} className="plans__featured-photo" />
             <div className="plans__featured-body">
               <h3>{featuredPlan.name}</h3>
               {renderPrice(featuredPlan)}
-              <p className="plans__ads plans__ads--no">Libre de anuncios</p>
+              <p className="plans__ads plans__ads--no">{t('plans.noAds')}</p>
               <ul className="plans__features">
                 {featuredPlan.features.map((feature) => (
                   <li key={feature}>{feature}</li>

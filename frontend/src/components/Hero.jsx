@@ -1,7 +1,9 @@
 import heroPhoto from '../assets/photos/hero.jpg';
 import './Hero.css';
+import { useI18n } from '../i18n/I18nContext.jsx';
 
 export default function Hero() {
+  const { t } = useI18n();
   return (
     <section id="home" className="hero">
       <div className="hero__brandbar">
@@ -12,23 +14,23 @@ export default function Hero() {
 
       <div className="container">
         <div className="hero__frame">
-          <img src={heroPhoto} alt="Entrenamiento guiado en un estudio luminoso" className="hero__photo" />
+          <img src={heroPhoto} alt={t('hero.photoAlt')} className="hero__photo" />
           <div className="hero__overlay" />
         </div>
 
         <blockquote className="hero__quote">
-          “Glow and Move, donde la distancia se acorta a través del movimiento”
+          {t('hero.quote')}
         </blockquote>
 
         <div className="hero__trial">
           <p className="hero__trial-text">
-            Prueba gratis plan Full, libre de anuncios
+            {t('hero.trialTitle')}
           </p>
           <p className="hero__trial-note">
-            Te mostramos los beneficios y la experiencia Full eligiendo una de dos rutinas: tren superior o tren inferior.
+            {t('hero.trialNote')}
           </p>
           <a href="#planes" className="btn btn-primary hero__trial-cta">
-            Empezar prueba gratis
+            {t('hero.trialCta')}
           </a>
         </div>
       </div>

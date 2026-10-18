@@ -1,22 +1,24 @@
 import { useReveal } from '../hooks/useReveal';
 import StatItem from './StatItem.jsx';
 import './StatsBar.css';
+import { useI18n } from '../i18n/I18nContext.jsx';
 
 const STATS = [
-  { value: '2.400+', label: 'personas entrenando' },
-  { value: '50+', label: 'rutinas guiadas' },
-  { value: '13+', label: 'años de experiencia combinada' },
-  { value: '10+', label: 'disciplinas para todo nivel' },
+  { value: '2.400+', key: 'people' },
+  { value: '50+', key: 'routines' },
+  { value: '13+', key: 'years' },
+  { value: '10+', key: 'disciplines' },
 ];
 
 export default function StatsBar() {
   const revealRef = useReveal();
+  const { t } = useI18n();
 
   return (
     <section className="stats reveal" ref={revealRef}>
       <div className="container stats__grid">
         {STATS.map((stat) => (
-          <StatItem key={stat.label} value={stat.value} label={stat.label} />
+          <StatItem key={stat.key} value={stat.value} label={t(`stats.${stat.key}`)} />
         ))}
       </div>
     </section>

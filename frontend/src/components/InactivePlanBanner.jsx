@@ -1,11 +1,13 @@
 import { useAuth } from '../context/AuthContext.jsx';
 import { isSubscriptionInactive } from '../lib/subscription.js';
 import './InactivePlanBanner.css';
+import { useI18n } from '../i18n/I18nContext.jsx';
 
 // Cartel de "plan inactivo": el usuario conserva lo que ya pagó (rutinas, bitácora) pero no
 // puede registrar entrenamientos nuevos hasta renovar. Se muestra solo si corresponde.
 export default function InactivePlanBanner({ showCta = true }) {
   const { user } = useAuth();
+  const { t } = useI18n();
   const subscription = user?.subscriptions?.[0];
   if (!isSubscriptionInactive(subscription)) return null;
 
@@ -20,15 +22,12 @@ export default function InactivePlanBanner({ showCta = true }) {
         </svg>
       </span>
       <div className="inactive-banner__text">
-        <strong>{isTrial ? 'Tu prueba gratis terminó' : 'Tu plan está inactivo'}</strong>
-        <span>
-          Tus rutinas y tu bitácora siguen guardadas y podés verlas. Para registrar entrenamientos nuevos y avanzar de
-          bloque, {isTrial ? 'elegí un plan' : 'actualizá tu pago'}.
-        </span>
+        <strong>{isTrial ? t('account.trialEndedTitle') : t('account.inactiveTitle')}</strong>
+        <span>{t('account.inactiveText', { action: isTrial ? t('account.inactiveActionPlan') : t('account.inactiveActionPay') })}</span>
       </div>
       {showCta && (
         <a className="inactive-banner__cta" href={isTrial ? '/#planes' : '/mi-plan#renovar'}>
-          {isTrial ? 'Elegir plan' : 'Actualizar pago'}
+          {isTrial ? t('account.choosePlan') : t('account.updatePayment')}
         </a>
       )}
     </div>

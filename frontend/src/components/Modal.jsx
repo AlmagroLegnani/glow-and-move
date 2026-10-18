@@ -1,13 +1,15 @@
 import './Modal.css';
+import { useI18n } from '../i18n/I18nContext.jsx';
 
 export default function Modal({ title, subtitle, media, onClose, children, size, variant }) {
+  const { t } = useI18n();
   const panelClass = ['modal__panel', size === 'lg' && 'modal__panel--lg', variant && `modal__panel--${variant}`]
     .filter(Boolean)
     .join(' ');
 
   return (
     <div className="modal">
-      <button className="modal__scrim" aria-label="Cerrar" onClick={onClose} />
+      <button className="modal__scrim" aria-label={t('common.close')} onClick={onClose} />
       <div className={panelClass} role="dialog" aria-modal="true" aria-label={title}>
         <div className="modal__header">
           {media}
@@ -15,7 +17,7 @@ export default function Modal({ title, subtitle, media, onClose, children, size,
             <h2>{title}</h2>
             {subtitle && <p className="modal__lede">{subtitle}</p>}
           </div>
-          <button type="button" className="modal__close" aria-label="Cerrar" onClick={onClose}>
+          <button type="button" className="modal__close" aria-label={t('common.close')} onClick={onClose}>
             ×
           </button>
         </div>

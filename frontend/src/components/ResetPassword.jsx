@@ -3,8 +3,10 @@ import { api } from '../lib/api.js';
 import PasswordField from './PasswordField.jsx';
 import './CheckoutStatus.css';
 import './Modal.css';
+import { useI18n } from '../i18n/I18nContext.jsx';
 
 export default function ResetPassword() {
+  const { t } = useI18n();
   const params = new URLSearchParams(window.location.search);
   const token = params.get('token') || '';
 
@@ -19,7 +21,7 @@ export default function ResetPassword() {
     setError('');
 
     if (password !== confirmPassword) {
-      setError('Las contraseñas no coinciden');
+      setError(t('common.passwordsMismatch'));
       return;
     }
 
@@ -38,10 +40,10 @@ export default function ResetPassword() {
     return (
       <div className="checkout-status">
         <div className="container checkout-status__card">
-          <h1>Link inválido</h1>
-          <p>Este link de recuperación no es válido. Pedí uno nuevo desde "Iniciar sesión".</p>
+          <h1>{t('reset.invalidTitle')}</h1>
+          <p>{t('reset.invalidText')}</p>
           <a className="btn btn-primary" href="/">
-            Volver al inicio
+            {t('common.backHome')}
           </a>
         </div>
       </div>
@@ -52,10 +54,10 @@ export default function ResetPassword() {
     return (
       <div className="checkout-status">
         <div className="container checkout-status__card">
-          <h1>Contraseña actualizada</h1>
-          <p>Ya podés iniciar sesión con tu nueva contraseña.</p>
+          <h1>{t('reset.doneTitle')}</h1>
+          <p>{t('reset.doneText')}</p>
           <a className="btn btn-primary" href="/">
-            Volver al inicio
+            {t('common.backHome')}
           </a>
         </div>
       </div>
@@ -65,7 +67,7 @@ export default function ResetPassword() {
   return (
     <div className="checkout-status">
       <div className="container checkout-status__card">
-        <h1>Elegí tu nueva contraseña</h1>
+        <h1>{t('reset.title')}</h1>
         <form
           onSubmit={handleSubmit}
           className="modal__body"
@@ -73,7 +75,7 @@ export default function ResetPassword() {
         >
           <PasswordField
             id="password"
-            label="Contraseña nueva"
+            label={t('reset.newPassword')}
             required
             minLength={6}
             value={password}
@@ -82,7 +84,7 @@ export default function ResetPassword() {
           />
           <PasswordField
             id="confirmPassword"
-            label="Confirmar contraseña"
+            label={t('common.confirmPassword')}
             required
             minLength={6}
             value={confirmPassword}
@@ -93,7 +95,7 @@ export default function ResetPassword() {
           {error && <p className="modal__error">{error}</p>}
 
           <button type="submit" className="btn btn-primary" disabled={loading}>
-            {loading ? 'Guardando...' : 'Guardar contraseña'}
+            {loading ? t('common.saving') : t('reset.save')}
           </button>
         </form>
       </div>

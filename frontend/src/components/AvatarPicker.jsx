@@ -5,11 +5,15 @@ import { AVATAR_PRESETS, photoToAvatarDataUrl, useAvatarSrc, userInitial } from 
 import Modal from './Modal.jsx';
 import UserAvatar from './UserAvatar.jsx';
 import './AvatarPicker.css';
+import { useI18n } from '../i18n/I18nContext.jsx';
+
+const PHOTO_ERRORS = { type: 'avatar.errorType', size: 'avatar.errorSize', read: 'avatar.errorRead' };
 
 // Selector de avatar: subir una foto propia, elegir uno de la galería o quedarse con la
 // inicial del nombre. `onDone` se llama después de guardar (o de "Ahora no" si skipLabel).
 export function AvatarPicker({ onDone, skipLabel }) {
   const { user, token, updateUser } = useAuth();
+  const { t } = useI18n();
   const fileRef = useRef(null);
   const [selected, setSelected] = useState(user?.avatarUrl ?? null);
   const [photo, setPhoto] = useState(user?.avatarUrl?.startsWith('data:') ? user.avatarUrl : null);
@@ -28,7 +32,7 @@ export function AvatarPicker({ onDone, skipLabel }) {
       setPhoto(dataUrl);
       setSelected(dataUrl);
     } catch (err) {
-      setError(err.message);
+      setError(PHOTO_ERRORS[err.code] ? t(PHOTO_ERRORS[err.code]) : err.message);
     } finally {
       setProcessing(false);
     }
@@ -54,11 +58,11 @@ export function AvatarPicker({ onDone, skipLabel }) {
     <div className="avatar-picker">
       <div className="avatar-picker__preview">
         <UserAvatar user={user} avatarUrl={selected} size={96} className="avatar-picker__current" />
-        <span>Así te van a ver en Glow &amp; Move</span>
+        <span>{t('avatar.preview')}</span>
       </div>
 
       <div className="avatar-picker__section">
-        <span className="avatar-picker__label">Tu foto</span>
+        <span className="avatar-picker__label">{t('avatar.yourPhoto')}</span>
         <div className="avatar-picker__row">
           <button
             type="button"
@@ -70,14 +74,14 @@ export function AvatarPicker({ onDone, skipLabel }) {
               <path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.6l1.4-2h5l1.4 2h1.6A2.5 2.5 0 0 1 20 8.5v9a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 17.5z" />
               <circle cx="12" cy="13" r="3.5" />
             </svg>
-            {processing ? 'Procesando...' : photo ? 'Cambiar foto' : 'Subir foto'}
+            {processing ? t('avatar.processing') : photo ? t('avatar.change') : t('avatar.upload')}
           </button>
           {photo && (
             <button
               type="button"
               className={`avatar-picker__option ${selected === photo ? 'is-selected' : ''}`}
               onClick={() => setSelected(photo)}
-              aria-label="Usar mi foto"
+              aria-label={t('avatar.useMyPhoto')}
               aria-pressed={selected === photo}
             >
               <img src={photo} alt="" />
@@ -88,13 +92,13 @@ export function AvatarPicker({ onDone, skipLabel }) {
       </div>
 
       <div className="avatar-picker__section">
-        <span className="avatar-picker__label">O elegí un avatar</span>
+        <span className="avatar-picker__label">{t('avatar.orPick')}</span>
         <div className="avatar-picker__grid">
           <button
             type="button"
             className={`avatar-picker__option avatar-picker__option--initial ${selected === null ? 'is-selected' : ''}`}
             onClick={() => setSelected(null)}
-            aria-label="Usar la inicial de mi nombre"
+            aria-label={t('avatar.useInitial')}
             aria-pressed={selected === null}
           >
             {userInitial(user)}
@@ -105,7 +109,7 @@ export function AvatarPicker({ onDone, skipLabel }) {
               type="button"
               className={`avatar-picker__option ${selected === preset ? 'is-selected' : ''}`}
               onClick={() => setSelected(preset)}
-              aria-label="Elegir este avatar"
+              aria-label={t('avatar.pickThis')}
               aria-pressed={selected === preset}
             >
               <PresetImage value={preset} />
@@ -127,7 +131,7 @@ export function AvatarPicker({ onDone, skipLabel }) {
           </button>
         )}
         <button type="button" className="btn btn-primary" onClick={handleSave} disabled={saving || processing || (unchanged && !skipLabel)}>
-          {saving ? 'Guardando...' : 'Guardar avatar'}
+          {saving ? t('common.saving') : t('avatar.save')}
         </button>
       </div>
     </div>
@@ -140,8 +144,9 @@ function PresetImage({ value }) {
 }
 
 export default function AvatarPickerModal({ onClose }) {
+  const { t } = useI18n();
   return (
-    <Modal title="Tu avatar" subtitle="Subí una foto, elegí un avatar o quedate con tu inicial." variant="auth" onClose={onClose}>
+    <Modal title={t('avatar.title')} subtitle={t('avatar.subtitle')} variant="auth" onClose={onClose}>
       <AvatarPicker onDone={onClose} />
     </Modal>
   );
