@@ -6,7 +6,6 @@ import About from './components/About.jsx';
 import Contact from './components/Contact.jsx';
 import Footer from './components/Footer.jsx';
 import AIAssistant from './components/AIAssistant.jsx';
-import MascotBubbles from './components/MascotBubbles.jsx';
 import CheckoutStatus from './components/CheckoutStatus.jsx';
 import ResetPassword from './components/ResetPassword.jsx';
 import AdminPage from './components/AdminPage.jsx';
@@ -53,7 +52,6 @@ function App() {
 
   return (
     <>
-      <MascotBubbles />
       <Navbar />
       <main>
         <Hero />
