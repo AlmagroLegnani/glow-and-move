@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import './Modal.css';
 import { useI18n } from '../i18n/I18nContext.jsx';
 
@@ -7,7 +8,9 @@ export default function Modal({ title, subtitle, media, onClose, children, size,
     .filter(Boolean)
     .join(' ');
 
-  return (
+  // Portal al <body>: si el modal se abre desde el navbar (que tiene su propio z-index),
+  // sin portal quedaría por debajo de elementos flotantes como el botón del asistente.
+  return createPortal(
     <div className="modal">
       <button className="modal__scrim" aria-label={t('common.close')} onClick={onClose} />
       <div className={panelClass} role="dialog" aria-modal="true" aria-label={title}>
@@ -23,6 +26,7 @@ export default function Modal({ title, subtitle, media, onClose, children, size,
         </div>
         <div className="modal__body">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
