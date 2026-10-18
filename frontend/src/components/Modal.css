@@ -770,3 +770,68 @@
     font-size: 1.5rem;
   }
 }
+
+/* El modal de login usa casi toda la altura disponible (antes 88vh) para que el formulario
+   entre completo sin scroll interno. */
+.modal:has(.modal__panel--auth) {
+  padding: 1rem;
+}
+
+.modal__panel--auth {
+  width: min(440px, 100%);
+  max-height: calc(100dvh - 2rem);
+}
+
+/* Pantallas bajas (notebooks, ~600-760px útiles): mismo diseño, más compacto. */
+@media (max-height: 780px) {
+  .modal__panel--auth {
+    padding: 1.6rem clamp(1.3rem, 5vw, 2.1rem) 1.3rem;
+  }
+
+  .modal__panel--auth .modal__header {
+    gap: 0.55rem;
+    margin-bottom: 1.1rem;
+  }
+
+  .modal__panel--auth .modal__header h2 {
+    font-size: 1.55rem;
+  }
+
+  .modal__panel--auth .modal__lede {
+    max-width: 38ch;
+    font-size: 0.84rem;
+  }
+
+  .auth__avatar {
+    width: 58px;
+    height: 58px;
+  }
+
+  .auth__form {
+    gap: 0.8rem;
+  }
+
+  .modal__panel--auth .field input,
+  .modal__panel--auth .field select {
+    min-height: 46px;
+  }
+
+  .modal__panel--auth .btn-primary {
+    min-height: 48px;
+    margin-top: 0.15rem;
+  }
+
+  .auth__forgot {
+    margin-top: -0.35rem;
+  }
+
+  .modal__panel--auth .modal__switch {
+    margin-top: 0;
+    padding-top: 0.8rem;
+  }
+
+  .modal__panel--auth .modal__close {
+    top: 0.8rem;
+    right: 0.8rem;
+  }
+}
