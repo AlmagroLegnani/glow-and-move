@@ -30,3 +30,5 @@ services:
         sync: false
       - key: NOTIFY_CHANNELS
         value: email
+      - key: GEMINI_API_KEY
+        sync: false

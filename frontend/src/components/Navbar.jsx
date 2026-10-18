@@ -9,6 +9,7 @@ import mascotLogo from '../assets/mascot/mascot.jpg';
 import UserAvatar from './UserAvatar.jsx';
 import AvatarPickerModal from './AvatarPicker.jsx';
 import { useI18n, LANGUAGES } from '../i18n/I18nContext.jsx';
+import { OPEN_ASSISTANT_EVENT } from './AIAssistant.jsx';
 
 // El texto de cada ítem sale de i18n (nav.menu.<letra>).
 const MENU_ITEMS = [
@@ -20,7 +21,7 @@ const MENU_ITEMS = [
   { letter: 'f', href: '#' },
   { letter: 'g', href: '#' },
   { letter: 'h', href: '#contacto' },
-  { letter: 'i', href: '#' },
+  { letter: 'i', action: 'assistant' },
 ];
 
 const BUILT_HREFS = new Set(['#planes', '#contacto']);
@@ -92,6 +93,11 @@ export default function Navbar() {
       } else {
         setAuthModalOpen(true);
       }
+      return;
+    }
+    if (item.action === 'assistant') {
+      e.preventDefault();
+      window.dispatchEvent(new Event(OPEN_ASSISTANT_EVENT));
       return;
     }
     if (item.action === 'trial') {

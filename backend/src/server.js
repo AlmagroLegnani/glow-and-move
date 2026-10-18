@@ -15,8 +15,11 @@ const videosRoutes = require('./routes/videos');
 const blocksRoutes = require('./routes/blocks');
 const adminRoutes = require('./routes/admin');
 const jobsRoutes = require('./routes/jobs');
+const assistantRoutes = require('./routes/assistant');
 
 const app = express();
+// Render pone un proxy adelante: así req.ip es la IP real (la usa el límite del asistente).
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 4000;
 
 app.use(cors({ origin: process.env.FRONTEND_URL || '*' }));
@@ -36,6 +39,7 @@ app.use('/api/videos', videosRoutes);
 app.use('/api/blocks', blocksRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/jobs', jobsRoutes);
+app.use('/api/assistant', assistantRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Web Fitness API funcionando' });

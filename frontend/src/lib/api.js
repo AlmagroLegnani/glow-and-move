@@ -12,7 +12,10 @@ async function request(path, { method = 'GET', body, token } = {}) {
 
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    throw new Error(data.error || 'Ocurrió un error inesperado');
+    const err = new Error(data.error || 'Ocurrió un error inesperado');
+    err.status = res.status;
+    err.data = data;
+    throw err;
   }
   return data;
 }
@@ -33,6 +36,7 @@ export const api = {
   renewalOptions: (token) => request('/api/subscriptions/renewal-options', { token }),
   renew: (body, token) => request('/api/subscriptions/renew', { method: 'POST', body, token }),
   contact: (body) => request('/api/contact', { method: 'POST', body }),
+  assistantChat: (body, token) => request('/api/assistant/chat', { method: 'POST', body, token }),
   submitHealthProfile: (body, token) => request('/api/health-profile', { method: 'POST', body, token }),
   myVideos: (token) => request('/api/videos', { token }),
 
