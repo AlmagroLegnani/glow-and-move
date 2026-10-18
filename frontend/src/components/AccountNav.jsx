@@ -7,6 +7,7 @@ const USER_ITEMS = [
   { id: 'videos', labelKey: 'videos', href: '/mis-videos' },
   { id: 'rutina', labelKey: 'rutina', href: '/mi-rutina' },
   { id: 'bitacora', labelKey: 'bitacora', href: '/mi-bitacora' },
+  { id: 'servicios', labelKey: 'servicios', href: '/mis-servicios' },
 ];
 
 // El admin no entrena: su sección principal es el panel de administración, y "Mi plan"

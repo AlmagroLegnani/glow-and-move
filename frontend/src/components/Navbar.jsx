@@ -18,13 +18,13 @@ const MENU_ITEMS = [
   { letter: 'c', href: '#planes' },
   { letter: 'd', href: '#' },
   { letter: 'e', href: '#' },
-  { letter: 'f', href: '#' },
+  { letter: 'f', href: '#servicios' },
   { letter: 'g', href: '#' },
   { letter: 'h', href: '#contacto' },
   { letter: 'i', action: 'assistant' },
 ];
 
-const BUILT_HREFS = new Set(['#planes', '#contacto']);
+const BUILT_HREFS = new Set(['#planes', '#contacto', '#servicios']);
 
 export default function Navbar() {
   const { user, loading } = useAuth();

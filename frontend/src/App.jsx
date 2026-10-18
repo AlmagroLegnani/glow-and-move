@@ -1,6 +1,8 @@
 import Navbar from './components/Navbar.jsx';
 import Hero from './components/Hero.jsx';
 import Plans from './components/Plans.jsx';
+import ExtraServices from './components/ExtraServices.jsx';
+import { MyServicesPage, ServicePage } from './components/ServicePages.jsx';
 import StatsBar from './components/StatsBar.jsx';
 import About from './components/About.jsx';
 import Contact from './components/Contact.jsx';
@@ -46,6 +48,15 @@ function App() {
     return <MiBitacoraPage />;
   }
 
+  if (window.location.pathname === '/mis-servicios') {
+    return <MyServicesPage />;
+  }
+
+  const serviceMatch = window.location.pathname.match(/^\/servicios\/([a-z0-9-]+)\/?$/);
+  if (serviceMatch) {
+    return <ServicePage slug={serviceMatch[1]} />;
+  }
+
   if (window.location.pathname === '/mi-rutina') {
     return <MiRutinaPage />;
   }
@@ -56,6 +67,7 @@ function App() {
       <main>
         <Hero />
         <Plans />
+        <ExtraServices />
         <StatsBar />
         <About />
         <Contact />

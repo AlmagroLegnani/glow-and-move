@@ -152,12 +152,18 @@ async function listRoutinesForBlock(req, res) {
 }
 
 async function createRoutine(req, res) {
-  const { blockId, userId, name } = req.body;
-  if (!blockId || !name) {
-    return res.status(400).json({ error: 'blockId y name son requeridos' });
+  const { blockId, serviceId, userId, name } = req.body;
+  // Una rutina es de un bloque del programa o de un servicio complementario.
+  if ((!blockId && !serviceId) || !name) {
+    return res.status(400).json({ error: 'blockId (o serviceId) y name son requeridos' });
   }
   const routine = await prisma.routine.create({
-    data: { blockId: Number(blockId), userId: userId ? Number(userId) : null, name },
+    data: {
+      blockId: blockId ? Number(blockId) : null,
+      serviceId: serviceId ? Number(serviceId) : null,
+      userId: userId ? Number(userId) : null,
+      name,
+    },
   });
   res.status(201).json(routine);
 }

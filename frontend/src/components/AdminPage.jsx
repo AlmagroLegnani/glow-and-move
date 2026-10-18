@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { api } from '../lib/api.js';
 import AccountTopbar from './AccountTopbar.jsx';
 import AdminDropdown from './AdminDropdown.jsx';
+import { serviceIcon } from '../lib/serviceIcons.js';
 import './AdminPage.css';
 
 const TABS = [
@@ -10,6 +11,7 @@ const TABS = [
   { id: 'blocks', label: 'Bloques' },
   { id: 'exercises', label: 'Ejercicios' },
   { id: 'routines', label: 'Rutinas' },
+  { id: 'services', label: 'Servicios' },
   { id: 'users', label: 'Usuarios' },
 ];
 
@@ -121,6 +123,7 @@ export default function AdminPage() {
         {tab === 'blocks' && <BlocksTab token={token} />}
         {tab === 'exercises' && <ExercisesTab token={token} />}
         {tab === 'routines' && <RoutinesTab token={token} />}
+        {tab === 'services' && <ServicesTab token={token} />}
         {tab === 'users' && <UsersTab token={token} />}
       </div>
     </AdminShell>
@@ -881,6 +884,223 @@ function RoutineDayRow({ day, videos, token, onChange }) {
         </button>
       </div>
     </section>
+  );
+}
+
+// ---------- Servicios complementarios ----------
+
+function ServicesTab({ token }) {
+  const { items, error, reload } = useEntity(() => api.admin.listServices(token));
+  const { items: videos } = useEntity(() => api.admin.listVideos(token));
+  const [openId, setOpenId] = useState(null);
+
+  if (error) return <p className="modal__error">{error}</p>;
+  if (!items || !videos) return <Loading />;
+
+  const ready = items.filter((s) => s.hasContent).length;
+
+  return (
+    <>
+      <SectionHeader
+        title="Servicios complementarios"
+        count={items.length}
+        description={`Rutinas extra que se compran con un pago único y se usan mientras el plan esté activo. ${ready} de ${items.length} tienen contenido; los que no, aparecen como "Próximamente" en el home.`}
+      />
+      <div className="ad-stack">
+        {items.map((service) => (
+          <ServiceCard
+            key={service.id}
+            service={service}
+            videos={videos}
+            token={token}
+            open={openId === service.id}
+            onToggle={() => setOpenId(openId === service.id ? null : service.id)}
+            onChange={reload}
+          />
+        ))}
+      </div>
+    </>
+  );
+}
+
+function serviceForm(s) {
+  return { name: s.name, description: s.description, priceUsd: String(s.priceUsd), isActive: s.isActive };
+}
+
+function ServiceCard({ service, videos, token, open, onToggle, onChange }) {
+  const [initial, setInitial] = useState(() => serviceForm(service));
+  const [form, setForm] = useState(initial);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const set = (patch) => setForm((f) => ({ ...f, ...patch }));
+
+  useEffect(() => {
+    const next = serviceForm(service);
+    setInitial(next);
+    setForm(next);
+  }, [service]);
+
+  async function save() {
+    setSaving(true);
+    setSaved(false);
+    try {
+      await api.admin.updateService(service.id, { ...form, priceUsd: Number(form.priceUsd) }, token);
+      setSaved(true);
+      onChange();
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <article className="ad-card">
+      <button type="button" className="ad-svc-head" onClick={onToggle} aria-expanded={open}>
+        <span className="ad-svc-head__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+            <path d={serviceIcon(service.slug)} />
+          </svg>
+        </span>
+        <span className="ad-svc-head__text">
+          <strong>{service.name}</strong>
+          <span>
+            U$S {Number(service.priceUsd).toFixed(2)} · {service.purchases} {service.purchases === 1 ? 'compra' : 'compras'}
+          </span>
+        </span>
+        <span className={`ad-tag ${service.hasContent ? 'ad-tag--ok' : ''}`}>{service.hasContent ? 'Con contenido' : 'Sin contenido'}</span>
+        {!service.isActive && <span className="ad-tag ad-tag--accent">Oculto</span>}
+        <svg className={`ad-svc-head__chevron ${open ? 'is-open' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="ad-svc-body">
+          <div className="ad-row">
+            <div className="ad-field ad-field--grow">
+              <label>Nombre</label>
+              <input value={form.name} onChange={(e) => set({ name: e.target.value })} />
+            </div>
+            <div className="ad-field ad-field--narrow">
+              <label>Precio (pago único)</label>
+              <div className="ad-affix">
+                <span>U$S</span>
+                <input type="number" step="0.01" min="0" value={form.priceUsd} onChange={(e) => set({ priceUsd: e.target.value })} />
+              </div>
+            </div>
+          </div>
+          <div className="ad-field">
+            <label>
+              Descripción <span className="ad-label-hint">se muestra en la tarjeta del home</span>
+            </label>
+            <textarea rows={2} value={form.description} onChange={(e) => set({ description: e.target.value })} />
+          </div>
+          <div className="ad-switches">
+            <Switch label="Visible en el home" hint="Si lo apagás, nadie nuevo lo puede comprar" checked={form.isActive} onChange={(v) => set({ isActive: v })} />
+          </div>
+          <SaveFooter dirty={isDirty(form, initial)} saving={saving} saved={saved} onSave={save} />
+
+          <ServiceContent service={service} videos={videos} token={token} onChange={onChange} />
+        </div>
+      )}
+    </article>
+  );
+}
+
+function ServiceContent({ service, videos, token, onChange }) {
+  const { items: routines, reload } = useEntity(() => api.admin.listServiceRoutines(service.id, token), [service.id]);
+  const [videoToAdd, setVideoToAdd] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  async function refresh() {
+    reload();
+    onChange();
+  }
+
+  async function createRoutine() {
+    setBusy(true);
+    try {
+      await api.admin.createRoutine({ serviceId: service.id, name: service.name }, token);
+      refresh();
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function addVideo() {
+    if (!videoToAdd) return;
+    try {
+      await api.admin.addServiceVideo(service.id, { videoId: Number(videoToAdd) }, token);
+      setVideoToAdd('');
+      onChange();
+    } catch (err) {
+      alert(err.message);
+    }
+  }
+
+  async function removeVideo(videoId) {
+    try {
+      await api.admin.removeServiceVideo(service.id, videoId, token);
+      onChange();
+    } catch (err) {
+      alert(err.message);
+    }
+  }
+
+  const available = videos.filter((v) => !service.videos.some((sv) => sv.id === v.id));
+
+  return (
+    <div className="ad-svc-content">
+      <h3 className="ad-card__title">Rutina del servicio</h3>
+      {!routines && <Loading />}
+      {routines && routines.length === 0 && (
+        <div className="ad-empty">
+          <strong>Todavía no tiene rutina</strong>
+          <span>Creala y después agregale días y ejercicios, igual que en Rutinas.</span>
+          <button type="button" className="ad-btn ad-btn--primary ad-empty__cta" disabled={busy} onClick={createRoutine}>
+            <Icon d={ICONS.plus} />
+            Crear rutina
+          </button>
+        </div>
+      )}
+      {routines && routines.map((routine) => <RoutineCard key={routine.id} routine={routine} videos={videos} token={token} onChange={refresh} />)}
+
+      <h3 className="ad-card__title">Videos del servicio</h3>
+      {service.videos.length > 0 ? (
+        <ul className="ad-svc-videos">
+          {service.videos.map((v) => (
+            <li key={v.id}>
+              <span>{v.title}</span>
+              <button type="button" className="ad-icon-btn ad-icon-btn--danger" onClick={() => removeVideo(v.id)} aria-label={`Quitar ${v.title}`}>
+                <Icon d={ICONS.x} size={14} />
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="ad-block-objective">Sin videos todavía. Elegí del catálogo de Ejercicios.</p>
+      )}
+      <div className="ad-day__add">
+        <div className="ad-field ad-field--grow">
+          <label>Agregar video del catálogo</label>
+          <AdminDropdown
+            variant="field"
+            ariaLabel="Video"
+            placeholder="Elegí un video"
+            value={videoToAdd}
+            options={available.map((v) => ({ id: v.id, label: v.title }))}
+            onChange={setVideoToAdd}
+          />
+        </div>
+        <button type="button" className="ad-btn ad-btn--primary" disabled={!videoToAdd} onClick={addVideo}>
+          <Icon d={ICONS.plus} />
+          Agregar
+        </button>
+      </div>
+    </div>
   );
 }
 

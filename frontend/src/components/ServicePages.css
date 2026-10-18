@@ -1,0 +1,142 @@
+/* Reusa .rt-* (MiRutinaPage.css), .bt-callout (MiBitacoraPage.css), .xs-card__icon y .video-* */
+
+.svc-back {
+  align-self: flex-start;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+
+.svc-back:hover {
+  color: var(--ink);
+}
+
+.svc-hero {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.1rem;
+  padding: clamp(1.2rem, 3vw, 1.7rem);
+  border-radius: var(--radius-md);
+  color: var(--cream);
+  background:
+    radial-gradient(80% 120% at 100% 0%, color-mix(in srgb, var(--blush) 35%, transparent), transparent 60%),
+    radial-gradient(60% 90% at 0% 100%, color-mix(in srgb, var(--sage) 30%, transparent), transparent 65%),
+    linear-gradient(135deg, var(--mocha), var(--mocha-deep));
+  box-shadow: 0 24px 44px -28px rgba(51, 41, 31, 0.8);
+}
+
+.svc-hero__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 58px;
+  height: 58px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--cream) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--cream) 28%, transparent);
+}
+
+.svc-hero__eyebrow {
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: color-mix(in srgb, var(--cream) 70%, transparent);
+}
+
+.account-page__content .svc-hero__title {
+  margin-top: 0.2rem;
+  font-family: var(--font-serif);
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  font-weight: 500;
+  color: var(--cream);
+}
+
+.svc-hero__desc {
+  margin-top: 0.4rem;
+  max-width: 55ch;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: color-mix(in srgb, var(--cream) 82%, transparent);
+}
+
+.svc-day {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.svc-day__title {
+  font-family: var(--font-serif);
+  font-size: 1.3rem;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.svc-day__title span {
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.svc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.svc-row {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.9rem 1rem;
+  border-radius: 18px;
+  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--taupe) 22%, transparent);
+  box-shadow: var(--shadow-sm);
+  color: var(--ink);
+  text-decoration: none;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.svc-row:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--mocha) 35%, transparent);
+}
+
+.svc-row__text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.svc-row__text strong {
+  font-size: 0.95rem;
+}
+
+.svc-row__text span {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.svc-row__arrow {
+  font-size: 1.1rem;
+  color: var(--mocha);
+}
+
+.svc-more {
+  align-self: flex-start;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--mocha-deep);
+}
+
+@media (max-width: 520px) {
+  .svc-hero {
+    flex-direction: column;
+  }
+}

@@ -49,33 +49,34 @@ enum VideoLevel {
 }
 
 model User {
-  id            Int       @id @default(autoincrement())
-  email         String    @unique
-  passwordHash  String
-  firstName     String
-  lastName      String
-  documentId    String?
-  nationality   String?
-  phone         String?
-  city          String?
-  age           Int?
-  heightCm      Decimal?  @db.Decimal(5, 1)
-  weightKg      Decimal?  @db.Decimal(5, 1)
-  role          UserRole  @default(user)
+  id                  Int       @id @default(autoincrement())
+  email               String    @unique
+  passwordHash        String
+  firstName           String
+  lastName            String
+  documentId          String?
+  nationality         String?
+  phone               String?
+  city                String?
+  age                 Int?
+  heightCm            Decimal?  @db.Decimal(5, 1)
+  weightKg            Decimal?  @db.Decimal(5, 1)
+  role                UserRole  @default(user)
   // null = inicial del nombre; "preset:<estilo>:<semilla>" = avatar de la galería;
   // "data:image/jpeg;base64,..." = foto subida (recortada a 256x256 en el navegador).
-  avatarUrl     String?
+  avatarUrl           String?
   resetToken          String?   @unique
   resetTokenExpiresAt DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 
-  subscriptions Subscription[]
-  healthProfile HealthProfile?
-  payments      Payment[]
-  routines      Routine[]
-  dayExecutions DayExecution[]
-  weightLogs    WeightLog[]
+  subscriptions    Subscription[]
+  healthProfile    HealthProfile?
+  payments         Payment[]
+  routines         Routine[]
+  dayExecutions    DayExecution[]
+  weightLogs       WeightLog[]
+  servicePurchases ServicePurchase[]
 }
 
 // Historial de peso cargado a mano por el usuario desde "Mi plan". Además del valor en
@@ -92,17 +93,17 @@ model WeightLog {
 }
 
 model Plan {
-  id           Int      @id @default(autoincrement())
-  slug         String   @unique
-  name         String
-  priceUsd     Decimal  @db.Decimal(10, 2)
-  billingPeriod String  // mensual | semestral | anual
-  hasAds       Boolean  @default(true)
-  hasVideoAccess Boolean @default(false)
-  hasPersonalizedRoutine Boolean @default(false)
-  routineOptions Int    @default(1)
-  features     String[]
-  sortOrder    Int      @default(0)
+  id                     Int      @id @default(autoincrement())
+  slug                   String   @unique
+  name                   String
+  priceUsd               Decimal  @db.Decimal(10, 2)
+  billingPeriod          String // mensual | semestral | anual
+  hasAds                 Boolean  @default(true)
+  hasVideoAccess         Boolean  @default(false)
+  hasPersonalizedRoutine Boolean  @default(false)
+  routineOptions         Int      @default(1)
+  features               String[]
+  sortOrder              Int      @default(0)
 
   subscriptions Subscription[]
 }
@@ -112,41 +113,42 @@ model Plan {
 // — así evitamos el catálogo duplicado que existía antes entre este modelo y los ejercicios
 // hardcodeados del sistema de bloques.
 model Video {
-  id             Int      @id @default(autoincrement())
-  title          String   @unique
-  muscleGroup    RoutineChoice?
-  videoUrl       String
-  description    String?
-  defaultSets    Int?
-  defaultReps    Int?
-  defaultWeight  Decimal? @db.Decimal(6, 2)
-  level          VideoLevel @default(principiante)
-  sortOrder      Int      @default(0)
-  createdAt      DateTime @default(now())
+  id            Int            @id @default(autoincrement())
+  title         String         @unique
+  muscleGroup   RoutineChoice?
+  videoUrl      String
+  description   String?
+  defaultSets   Int?
+  defaultReps   Int?
+  defaultWeight Decimal?       @db.Decimal(6, 2)
+  level         VideoLevel     @default(principiante)
+  sortOrder     Int            @default(0)
+  createdAt     DateTime       @default(now())
 
   routineExercises RoutineExercise[]
-  exerciseLogs      ExerciseLog[]
+  exerciseLogs     ExerciseLog[]
+  serviceVideos    ServiceVideo[]
 }
 
 model Subscription {
-  id                Int                @id @default(autoincrement())
-  userId            Int
-  user              User               @relation(fields: [userId], references: [id])
-  planId            Int
-  plan              Plan               @relation(fields: [planId], references: [id])
-  status            SubscriptionStatus @default(trial)
-  routineChoice     RoutineChoice?
-  billingMode       BillingMode        @default(trimestral)
-  isTrial           Boolean            @default(false)
-  trialEndsAt       DateTime?
-  currentPeriodEnd  DateTime?
-  mpPreferenceId    String?
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
+  id               Int                @id @default(autoincrement())
+  userId           Int
+  user             User               @relation(fields: [userId], references: [id])
+  planId           Int
+  plan             Plan               @relation(fields: [planId], references: [id])
+  status           SubscriptionStatus @default(trial)
+  routineChoice    RoutineChoice?
+  billingMode      BillingMode        @default(trimestral)
+  isTrial          Boolean            @default(false)
+  trialEndsAt      DateTime?
+  currentPeriodEnd DateTime?
+  mpPreferenceId   String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
 
-  payments          Payment[]
-  blockProgress     BlockProgress[]
-  notifications     NotificationLog[]
+  payments      Payment[]
+  blockProgress BlockProgress[]
+  notifications NotificationLog[]
 }
 
 // Avisos de vencimiento ya enviados (uno por suscripción/tipo/canal/período). Evita que el
@@ -200,7 +202,7 @@ model BlockProgress {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
-  dayExecutions  DayExecution[]
+  dayExecutions DayExecution[]
 
   @@unique([subscriptionId, blockId, cycle])
 }
@@ -211,18 +213,22 @@ model BlockProgress {
 // entrenador desde el admin). No modelamos todavía CÓMO se genera esa personalización — sólo
 // dejamos la estructura para que el entrenador la cargue a mano vía admin.
 model Routine {
-  id        Int      @id @default(autoincrement())
-  blockId   Int
-  block     Block    @relation(fields: [blockId], references: [id])
+  id        Int           @id @default(autoincrement())
+  // Una rutina pertenece a un bloque del programa anual o a un servicio complementario.
+  blockId   Int?
+  block     Block?        @relation(fields: [blockId], references: [id], onDelete: Restrict)
+  serviceId Int?
+  service   ExtraService? @relation(fields: [serviceId], references: [id])
   userId    Int?
-  user      User?    @relation(fields: [userId], references: [id])
+  user      User?         @relation(fields: [userId], references: [id])
   name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
-  days      RoutineDay[]
+  days RoutineDay[]
 
   @@index([blockId, userId])
+  @@index([serviceId])
 }
 
 // Día 1, Día 2, etc. — no representa un día de la semana, sino el N-ésimo entrenamiento de
@@ -269,7 +275,7 @@ model DayExecution {
   performed       Boolean
   performedAt     DateTime      @default(now())
 
-  exerciseLogs    ExerciseLog[]
+  exerciseLogs ExerciseLog[]
 
   @@unique([blockProgressId, weekNumber, dayNumber])
 }
@@ -295,18 +301,18 @@ model ExerciseLog {
 }
 
 model HealthProfile {
-  id                    Int      @id @default(autoincrement())
-  userId                Int      @unique
-  user                  User     @relation(fields: [userId], references: [id])
-  hasChronicIllness     Boolean  @default(false)
+  id                    Int       @id @default(autoincrement())
+  userId                Int       @unique
+  user                  User      @relation(fields: [userId], references: [id])
+  hasChronicIllness     Boolean   @default(false)
   chronicIllnessDetail  String?
-  hasDailyMedication    Boolean  @default(false)
+  hasDailyMedication    Boolean   @default(false)
   dailyMedicationDetail String?
   conditionsNotes       String?
-  acceptedTerms         Boolean  @default(false)
+  acceptedTerms         Boolean   @default(false)
   acceptedAt            DateTime?
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 }
 
 model Payment {
@@ -342,4 +348,52 @@ model AdminLock {
   id          Int      @id @default(1)
   adminUserId Int?
   lastSeenAt  DateTime @default(now())
+}
+
+// Servicios complementarios (Rutina flexibilidad, higiene de columna, antimigraña, etc.). Se
+// compran por separado con un pago único y se pueden usar mientras el plan esté activo.
+// Contenido: una rutina (Routine con serviceId) + videos del catálogo (ServiceVideo).
+model ExtraService {
+  id          Int      @id @default(autoincrement())
+  slug        String   @unique
+  name        String
+  description String
+  priceUsd    Decimal  @default(2) @db.Decimal(10, 2)
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  routines  Routine[]
+  videos    ServiceVideo[]
+  purchases ServicePurchase[]
+}
+
+model ServiceVideo {
+  id        Int          @id @default(autoincrement())
+  serviceId Int
+  service   ExtraService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  videoId   Int
+  video     Video        @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  sortOrder Int          @default(0)
+
+  @@unique([serviceId, videoId])
+}
+
+// Una compra por usuario y servicio. status: pending (checkout creado) | paid (acreditado).
+model ServicePurchase {
+  id             Int          @id @default(autoincrement())
+  userId         Int
+  user           User         @relation(fields: [userId], references: [id])
+  serviceId      Int
+  service        ExtraService @relation(fields: [serviceId], references: [id])
+  status         String       @default("pending")
+  amount         Decimal      @db.Decimal(10, 2)
+  mpPreferenceId String?
+  mpPaymentId    String?      @unique
+  paidAt         DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([userId, serviceId])
 }

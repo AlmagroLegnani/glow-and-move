@@ -2,6 +2,7 @@ const prisma = require('../lib/prisma');
 const { getPayment } = require('../lib/mercadopago');
 const { MONTHS_BY_MODE, addMonths, modeForMonths, isInactive } = require('../lib/billing');
 const { applyPaidMonths } = require('./blocksController');
+const { applyServicePayment } = require('./servicesController');
 
 async function mercadopagoWebhook(req, res) {
   const type = req.query.type || req.body.type || req.query.topic;
@@ -17,6 +18,12 @@ async function mercadopagoWebhook(req, res) {
     const [userId, , subscriptionId, kind = 'new', monthsRaw] = String(payment.external_reference || '').split(':');
 
     if (!subscriptionId) {
+      return res.sendStatus(200);
+    }
+
+    // Pago único de un servicio complementario: userId:svc-slug:0:service:purchaseId
+    if (kind === 'service') {
+      await applyServicePayment({ purchaseId: monthsRaw, payment: { ...payment, id: paymentId } });
       return res.sendStatus(200);
     }
 

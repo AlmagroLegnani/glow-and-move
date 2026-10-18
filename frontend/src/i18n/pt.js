@@ -181,6 +181,7 @@ export default {
       bitacora: 'Meu diário',
       admin: 'Administração',
       profile: 'Meu perfil',
+      servicios: 'Meus serviços',
     },
     navLabel: 'Minha conta',
     backHomeAria: 'Voltar ao início da Glow & Move',

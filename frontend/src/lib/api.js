@@ -37,6 +37,11 @@ export const api = {
   renew: (body, token) => request('/api/subscriptions/renew', { method: 'POST', body, token }),
   contact: (body) => request('/api/contact', { method: 'POST', body }),
   assistantChat: (body, token) => request('/api/assistant/chat', { method: 'POST', body, token }),
+
+  // Servicios complementarios
+  services: (token) => request('/api/services', { token }),
+  service: (slug, token) => request(`/api/services/${slug}`, { token }),
+  serviceCheckout: (slug, token) => request(`/api/services/${slug}/checkout`, { method: 'POST', token }),
   submitHealthProfile: (body, token) => request('/api/health-profile', { method: 'POST', body, token }),
   myVideos: (token) => request('/api/videos', { token }),
 
@@ -71,6 +76,11 @@ export const api = {
     createRoutineExercise: (dayId, body, token) => request(`/api/admin/routine-days/${dayId}/exercises`, { method: 'POST', body, token }),
     updateRoutineExercise: (id, body, token) => request(`/api/admin/routine-exercises/${id}`, { method: 'PATCH', body, token }),
     deleteRoutineExercise: (id, token) => request(`/api/admin/routine-exercises/${id}`, { method: 'DELETE', token }),
+    listServices: (token) => request('/api/admin/services', { token }),
+    updateService: (id, body, token) => request(`/api/admin/services/${id}`, { method: 'PATCH', body, token }),
+    listServiceRoutines: (id, token) => request(`/api/admin/services/${id}/routines`, { token }),
+    addServiceVideo: (id, body, token) => request(`/api/admin/services/${id}/videos`, { method: 'POST', body, token }),
+    removeServiceVideo: (id, videoId, token) => request(`/api/admin/services/${id}/videos/${videoId}`, { method: 'DELETE', token }),
   },
 };
 

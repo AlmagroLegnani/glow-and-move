@@ -3,6 +3,7 @@ const router = express.Router();
 const requireAuth = require('../middleware/requireAuth');
 const requireAdmin = require('../middleware/requireAdmin');
 const admin = require('../controllers/adminController');
+const services = require('../controllers/servicesController');
 
 // No pasa por requireAdmin: cualquier usuario logueado puede liberar el lock si lo tenía
 // (por ejemplo al cerrar sesión), sin quedar bloqueado por el lock que está soltando.
@@ -28,6 +29,12 @@ router.patch('/videos/:id', admin.updateVideo);
 router.delete('/videos/:id', admin.deleteVideo);
 
 router.get('/blocks/:blockId/routines', admin.listRoutinesForBlock);
+
+router.get('/services', services.adminListServices);
+router.patch('/services/:id', services.adminUpdateService);
+router.get('/services/:id/routines', services.adminListServiceRoutines);
+router.post('/services/:id/videos', services.adminAddServiceVideo);
+router.delete('/services/:id/videos/:videoId', services.adminRemoveServiceVideo);
 router.post('/routines', admin.createRoutine);
 router.delete('/routines/:id', admin.deleteRoutine);
 router.post('/routines/:id/days', admin.createRoutineDay);
