@@ -81,23 +81,6 @@
     0 10px 14px rgba(51, 59, 36, 0.3);
 }
 
-/* Reflejo de luz que recorre las letras cada tantos segundos (el "glow"). */
-.hero__brand-char::after {
-  content: attr(data-char);
-  position: absolute;
-  inset: 0;
-  color: transparent;
-  text-shadow: none;
-  background: linear-gradient(105deg, transparent 35%, rgba(255, 250, 240, 0.85) 50%, transparent 65%);
-  background-size: 300% 100%;
-  background-position: 100% 0;
-  -webkit-background-clip: text;
-  background-clip: text;
-  pointer-events: none;
-  animation: hero-brand-shine 6s ease-in-out infinite;
-  animation-delay: calc(var(--i) * 60ms + 1.8s);
-}
-
 @keyframes hero-brand-in {
   from {
     opacity: 0;
@@ -121,22 +104,10 @@
   }
 }
 
-@keyframes hero-brand-shine {
-  0%,
-  60% {
-    background-position: 100% 0;
-  }
-  85%,
-  100% {
-    background-position: 0% 0;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .hero__brandbar,
   .hero__brand-3d,
-  .hero__brand-char,
-  .hero__brand-char::after {
+  .hero__brand-char {
     animation: none;
   }
 

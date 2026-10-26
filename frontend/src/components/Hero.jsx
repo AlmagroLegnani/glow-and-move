@@ -44,7 +44,6 @@ export default function Hero() {
                   key={i}
                   className={`hero__brand-char${item.accent ? ' hero__brand-char--accent' : ''}`}
                   style={{ '--i': i }}
-                  data-char={char}
                 >
                   {char}
                 </span>
