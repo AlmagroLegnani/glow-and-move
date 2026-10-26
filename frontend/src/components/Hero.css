@@ -12,15 +12,116 @@
 }
 
 .hero__brand {
+  --tilt-x: 0deg;
+  --tilt-y: 0deg;
   text-align: center;
   font-family: var(--font-serif);
   font-weight: 500;
   font-size: clamp(2.2rem, 6vw, 3.6rem);
   color: var(--mocha-deep);
+  perspective: 700px;
 }
 
-.hero__brand span {
+/* Bloque 3D: se inclina con el puntero y "flota" despacio en el tiempo. */
+.hero__brand-3d {
+  display: inline-flex;
+  align-items: baseline;
+  transform-style: preserve-3d;
+  transform: rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+  transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
+  animation: hero-brand-float 7s ease-in-out 1.6s infinite;
+}
+
+.hero__brand-space {
+  width: 0.28em;
+}
+
+/* Cada letra: entra girando desde atrás y tiene volumen con sombras escalonadas (extrusión). */
+.hero__brand-char {
+  position: relative;
+  display: inline-block;
+  transform-origin: 50% 100%;
+  text-shadow:
+    0 1px 0 color-mix(in srgb, var(--mocha) 70%, var(--beige)),
+    0 2px 0 color-mix(in srgb, var(--mocha) 60%, var(--beige)),
+    0 3px 0 color-mix(in srgb, var(--mocha) 50%, var(--beige)),
+    0 4px 0 color-mix(in srgb, var(--mocha) 40%, var(--beige)),
+    0 10px 14px rgba(51, 41, 31, 0.28);
+  animation: hero-brand-in 0.9s cubic-bezier(0.2, 0.8, 0.2, 1.15) both;
+  animation-delay: calc(var(--i) * 70ms + 150ms);
+}
+
+.hero__brand-char--accent {
   color: var(--sage-dark);
+  font-style: italic;
+  text-shadow:
+    0 1px 0 color-mix(in srgb, var(--sage-dark) 70%, var(--beige)),
+    0 2px 0 color-mix(in srgb, var(--sage-dark) 55%, var(--beige)),
+    0 3px 0 color-mix(in srgb, var(--sage-dark) 40%, var(--beige)),
+    0 10px 14px rgba(51, 59, 36, 0.3);
+}
+
+/* Reflejo de luz que recorre las letras cada tantos segundos (el "glow"). */
+.hero__brand-char::after {
+  content: attr(data-char);
+  position: absolute;
+  inset: 0;
+  color: transparent;
+  text-shadow: none;
+  background: linear-gradient(105deg, transparent 35%, rgba(255, 250, 240, 0.85) 50%, transparent 65%);
+  background-size: 300% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  pointer-events: none;
+  animation: hero-brand-shine 6s ease-in-out infinite;
+  animation-delay: calc(var(--i) * 60ms + 1.8s);
+}
+
+@keyframes hero-brand-in {
+  from {
+    opacity: 0;
+    transform: translateZ(-160px) translateY(0.4em) rotateX(-95deg);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+@keyframes hero-brand-float {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -4px;
+  }
+}
+
+@keyframes hero-brand-shine {
+  0%,
+  60% {
+    background-position: 100% 0;
+  }
+  85%,
+  100% {
+    background-position: 0% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__brand-3d,
+  .hero__brand-char,
+  .hero__brand-char::after {
+    animation: none;
+  }
+
+  .hero__brand-3d {
+    transform: none;
+  }
 }
 
 .hero__frame {
