@@ -9,6 +9,26 @@
   border-bottom: 1px solid color-mix(in srgb, var(--sage-dark) 40%, transparent);
   padding-block: clamp(1.4rem, 3vw, 2.2rem);
   margin-bottom: clamp(2.2rem, 5vw, 3rem);
+  /* Degradé suave con la paleta (salvia → beige → blush) que se desplaza lento. */
+  background: linear-gradient(
+    100deg,
+    color-mix(in srgb, var(--sage) 45%, var(--cream)) 0%,
+    color-mix(in srgb, var(--beige) 55%, var(--cream)) 30%,
+    color-mix(in srgb, var(--blush) 50%, var(--cream)) 55%,
+    color-mix(in srgb, var(--beige) 55%, var(--cream)) 78%,
+    color-mix(in srgb, var(--sage) 45%, var(--cream)) 100%
+  );
+  background-size: 200% 100%;
+  animation: hero-brandbar-drift 16s ease-in-out infinite alternate;
+}
+
+@keyframes hero-brandbar-drift {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 100% 50%;
+  }
 }
 
 .hero__brand {
@@ -113,6 +133,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .hero__brandbar,
   .hero__brand-3d,
   .hero__brand-char,
   .hero__brand-char::after {
