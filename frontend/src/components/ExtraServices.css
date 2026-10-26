@@ -34,45 +34,6 @@
   color: #b3543f;
 }
 
-.xs__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1rem;
-}
-
-.xs-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-  padding: 1.3rem;
-  border-radius: 22px;
-  background: var(--surface);
-  border: 1px solid color-mix(in srgb, var(--taupe) 22%, transparent);
-  box-shadow: 0 1px 2px rgba(51, 41, 31, 0.05), 0 14px 32px -26px rgba(51, 41, 31, 0.45);
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-}
-
-.xs-card:hover {
-  transform: translateY(-4px);
-  border-color: color-mix(in srgb, var(--mocha) 30%, transparent);
-  box-shadow: 0 1px 2px rgba(51, 41, 31, 0.05), 0 22px 40px -26px rgba(51, 41, 31, 0.55);
-}
-
-.xs-card--owned {
-  background:
-    radial-gradient(90% 80% at 100% 0%, color-mix(in srgb, var(--sage) 22%, transparent), transparent 65%),
-    var(--surface);
-  border-color: color-mix(in srgb, var(--sage) 45%, transparent);
-}
-
-.xs-card__top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.6rem;
-  margin-bottom: 0.3rem;
-}
-
 .xs-card__icon {
   display: inline-flex;
   align-items: center;
@@ -89,54 +50,259 @@
   height: 24px;
 }
 
-.xs-card__price {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  font-family: var(--font-serif);
-  font-size: 1.25rem;
-  color: var(--mocha-deep);
-  line-height: 1.1;
+/* Panel con categorías: pestañas + oferta a la izquierda, lista de la categoría a la derecha. */
+.xs-panel {
+  display: grid;
+  grid-template-columns: minmax(230px, 290px) minmax(0, 1fr);
+  border-radius: 28px;
+  background: var(--surface);
+  border: 1px solid color-mix(in srgb, var(--taupe) 22%, transparent);
+  box-shadow: 0 1px 2px rgba(51, 41, 31, 0.05), 0 24px 48px -36px rgba(51, 41, 31, 0.5);
+  overflow: hidden;
 }
 
-.xs-card__price small {
-  font-family: var(--font-sans);
-  font-size: 0.66rem;
+.xs-panel__side {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 1.4rem;
+  background:
+    radial-gradient(120% 70% at 0% 100%, color-mix(in srgb, var(--blush) 45%, transparent), transparent 70%),
+    color-mix(in srgb, var(--beige) 40%, var(--cream));
+}
+
+.xs-panel__tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.xs-tab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding: 0.8rem 1rem;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  font-family: inherit;
+  text-align: left;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.xs-tab:hover {
+  background: color-mix(in srgb, var(--surface) 55%, transparent);
+  color: var(--ink);
+}
+
+.xs-tab.is-active {
+  background: var(--surface);
+  color: var(--mocha-deep);
+  box-shadow: 0 8px 18px -14px rgba(51, 41, 31, 0.6);
+}
+
+.xs-tab__title {
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.xs-tab__count {
+  flex-shrink: 0;
+  min-width: 1.6rem;
+  padding: 0.15em 0.5em;
+  border-radius: 100px;
+  background: color-mix(in srgb, var(--taupe) 18%, transparent);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.xs-tab.is-active .xs-tab__count {
+  background: var(--mocha-deep);
+  color: var(--cream);
+}
+
+.xs-panel__offer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 1.1rem;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+}
+
+.xs-panel__from,
+.xs-panel__each {
+  font-size: 0.7rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--taupe);
 }
 
-.xs-card__badge--owned {
-  padding: 0.3em 0.75em;
-  border-radius: 100px;
-  background: color-mix(in srgb, var(--sage) 30%, var(--surface));
-  color: var(--sage-dark);
-  font-size: 0.7rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+.xs-panel__price {
+  font-family: var(--font-serif);
+  font-size: 2.1rem;
+  line-height: 1.1;
+  color: var(--mocha-deep);
 }
 
-.xs-card__name {
-  font-family: var(--font-sans);
-  font-size: 1rem;
+.xs-panel__offer .xs-btn {
+  margin-top: 0.9rem;
+}
+
+.xs-panel__main {
+  padding: clamp(1.4rem, 3vw, 2.2rem);
+  animation: xs-fade 0.35s ease;
+}
+
+@keyframes xs-fade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.xs-panel__head {
+  margin-bottom: 1rem;
+}
+
+.xs-panel__head h3 {
+  font-family: var(--font-serif);
+  font-size: clamp(1.4rem, 2.6vw, 1.8rem);
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.xs-panel__head p {
+  margin-top: 0.25rem;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.xs-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.xs-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-top: 1px solid color-mix(in srgb, var(--taupe) 18%, transparent);
+}
+
+.xs-row:first-child {
+  border-top: 0;
+}
+
+.xs-row__name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.98rem;
   font-weight: 800;
-  letter-spacing: 0;
   line-height: 1.3;
   color: var(--ink);
 }
 
-.xs-card__desc {
-  flex: 1;
+.xs-row__desc {
+  margin-top: 0.2rem;
   font-size: 0.85rem;
   line-height: 1.5;
   color: var(--ink-soft);
 }
 
-.xs-card__action {
-  margin-top: 0.5rem;
+.xs-row__badge {
+  padding: 0.25em 0.7em;
+  border-radius: 100px;
+  background: color-mix(in srgb, var(--sage) 30%, var(--surface));
+  color: var(--sage-dark);
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.xs-row__price {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  color: var(--mocha-deep);
+  white-space: nowrap;
+}
+
+.xs-row__action {
+  min-width: 150px;
+  text-align: right;
+}
+
+@media (max-width: 760px) {
+  .xs-panel {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .xs-panel__side {
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .xs-panel__tabs {
+    flex-direction: row;
+    overflow-x: auto;
+    margin-inline: -1rem;
+    padding-inline: 1rem;
+    scrollbar-width: none;
+  }
+
+  .xs-tab {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .xs-panel__offer {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: baseline;
+    column-gap: 0.6rem;
+  }
+
+  .xs-panel__from {
+    grid-column: 1 / -1;
+  }
+
+  .xs-panel__price {
+    font-size: 1.7rem;
+  }
+
+  .xs-panel__offer .xs-btn {
+    grid-column: 1 / -1;
+  }
+
+  .xs-row {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .xs-row__action {
+    grid-column: 2;
+    min-width: 0;
+    text-align: left;
+  }
+
+  .xs-row__action .xs-btn,
+  .xs-row__action .xs-soon {
+    width: auto;
+    padding-inline: 1.4em;
+  }
 }
 
 .xs-btn {

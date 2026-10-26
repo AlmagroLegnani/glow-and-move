@@ -20,3 +20,21 @@ export const DEFAULT_SERVICE_ICON = 'M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4
 export function serviceIcon(slug) {
   return SERVICE_ICONS[slug] || DEFAULT_SERVICE_ICON;
 }
+
+// Agrupación de los servicios en el home. Los slugs que no figuran caen en "otros".
+export const SERVICE_CATEGORIES = [
+  { key: 'alivio', slugs: ['antimigrana', 'tension-muscular', 'bruxismo', 'higiene-columna'] },
+  { key: 'movilidad', slugs: ['flexibilidad', 'movilidad-articular', 'hiperlaxitud'] },
+  { key: 'contexto', slugs: ['en-casa', 'trabajo', 'en-equipo'] },
+  { key: 'adaptadas', slugs: ['adulto-mayor', 'autismo'] },
+];
+
+export function groupServices(services) {
+  const groups = SERVICE_CATEGORIES.map((cat) => ({
+    key: cat.key,
+    services: cat.slugs.map((slug) => services.find((s) => s.slug === slug)).filter(Boolean),
+  }));
+  const known = new Set(SERVICE_CATEGORIES.flatMap((cat) => cat.slugs));
+  groups.push({ key: 'otros', services: services.filter((s) => !known.has(s.slug)) });
+  return groups.filter((g) => g.services.length > 0);
+}
