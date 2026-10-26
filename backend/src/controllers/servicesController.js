@@ -122,7 +122,6 @@ async function getService(req, res) {
 async function checkoutService(req, res) {
   const service = await prisma.extraService.findUnique({ where: { slug: req.params.slug }, include: contentInclude });
   if (!service || !service.isActive) return res.status(404).json({ error: 'Servicio no encontrado' });
-  if (!hasContent(service)) return res.status(400).json({ error: 'Este servicio todavía no está disponible', code: 'NO_CONTENT' });
 
   const access = await planAccess(req.userId);
   if (!access.canBuy) {

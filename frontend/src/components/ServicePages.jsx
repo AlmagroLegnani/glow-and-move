@@ -57,7 +57,7 @@ export function MyServicesPage() {
   }
 
   const owned = data?.services.filter((s) => s.owned) || [];
-  const available = data?.services.filter((s) => !s.owned && s.hasContent) || [];
+  const available = data?.services.filter((s) => !s.owned) || [];
 
   return (
     <AccountShell active="servicios">

@@ -64,9 +64,6 @@ export default function ExtraServices() {
         </a>
       );
     }
-    if (!service.hasContent) {
-      return <span className="xs-soon">{t('services.soon')}</span>;
-    }
     if (!canBuy) {
       return <span className="xs-row__price">U$S {service.priceUsd.toFixed(2)}</span>;
     }
