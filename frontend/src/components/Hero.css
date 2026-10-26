@@ -12,11 +12,11 @@
   /* Degradé suave con la paleta (salvia → beige → blush) que se desplaza lento. */
   background: linear-gradient(
     100deg,
-    color-mix(in srgb, var(--sage) 45%, var(--cream)) 0%,
-    color-mix(in srgb, var(--beige) 55%, var(--cream)) 30%,
-    color-mix(in srgb, var(--blush) 50%, var(--cream)) 55%,
-    color-mix(in srgb, var(--beige) 55%, var(--cream)) 78%,
-    color-mix(in srgb, var(--sage) 45%, var(--cream)) 100%
+    color-mix(in srgb, var(--sage) 90%, var(--cream)) 0%,
+    var(--beige) 30%,
+    var(--blush) 55%,
+    var(--beige) 78%,
+    color-mix(in srgb, var(--sage) 90%, var(--cream)) 100%
   );
   background-size: 200% 100%;
   animation: hero-brandbar-drift 16s ease-in-out infinite alternate;
