@@ -142,7 +142,7 @@ export default function Navbar() {
                   handleProfileClick();
                 }}
               >
-                {t('nav.configureProfile')}
+                {user ? t('nav.configureProfile') : t('auth.loginTitle')}
               </button>
               {user && (
                 <button
