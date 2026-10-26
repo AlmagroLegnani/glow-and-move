@@ -17,9 +17,9 @@
   height: 58px;
   border: none;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--mocha), var(--mocha-deep));
-  color: var(--cream);
-  box-shadow: 0 16px 32px -14px rgba(51, 41, 31, 0.7);
+  background: linear-gradient(135deg, var(--sage), var(--sage-dark));
+  color: #fff;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--surface) 85%, transparent), 0 16px 32px -14px rgba(51, 59, 36, 0.75);
   cursor: pointer;
   transition: transform 0.25s ease, filter 0.25s ease;
 }
