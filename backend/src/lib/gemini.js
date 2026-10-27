@@ -1,7 +1,7 @@
 // Cliente mínimo de la API de Gemini (endpoint generateContent). Sin SDK para no sumar
 // dependencias: es un solo POST. El modelo se puede cambiar con GEMINI_MODEL sin tocar código.
 const DEFAULT_MODEL = 'gemini-3.8-flash';
-const TIMEOUT_MS = 30000;
+const TIMEOUT_MS = 45000;
 
 function notConfigured() {
   const err = new Error('El asistente todavía no está configurado (falta GEMINI_API_KEY)');
@@ -32,6 +32,8 @@ async function generateReply({ systemPrompt, history }) {
           role: m.role === 'assistant' ? 'model' : 'user',
           parts: [{ text: m.text }],
         })),
+        // Respuestas cortas de chat: con razonamiento mínimo el modelo contesta en segundos.
+        generationConfig: { thinkingConfig: { thinkingLevel: 'low' } },
       }),
     });
   } catch (err) {
