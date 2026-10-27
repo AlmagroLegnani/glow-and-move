@@ -125,7 +125,13 @@ async function chat(req, res) {
       return res.status(503).json({ error: err.message, code: 'NOT_CONFIGURED' });
     }
     console.error('Error del asistente IA', err);
-    res.status(502).json({ error: 'El asistente no pudo responder ahora. Probá de nuevo en un rato.', code: 'UNAVAILABLE' });
+    // reason/upstreamStatus sirven para diagnosticar sin acceso a los logs; no exponen datos sensibles.
+    res.status(502).json({
+      error: 'El asistente no pudo responder ahora. Probá de nuevo en un rato.',
+      code: 'UNAVAILABLE',
+      reason: err.code || 'UNKNOWN',
+      upstreamStatus: err.status,
+    });
   }
 }
 

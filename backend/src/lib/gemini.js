@@ -46,6 +46,7 @@ async function generateReply({ systemPrompt, history }) {
   if (!res.ok) {
     const e = new Error(`Gemini respondió ${res.status}: ${data?.error?.message || 'error desconocido'}`);
     e.code = res.status === 429 ? 'GEMINI_RATE_LIMITED' : 'GEMINI_ERROR';
+    e.status = res.status;
     throw e;
   }
 
