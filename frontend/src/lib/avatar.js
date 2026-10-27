@@ -1,9 +1,15 @@
 import { useEffect, useState } from 'react';
 
-// Avatares ilustrados de la galería (DiceBear, estilos con licencia CC0). Se generan en el
-// navegador a partir de una semilla, así que en la base sólo se guarda "preset:estilo:semilla".
-// Las librerías pesan ~700 KB, así que se cargan aparte (import dinámico) sólo cuando hace
-// falta dibujar un avatar de la galería: la landing para visitantes no las descarga.
+// Avatares de la galería: ilustraciones propias en el estilo de la mascota
+// (src/assets/avatars/glow-NN.webp). En la base sólo se guarda "preset:glow:NN".
+const GLOW_AVATARS = Object.fromEntries(
+  Object.entries(import.meta.glob('../assets/avatars/glow-*.webp', { eager: true, import: 'default' })).map(
+    ([path, url]) => [path.match(/glow-(\d+)\.webp$/)[1], url]
+  )
+);
+
+// Estilos DiceBear de la galería anterior: ya no se ofrecen, pero se siguen dibujando para
+// quien los eligió. Pesan ~700 KB, así que se cargan aparte sólo cuando hace falta.
 const STYLE_LOADERS = {
   lorelei: () => import('@dicebear/lorelei'),
   notionists: () => import('@dicebear/notionists'),
@@ -12,26 +18,16 @@ const STYLE_LOADERS = {
 // Fondos en la paleta de la marca: cream, beige, blush, sage.
 const BACKGROUNDS = ['f0e6da', 'dcc7a8', 'ddaaa0', 'a3a884'];
 
-export const AVATAR_PRESETS = [
-  'lorelei:luna',
-  'lorelei:alma',
-  'lorelei:vera',
-  'lorelei:gala',
-  'lorelei:iris',
-  'lorelei:maia',
-  'lorelei:bruno',
-  'lorelei:teo',
-  'notionists:sol',
-  'notionists:mar',
-  'notionists:leo',
-  'notionists:nina',
-].map((id) => `preset:${id}`);
+export const AVATAR_PRESETS = Object.keys(GLOW_AVATARS)
+  .sort()
+  .map((n) => `preset:glow:${n}`);
 
 const cache = new Map();
 
 function loadPreset(value) {
   if (cache.has(value)) return cache.get(value);
   const [, styleName, seed] = value.split(':');
+  if (styleName === 'glow') return Promise.resolve(GLOW_AVATARS[seed] || null);
   const loadStyle = STYLE_LOADERS[styleName];
   if (!loadStyle) return Promise.resolve(null);
   const promise = Promise.all([import('@dicebear/core'), loadStyle()]).then(([{ createAvatar }, style]) =>
@@ -45,7 +41,7 @@ function loadPreset(value) {
 // cuando termina de generarse, o null si corresponde la inicial (o mientras carga).
 export function useAvatarSrc(avatarUrl) {
   const isPhoto = !!avatarUrl && avatarUrl.startsWith('data:image/');
-  const isPreset = !!avatarUrl && avatarUrl.startsWith('preset:');
+  const isPreset = !!avatarUrl && avatarUrl.startsWith('preset:') && !avatarUrl.startsWith('preset:glow:');
   const [presetSrc, setPresetSrc] = useState(null);
 
   useEffect(() => {
@@ -58,6 +54,7 @@ export function useAvatarSrc(avatarUrl) {
   }, [avatarUrl, isPreset]);
 
   if (isPhoto) return avatarUrl;
+  if (avatarUrl?.startsWith('preset:glow:')) return GLOW_AVATARS[avatarUrl.slice(12)] || null;
   if (isPreset && presetSrc?.for === avatarUrl) return presetSrc.uri;
   return null;
 }

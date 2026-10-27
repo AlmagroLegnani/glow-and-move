@@ -177,7 +177,7 @@ async function logWeight(req, res) {
 // Las fotos llegan ya recortadas y comprimidas por el navegador (~20-60 KB). El tope evita
 // que alguien guarde imágenes enormes en la base.
 const MAX_AVATAR_DATA_URL = 400 * 1024;
-const PRESET_AVATAR = /^preset:(lorelei|notionists):[a-z0-9-]{1,40}$/;
+const PRESET_AVATAR = /^preset:(glow|lorelei|notionists):[a-z0-9-]{1,40}$/;
 const PHOTO_AVATAR = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/;
 
 async function updateAvatar(req, res) {
