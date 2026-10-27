@@ -29,10 +29,8 @@ const BUILT_HREFS = new Set(['#planes', '#contacto', '#servicios']);
 export default function Navbar() {
   const { user, loading } = useAuth();
   const { t, lang, setLang } = useI18n();
-  const tickerMessages = t('nav.ticker');
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [tickerIndex, setTickerIndex] = useState(0);
   const [toast, setToast] = useState('');
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [trialModalOpen, setTrialModalOpen] = useState(false);
@@ -46,13 +44,6 @@ export default function Navbar() {
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      setTickerIndex((i) => (i + 1) % 3);
-    }, 4000);
-    return () => clearInterval(id);
   }, []);
 
   useEffect(() => {
@@ -198,12 +189,6 @@ export default function Navbar() {
           <span />
           <span />
         </button>
-      </div>
-
-      <div className="navbar__ticker" aria-live="polite">
-        <span key={tickerIndex} className="navbar__ticker-text">
-          {tickerMessages[tickerIndex % tickerMessages.length]}
-        </span>
       </div>
 
       <nav className={`navbar__menu ${menuOpen ? 'navbar__menu--open' : ''}`}>

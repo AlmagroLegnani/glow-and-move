@@ -20,7 +20,6 @@ export default {
     emailPlaceholder: 'voce@email.com',
   },
   nav: {
-    ticker: ['Teste grátis de 7 dias, plano Full sem anúncios', 'Treinos novos toda semana', 'Treine onde estiver, no seu ritmo'],
     menu: {
       a: 'Entrar',
       b: 'Teste grátis sem anúncios',

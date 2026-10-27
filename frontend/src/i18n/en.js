@@ -20,7 +20,6 @@ export default {
     emailPlaceholder: 'you@email.com',
   },
   nav: {
-    ticker: ['7-day free trial, ad-free Full plan', 'New routines every week', 'Train wherever you are, at your own pace'],
     menu: {
       a: 'Log in',
       b: 'Ad-free free trial',

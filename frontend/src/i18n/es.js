@@ -22,7 +22,6 @@ export default {
     emailPlaceholder: 'tu@email.com',
   },
   nav: {
-    ticker: ['Prueba gratis 7 días, plan Full sin anuncios', 'Rutinas nuevas cada semana', 'Entrená donde estés, a tu ritmo'],
     menu: {
       a: 'Iniciar sesión',
       b: 'Prueba gratis sin anuncios',
