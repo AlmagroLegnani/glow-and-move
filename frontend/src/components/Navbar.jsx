@@ -114,12 +114,6 @@ export default function Navbar() {
 
   return (
     <header className={`navbar ${scrolled ? 'navbar--scrolled' : ''}`}>
-      <div className="navbar__ticker" aria-live="polite">
-        <span key={tickerIndex} className="navbar__ticker-text">
-          {tickerMessages[tickerIndex % tickerMessages.length]}
-        </span>
-      </div>
-
       <div className="navbar__inner container">
         <div className="navbar__logo-wrap" ref={logoMenuRef}>
           <button
@@ -204,6 +198,12 @@ export default function Navbar() {
           <span />
           <span />
         </button>
+      </div>
+
+      <div className="navbar__ticker" aria-live="polite">
+        <span key={tickerIndex} className="navbar__ticker-text">
+          {tickerMessages[tickerIndex % tickerMessages.length]}
+        </span>
       </div>
 
       <nav className={`navbar__menu ${menuOpen ? 'navbar__menu--open' : ''}`}>
