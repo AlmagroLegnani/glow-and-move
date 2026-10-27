@@ -131,6 +131,7 @@ async function chat(req, res) {
       code: 'UNAVAILABLE',
       reason: err.code || 'UNKNOWN',
       upstreamStatus: err.status,
+      tried: err.tried,
     });
   }
 }

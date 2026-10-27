@@ -126,6 +126,7 @@ async function generateReply({ systemPrompt, history }) {
     (await attempt(modelChain())) ||
     (await attempt((await discoverFlashModels(apiKey)).filter((m) => !tried.has(m)).slice(0, MAX_DISCOVERED)));
   if (reply) return reply;
+  lastError.tried = [...tried];
   throw lastError;
 }
 
