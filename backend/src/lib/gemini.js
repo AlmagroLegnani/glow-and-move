@@ -2,8 +2,10 @@
 // dependencias: es un solo POST. El modelo se puede cambiar con GEMINI_MODEL sin tocar código.
 const DEFAULT_MODEL = 'gemini-3.8-flash';
 // Si el modelo principal está saturado (503/429), no existe o tarda demasiado, se prueba con
-// estos en orden. Se pueden cambiar con GEMINI_FALLBACK_MODELS (separados por coma).
-const DEFAULT_FALLBACK_MODELS = ['gemini-flash-latest', 'gemini-2.5-flash'];
+// los de GEMINI_FALLBACK_MODELS (separados por coma) y, si tampoco andan, con los modelos
+// "flash" que la propia API informa como disponibles para esta clave.
+const DEFAULT_FALLBACK_MODELS = [];
+const MAX_DISCOVERED = 3;
 const TIMEOUT_MS = 20000;
 const RETRYABLE_STATUS = new Set([404, 429, 500, 503, 504]);
 
@@ -19,6 +21,29 @@ function modelChain() {
     ? process.env.GEMINI_FALLBACK_MODELS.split(',').map((m) => m.trim()).filter(Boolean)
     : DEFAULT_FALLBACK_MODELS;
   return [primary, ...fallbacks.filter((m) => m !== primary)];
+}
+
+// Lista de modelos flash con generateContent disponibles para la clave, del más nuevo al más
+// viejo. Se cachea en memoria para no consultarla en cada mensaje.
+let discovered = null;
+async function discoverFlashModels(apiKey) {
+  if (discovered) return discovered;
+  try {
+    const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200', {
+      headers: { 'x-goog-api-key': apiKey },
+      signal: AbortSignal.timeout(8000),
+    });
+    const data = await res.json();
+    discovered = (data.models || [])
+      .filter((m) => m.supportedGenerationMethods?.includes('generateContent'))
+      .map((m) => m.name.replace(/^models\//, ''))
+      .filter((name) => /flash/.test(name) && !/(image|tts|audio|live|embedding|lite)/.test(name))
+      .sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
+  } catch (err) {
+    console.warn('Asistente IA: no se pudo listar los modelos de Gemini.', err.message);
+    return [];
+  }
+  return discovered;
 }
 
 async function callModel({ apiKey, model, systemPrompt, history }) {
@@ -80,16 +105,27 @@ async function generateReply({ systemPrompt, history }) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw notConfigured();
 
+  const tried = new Set();
   let lastError;
-  for (const model of modelChain()) {
-    try {
-      return await callModel({ apiKey, model, systemPrompt, history });
-    } catch (err) {
-      lastError = err;
-      if (!err.retryable) throw err;
-      console.warn(`Asistente IA: falló ${model}, probando el siguiente modelo.`, err.message);
+  async function attempt(models) {
+    for (const model of models) {
+      if (tried.has(model)) continue;
+      tried.add(model);
+      try {
+        return await callModel({ apiKey, model, systemPrompt, history });
+      } catch (err) {
+        lastError = err;
+        if (!err.retryable) throw err;
+        console.warn(`Asistente IA: falló ${model}, probando el siguiente modelo.`, err.message);
+      }
     }
+    return null;
   }
+
+  const reply =
+    (await attempt(modelChain())) ||
+    (await attempt((await discoverFlashModels(apiKey)).filter((m) => !tried.has(m)).slice(0, MAX_DISCOVERED)));
+  if (reply) return reply;
   throw lastError;
 }
 
