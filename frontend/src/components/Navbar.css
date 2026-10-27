@@ -4,13 +4,10 @@
   top: 0;
   z-index: 50;
   border-bottom: 1px solid transparent;
-  /* Verde de la paleta (el mismo de la burbuja del asistente), a todo el ancho. */
-  background: linear-gradient(
-    100deg,
-    color-mix(in srgb, var(--sage) 82%, var(--cream)),
-    var(--sage) 55%,
-    color-mix(in srgb, var(--sage) 75%, var(--sage-dark))
-  );
+  /* Mismo degradé de marca que el banner del título. */
+  background: var(--palette-gradient);
+  background-size: 200% 100%;
+  animation: palette-drift 16s ease-in-out infinite alternate;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
