@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useI18n } from '../i18n/I18nContext.jsx';
 import { api } from '../lib/api.js';
 import { serviceIcon } from '../lib/serviceIcons.js';
+import { localizeService } from '../lib/serviceText.js';
 import { youtubeThumbnail } from '../lib/youtube.js';
 import AccountShell from './AccountShell.jsx';
 import './Modal.css';
@@ -23,7 +24,7 @@ function ServiceIcon({ slug, size = 24 }) {
 
 export function MyServicesPage() {
   const { user, token, loading } = useAuth();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
 
@@ -56,8 +57,9 @@ export function MyServicesPage() {
     );
   }
 
-  const owned = data?.services.filter((s) => s.owned) || [];
-  const available = data?.services.filter((s) => !s.owned) || [];
+  const services = data?.services.map((s) => localizeService(s, lang)) || [];
+  const owned = services.filter((s) => s.owned);
+  const available = services.filter((s) => !s.owned);
 
   return (
     <AccountShell active="servicios">
@@ -119,7 +121,7 @@ export function MyServicesPage() {
 
 export function ServicePage({ slug }) {
   const { user, token, loading } = useAuth();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [state, setState] = useState({ status: 'loading', service: null, error: '' });
   const [buying, setBuying] = useState(false);
   const [buyError, setBuyError] = useState('');
@@ -182,7 +184,7 @@ export function ServicePage({ slug }) {
     );
   }
 
-  const { service } = state;
+  const service = localizeService(state.service, lang);
 
   const hero = (
     <section className="svc-hero">

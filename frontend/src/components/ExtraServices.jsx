@@ -4,14 +4,9 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useI18n } from '../i18n/I18nContext.jsx';
 import { api } from '../lib/api.js';
 import { groupServices, serviceIcon } from '../lib/serviceIcons.js';
+import { localizeService } from '../lib/serviceText.js';
 import AuthModal from './AuthModal.jsx';
 import './ExtraServices.css';
-
-// "Rutina en casa" → "En casa": dentro de una categoría el prefijo sobra.
-function shortName(name) {
-  const rest = name.replace(/^rutina\s+/i, '');
-  return rest.charAt(0).toUpperCase() + rest.slice(1);
-}
 
 // Sección "Servicios complementarios" del home: rutinas específicas que se suman a cualquier
 // plan pago con un pago único. Se muestran agrupadas por categoría, una categoría a la vez.
@@ -19,7 +14,7 @@ export default function ExtraServices() {
   const revealIntro = useReveal();
   const revealPanel = useReveal();
   const { user, token } = useAuth();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
   const [buying, setBuying] = useState(null);
@@ -40,7 +35,10 @@ export default function ExtraServices() {
     return () => clearTimeout(id);
   }, [toast]);
 
-  const groups = useMemo(() => (data ? groupServices(data.services) : []), [data]);
+  const groups = useMemo(
+    () => (data ? groupServices(data.services.map((s) => localizeService(s, lang))) : []),
+    [data, lang]
+  );
   const current = groups.find((g) => g.key === active) || groups[0];
   const minPrice = data?.services.length ? Math.min(...data.services.map((s) => s.priceUsd)) : 0;
   const canBuy = data && !data.reason;
@@ -147,7 +145,7 @@ export default function ExtraServices() {
                     </span>
                     <div className="xs-row__body">
                       <h4 className="xs-row__name">
-                        {shortName(service.name)}
+                        {service.shortName}
                         {service.owned && <span className="xs-row__badge">{t('services.owned')}</span>}
                       </h4>
                       <p className="xs-row__desc">{service.description}</p>
