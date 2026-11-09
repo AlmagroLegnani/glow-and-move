@@ -9,15 +9,6 @@
   --sage-dark: #7d8264;
   --blush: #ddaaa0;
 
-  /* Degradé de marca (salvia → beige → blush) para el nav y el banner del título. */
-  --palette-gradient: linear-gradient(
-    100deg,
-    color-mix(in srgb, var(--sage) 90%, var(--cream)) 0%,
-    var(--beige) 30%,
-    var(--blush) 55%,
-    var(--beige) 78%,
-    color-mix(in srgb, var(--sage) 90%, var(--cream)) 100%
-  );
 
   --ink: #33291f;
   --ink-soft: #6b5f52;
@@ -208,12 +199,3 @@ button {
   color: var(--cream);
 }
 
-/* Desplazamiento lento del degradé de marca; nav y banner usan la misma duración para ir a la par. */
-@keyframes palette-drift {
-  from {
-    background-position: 0% 50%;
-  }
-  to {
-    background-position: 100% 50%;
-  }
-}

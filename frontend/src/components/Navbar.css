@@ -4,16 +4,12 @@
   top: 0;
   z-index: 50;
   border-bottom: 1px solid transparent;
-  /* Mismo degradé de marca que el banner del título. */
-  background: var(--palette-gradient);
-  background-size: 200% 100%;
-  animation: palette-drift 16s ease-in-out infinite alternate;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .navbar--scrolled {
-  border-bottom-color: color-mix(in srgb, var(--sage-dark) 60%, transparent);
-  box-shadow: 0 6px 18px -10px rgba(51, 59, 36, 0.45);
+  border-bottom-color: color-mix(in srgb, var(--ink) 10%, transparent);
+  box-shadow: 0 1px 3px rgba(51, 41, 31, 0.06);
 }
 
 .navbar__logo-wrap {
@@ -95,7 +91,10 @@
   display: flex;
   align-items: center;
   gap: 1.5rem;
-  padding-block: 0.6rem;
+  padding-block: 1rem;
+  background: color-mix(in srgb, var(--cream) 92%, transparent);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
 }
 
 .navbar__profile {
@@ -146,7 +145,7 @@
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.04em;
-  color: var(--ink);
+  color: var(--ink-soft);
   cursor: pointer;
   transition: background 0.18s ease, color 0.18s ease;
 }
