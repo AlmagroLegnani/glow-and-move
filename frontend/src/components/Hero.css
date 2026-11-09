@@ -1,5 +1,5 @@
 .hero {
-  padding-top: clamp(4.75rem, 8.5vw, 6.75rem);
+  padding-top: clamp(5.9rem, 8.5vw, 6.75rem);
   padding-bottom: clamp(2.5rem, 6vw, 4rem);
   background: var(--cream);
 }
